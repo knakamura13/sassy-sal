@@ -46,7 +46,7 @@
   }
 </script>
 
-<div class="gallery-container">
+<div class="gallery-container py-6">
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
     {#each images as image (image.id)}
       <ImageCard 
@@ -78,9 +78,3 @@
     </div>
   {/if}
 </div>
-
-<style lang="scss">
-  .gallery-container {
-    @apply py-6;
-  }
-</style> 

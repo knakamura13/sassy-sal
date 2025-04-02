@@ -1,13 +1,12 @@
 <script lang="ts">
   import Gallery from '$lib/components/gallery/Gallery.svelte';
-  import { adminMode } from '$lib/stores/adminStore';
 </script>
 
 <svelte:head>
     <title>Photography Portfolio</title>
 </svelte:head>
 
-<div class="page" id="home">
+<div class="page relative min-h-[100vh]" id="home">
     <section class="intro text-center my-8">
         <h1 class="text-3xl font-medium">Photography Portfolio</h1>
         <p class="text-lg text-gray-600 mt-2">A collection of beautiful photographs</p>
@@ -19,11 +18,6 @@
 </div>
 
 <style lang="scss">
-  .page {
-    min-height: 100vh;
-    position: relative;
-  }
-
   /* Global styles - these will affect the app layout */
   :global(html, body) {
     height: 100%;

@@ -71,17 +71,20 @@
   }
 </script>
 
-<div class="upload-placeholder-wrapper !m-auto">
+<div class="upload-placeholder-wrapper aspect-square w-full relative !m-auto">
   <div 
-    class="upload-placeholder border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center w-full h-full"
+    class="upload-placeholder bg-gray-50 hover:bg-gray-100 absolute inset-0 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center w-full h-full"
     class:border-blue-400={!dragActive}
     class:border-blue-600={dragActive}
     class:bg-blue-50={dragActive}
     on:click={openFileDialog}
+    on:keydown={(e) => e.key === 'Enter' || e.key === ' ' ? openFileDialog() : null}
     on:dragenter={handleDragEnter}
     on:dragleave={handleDragLeave}
     on:dragover={handleDragOver}
     on:drop={handleDrop}
+    role="button"
+    tabindex="0"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -99,13 +102,3 @@
     />
   </div>
 </div>
-
-<style lang="scss">
-  .upload-placeholder-wrapper {
-    @apply aspect-square w-full relative;
-  }
-  
-  .upload-placeholder {
-    @apply bg-gray-50 hover:bg-gray-100 absolute inset-0;
-  }
-</style> 

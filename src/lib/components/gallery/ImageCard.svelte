@@ -12,8 +12,8 @@
   }
 </script>
 
-<div class="image-card-wrapper !m-auto">
-  <div class="image-card relative overflow-hidden rounded-lg shadow-md w-full h-full">
+<div class="image-card-wrapper aspect-square w-full relative !m-auto">
+  <div class="image-card transition-all duration-200 inset-0 relative overflow-hidden rounded-lg shadow-md w-full h-full hover:transform hover:scale-[1.01] cursor-pointer">
     <img 
       src={image.url} 
       alt={image.alt} 
@@ -28,8 +28,8 @@
     
     {#if isAdmin}
       <button 
-        class="absolute !m-0 top-2 right-2 bg-gray-600 bg-opacity-60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none"
-        on:click={handleRemove}
+        class="absolute !m-0 top-2 right-2 bg-gray-800 bg-opacity-0 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md"
+        on:click|stopPropagation={handleRemove}
         aria-label="Remove image"
       >
         ×
@@ -37,17 +37,3 @@
     {/if}
   </div> 
 </div>
-
-<style lang="scss">
-  .image-card-wrapper {
-    @apply aspect-square w-full relative;
-  }
-
-  .image-card {
-    @apply transition-all duration-200 absolute inset-0;
-    
-    &:hover {
-      @apply transform scale-[1.01];
-    }
-  }
-</style> 

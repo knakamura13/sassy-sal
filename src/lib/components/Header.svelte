@@ -27,6 +27,3 @@
         {/if}
     </div>
 </header>
-
-<style lang="scss">
-</style>
