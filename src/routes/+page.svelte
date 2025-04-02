@@ -16,12 +16,6 @@
     <div class="container mx-auto px-4">
         <Gallery />
     </div>
-
-    {#if $adminMode}
-        <div class="fixed bottom-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-full font-medium shadow-lg">
-            Admin Mode Active
-        </div>
-    {/if}
 </div>
 
 <style lang="scss">
