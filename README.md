@@ -4,10 +4,17 @@ A simple website builder for photographers, built with SvelteKit.
 
 ## Features
 
-- Home page with a grid of images
+- Responsive home page with categories and image galleries
+- Dynamic category pages with custom routing
+- Interactive image preview modal with keyboard navigation
+- Sticky header with smooth height transition on scroll
 - Admin mode for content management
-- Drag-and-drop image uploads
-- Simple authentication
+  - Secure authentication system
+  - Image uploading via drag-and-drop
+  - Category creation and management
+  - Image organization across categories
+- Accessibility optimized components
+- Modern UI with responsive design
 
 ## Prerequisites
 
@@ -17,9 +24,11 @@ A simple website builder for photographers, built with SvelteKit.
 ## What's included?
 
 - SvelteKit with Tailwind CSS
-- Image gallery with admin functionality
+- Category-based image organization
+- Image preview functionality
+- Admin panel with content management
+- Responsive layout with smooth transitions
 - Mock authentication system
-- Responsive design
 
 ## Getting started
 
