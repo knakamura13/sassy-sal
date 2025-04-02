@@ -14,6 +14,10 @@
   let localImages: Image[] = [];
   let isModified = false;
 
+  // Image preview state
+  let previewImage: Image | null = null;
+  let showPreview = false;
+
   // Subscribe to the image store and get updates if not in category mode
   onMount(() => {
     if (!isCategory) {
@@ -67,17 +71,42 @@
     localImages = [...localImages, ...newImages];
     isModified = true;
   }
+
+  // Function to handle image click for preview
+  function handleImageClick(image: Image) {
+    if (isCategory && !$adminMode) {
+      console.log('Image clicked');
+      previewImage = image;
+      showPreview = true;
+    }
+  }
+
+  // Function to close the preview
+  function closePreview() {
+    showPreview = false;
+    setTimeout(() => {
+      previewImage = null;
+    }, 300); // Wait for transition to complete
+  }
 </script>
 
 <div class="gallery-container py-6">
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
     {#each localImages as image (image.id)}
-      <ImageCard 
-        {image} 
-        {isCategory}
-        isAdmin={$adminMode} 
-        on:remove={() => handleRemoveImage(image.id)} 
-      />
+      <button 
+        type="button"
+        class="bg-transparent border-0 p-0 w-full text-left"
+        on:click={() => handleImageClick(image)}
+        on:keydown={e => e.key === 'Enter' && handleImageClick(image)}
+        aria-label={image.title || 'View image'}
+      >
+        <ImageCard 
+          {image} 
+          {isCategory}
+          isAdmin={$adminMode} 
+          on:remove={() => handleRemoveImage(image.id)} 
+        />
+      </button>
     {/each}
     
     {#if $adminMode}
@@ -99,6 +128,39 @@
       >
         Discard Changes
       </button>
+    </div>
+  {/if}
+
+  {#if showPreview && previewImage}
+    <!-- Image Preview Modal -->
+    <div 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300 {showPreview ? 'opacity-100' : 'opacity-0 pointer-events-none'}"
+      on:click={closePreview}
+    >
+      <div 
+        class="relative overflow-hidden rounded-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview ? 'scale-100' : 'scale-95'}"
+        on:click|stopPropagation={() => {}}
+      >
+        <img 
+          src={previewImage.url} 
+          alt={previewImage.alt || 'Image preview'} 
+          class="max-w-full max-h-[90vh] object-contain" 
+        />
+        
+        <button 
+          class="absolute top-4 right-4 bg-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold focus:outline-none shadow-lg hover:bg-gray-100"
+          on:click={closePreview}
+          aria-label="Close preview"
+        >
+          ×
+        </button>
+        
+        {#if previewImage.title}
+          <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-3 text-white">
+            <h3 class="text-lg font-medium">{previewImage.title}</h3>
+          </div>
+        {/if}
+      </div>
     </div>
   {/if}
 </div>
