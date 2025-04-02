@@ -1,19 +1,25 @@
-# SvelteKit Base Template
+# Photography Portfolio
 
-A starter template for SvelteKit projects, pre-packaged with Tailwind and Prettier.
+A simple website builder for photographers, built with SvelteKit.
+
+## Features
+
+- Home page with a grid of images
+- Admin mode for content management
+- Drag-and-drop image uploads
+- Simple authentication
+
+## Prerequisites
+
+- Node.js >= 20
+  - Command: `nvm install 20; nvm use 20`
 
 ## What's included?
 
-- Tailwind, made available globally with postcss
-- Prettier
-- Favicon
-- Sass (`.scss` syntax)
-- An example `<Header>` component with site logo and title
-- Adapter node for ease of remote deployment
-
-## Preview
-
-<img src="demo-screenshot-for-github.png" alt="Demo screenshot of the template running on localhost." width="600px" title="Demo screenshot">
+- SvelteKit with Tailwind CSS
+- Image gallery with admin functionality
+- Mock authentication system
+- Responsive design
 
 ## Getting started
 
@@ -29,8 +35,11 @@ Run the app in development mode:
 yarn run dev
 ```
 
-Or, run the app in production mode:
+Access the admin panel via `/admin` route (password: `admin123`).
 
-```
-yarn start
-```
+## Future Enhancements (Stage 2)
+
+- Backend integration for persistent storage
+- Image metadata editing
+- Multiple galleries/collections
+- User authentication improvements
