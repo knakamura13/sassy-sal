@@ -4,6 +4,7 @@
   
   export let image: Image;
   export let isAdmin: boolean = false;
+  export let isCategory: boolean = false;
   
   const dispatch = createEventDispatcher();
   
@@ -20,7 +21,7 @@
       class="w-full h-full object-cover" 
     />
     
-    {#if image.title}
+    {#if image.title && !isCategory}
       <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white">
         <h3 class="text-sm md:text-base font-medium">{image.title}</h3>
       </div>

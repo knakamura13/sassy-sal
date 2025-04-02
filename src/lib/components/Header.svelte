@@ -2,6 +2,7 @@
   import { adminMode } from '$lib/stores/adminStore';
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   
   let logoPath = '/icons/logo.svg'; // Start with SVG as default
   let fallbackPath = '/icons/logo.png'; // Fallback to PNG
@@ -22,6 +23,11 @@
   
   function handleLoad() {
     logoLoaded = true;
+  }
+  
+  function handleLogout() {
+    adminMode.logout();
+    goto('/');
   }
   
   // Preload both possible logo formats
@@ -52,7 +58,7 @@
 
 <header class="flex items-center justify-between h-16 px-4 md:px-6 bg-gray-800 text-white">
     <div class="flex gap-4 items-center">
-        <a href="/" class="flex gap-4 items-center cursor-pointer">
+        <a href={$adminMode ? '/?admin=true' : '/'} class="flex gap-4 items-center cursor-pointer">
             <!-- Fixed width container prevents layout shift -->
             <div class="h-6 w-6 flex items-center justify-center">
               {#if showLogo}
@@ -72,13 +78,13 @@
     
     <div class="flex items-center gap-4">
         {#if $adminMode}
-            <a 
-                href="/" 
+            <span class="text-sm text-green-400 mr-2">Admin Mode</span>
+            <button 
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
-                on:click|preventDefault={() => adminMode.logout()}
+                on:click={handleLogout}
             >
                 Logout
-            </a>
+            </button>
         {:else}
             <a 
                 href="/admin" 

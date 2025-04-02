@@ -7,7 +7,8 @@ function createAdminStore() {
   return {
     subscribe,
     login: () => set(true),
-    logout: () => set(false)
+    logout: () => set(false),
+    set
   };
 }
 

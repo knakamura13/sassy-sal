@@ -5,22 +5,38 @@
   import UploadPlaceholder from './UploadPlaceholder.svelte';
   import { onMount } from 'svelte';
 
+  // New props for category support
+  export let images: Image[] = [];
+  export let isCategory: boolean = false;
+  export let categoryId: string = '';
+
   // Local copy of images for editing in admin mode
-  let images: Image[] = [];
+  let localImages: Image[] = [];
   let isModified = false;
 
-  // Subscribe to the image store and get updates
+  // Subscribe to the image store and get updates if not in category mode
   onMount(() => {
-    const unsubscribe = imageStore.subscribe(value => {
-      images = value;
-    });
-
-    return unsubscribe;
+    if (!isCategory) {
+      const unsubscribe = imageStore.subscribe(value => {
+        localImages = value;
+      });
+      return unsubscribe;
+    } else {
+      // If in category mode, use the provided images
+      localImages = images;
+    }
   });
+
+  $: {
+    // Update local images when category images change
+    if (isCategory) {
+      localImages = images;
+    }
+  }
 
   // Function to handle saving changes
   function saveChanges() {
-    imageStore.set(images);
+    imageStore.set(localImages);
     isModified = false;
     // In a real application, this would send data to a server
     alert('Changes saved successfully (mock)');
@@ -35,22 +51,30 @@
 
   // Function to handle image removal
   function handleRemoveImage(id: string) {
-    images = images.filter(img => img.id !== id);
+    localImages = localImages.filter(img => img.id !== id);
     isModified = true;
   }
 
   // Function to handle new image addition
   function handleAddImages(newImages: Image[]) {
-    images = [...images, ...newImages];
+    // If in category mode, set the category ID for new images
+    if (isCategory && categoryId) {
+      newImages = newImages.map(img => ({
+        ...img,
+        categoryId
+      }));
+    }
+    localImages = [...localImages, ...newImages];
     isModified = true;
   }
 </script>
 
 <div class="gallery-container py-6">
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    {#each images as image (image.id)}
+    {#each localImages as image (image.id)}
       <ImageCard 
         {image} 
+        {isCategory}
         isAdmin={$adminMode} 
         on:remove={() => handleRemoveImage(image.id)} 
       />

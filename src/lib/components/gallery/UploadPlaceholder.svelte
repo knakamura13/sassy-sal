@@ -1,104 +1,106 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { generateId } from '$lib/utils/id';
+  import { v4 as uuidv4 } from 'uuid';
   import type { Image } from '$lib/stores/imageStore';
   
-  const dispatch = createEventDispatcher();
-  let dragActive = false;
-  let fileInput: HTMLInputElement;
+  // Add categoryId as a prop to support category galleries
+  export let categoryId: string = '';
   
-  // Handle file selection
-  function handleFileSelect(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target.files) {
-      processFiles(target.files);
-    }
+  const dispatch = createEventDispatcher<{addImages: Image[]}>();
+  
+  let showForm = false;
+  let imageTitle = '';
+  let imageAlt = '';
+  let imageUrl = '';
+  
+  function resetForm() {
+    showForm = false;
+    imageTitle = '';
+    imageAlt = '';
+    imageUrl = '';
   }
   
-  // Handle drag events
-  function handleDragEnter() {
-    dragActive = true;
-  }
-  
-  function handleDragLeave() {
-    dragActive = false;
-  }
-  
-  function handleDragOver(event: DragEvent) {
-    event.preventDefault();
-  }
-  
-  function handleDrop(event: DragEvent) {
-    event.preventDefault();
-    dragActive = false;
-    
-    if (event.dataTransfer?.files) {
-      processFiles(event.dataTransfer.files);
-    }
-  }
-  
-  // Process the selected files
-  function processFiles(files: FileList) {
-    const newImages: Image[] = [];
-    
-    // For each file, create a URL and add to images
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const url = URL.createObjectURL(file);
-        newImages.push({
-          id: generateId(),
-          url,
-          alt: file.name,
-          title: file.name.split('.')[0]
-        });
-      }
-    });
-    
-    if (newImages.length > 0) {
-      dispatch('addImages', newImages);
+  function handleSubmit() {
+    if (!imageUrl.trim()) {
+      alert('Please enter an image URL');
+      return;
     }
     
-    // Reset the file input
-    if (fileInput) {
-      fileInput.value = '';
-    }
-  }
-  
-  function openFileDialog() {
-    if (fileInput) {
-      fileInput.click();
-    }
+    // Create a new image object
+    const newImage: Image = {
+      id: uuidv4(),
+      url: imageUrl.trim(),
+      alt: imageAlt.trim() || 'Image description',
+      title: imageTitle.trim() || undefined,
+      categoryId: categoryId || '1' // Default to first category if not specified
+    };
+    
+    dispatch('addImages', [newImage]);
+    resetForm();
   }
 </script>
 
-<div class="upload-placeholder-wrapper aspect-square w-full relative !m-auto">
-  <div 
-    class="upload-placeholder bg-gray-50 hover:bg-gray-100 absolute inset-0 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center w-full h-full"
-    class:border-blue-400={!dragActive}
-    class:border-blue-600={dragActive}
-    class:bg-blue-50={dragActive}
-    on:click={openFileDialog}
-    on:keydown={(e) => e.key === 'Enter' || e.key === ' ' ? openFileDialog() : null}
-    on:dragenter={handleDragEnter}
-    on:dragleave={handleDragLeave}
-    on:dragover={handleDragOver}
-    on:drop={handleDrop}
-    role="button"
-    tabindex="0"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-    </svg>
-    <p class="text-gray-700 font-medium">Add Image</p>
-    <p class="text-gray-500 text-sm mt-1">Click or drag images here</p>
-    
-    <input 
-      type="file" 
-      bind:this={fileInput}
-      on:change={handleFileSelect}
-      accept="image/*" 
-      multiple 
-      class="hidden"
-    />
-  </div>
+<div class="upload-placeholder aspect-square w-full">
+  {#if showForm}
+    <div class="h-full border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col">
+      <h3 class="text-lg font-medium mb-4">Add New Image</h3>
+      
+      <div class="mb-3">
+        <label class="block text-sm font-medium mb-1" for="imageUrl">Image URL*</label>
+        <input 
+          type="text" 
+          id="imageUrl" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+          bind:value={imageUrl}
+          placeholder="https://example.com/image.jpg"
+          required
+        />
+      </div>
+      
+      <div class="mb-3">
+        <label class="block text-sm font-medium mb-1" for="imageTitle">Title</label>
+        <input 
+          type="text" 
+          id="imageTitle" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+          bind:value={imageTitle}
+          placeholder="Image title (optional)"
+        />
+      </div>
+      
+      <div class="mb-3">
+        <label class="block text-sm font-medium mb-1" for="imageAlt">Alt Text</label>
+        <input 
+          type="text" 
+          id="imageAlt" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+          bind:value={imageAlt}
+          placeholder="Image description for accessibility"
+        />
+      </div>
+      
+      <div class="mt-auto flex space-x-2">
+        <button 
+          class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+          on:click={handleSubmit}
+        >
+          Add Image
+        </button>
+        <button 
+          class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
+          on:click={resetForm}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  {:else}
+    <button 
+      class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center p-4 hover:bg-gray-50 transition-colors"
+      on:click={() => showForm = true}
+    >
+      <div class="text-5xl text-gray-400 mb-2">+</div>
+      <div class="text-gray-500 font-medium">Add Image</div>
+    </button>
+  {/if}
 </div>
