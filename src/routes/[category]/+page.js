@@ -1,10 +1,10 @@
 /** @type {import('./$types').PageLoad} */
-export function load({ params, url }) {
+export function load({ params, url, data }) {
     const adminParam = url.searchParams.get('admin');
     const isAdmin = adminParam === 'true';
 
     return {
-        categorySlug: params.category,
+        ...data,
         admin: isAdmin
     };
 }
