@@ -3,39 +3,51 @@
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
   
-  // Simple function to check if a file exists (runs once at component mount)
-  function getLogoPath() {
-    // We prefer SVG as our primary logo format
-    return '/icons/logo.svg';
-  }
-  
-  const logoPath = getLogoPath();
+  let logoPath = '/icons/logo.svg'; // Start with SVG as default
+  let fallbackPath = '/icons/logo.png'; // Fallback to PNG
   let showLogo = true;
   let logoLoaded = false;
+  let usingSvg = true;
   
-  function handleError() {
-    showLogo = false;
+  function handleSvgError() {
+    // If SVG fails, try PNG
+    if (usingSvg) {
+      usingSvg = false;
+      logoPath = fallbackPath;
+    } else {
+      // If PNG also fails, hide the logo
+      showLogo = false;
+    }
   }
   
   function handleLoad() {
     logoLoaded = true;
   }
   
-  // Preload the logo image
+  // Preload both possible logo formats
   onMount(() => {
     if (browser) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.href = logoPath;
-      link.as = 'image';
-      document.head.appendChild(link);
+      // Preload SVG
+      const linkSvg = document.createElement('link');
+      linkSvg.rel = 'preload';
+      linkSvg.href = '/icons/logo.svg';
+      linkSvg.as = 'image';
+      document.head.appendChild(linkSvg);
+      
+      // Also preload PNG as fallback
+      const linkPng = document.createElement('link');
+      linkPng.rel = 'preload';
+      linkPng.href = '/icons/logo.png';
+      linkPng.as = 'image';
+      document.head.appendChild(linkPng);
     }
   });
 </script>
 
 <svelte:head>
-  <!-- Preload the logo in the document head -->
-  <link rel="preload" href={logoPath} as="image">
+  <!-- Preload both possible logo formats -->
+  <link rel="preload" href="/icons/logo.svg" as="image">
+  <link rel="preload" href="/icons/logo.png" as="image">
 </svelte:head>
 
 <header class="flex items-center justify-between h-16 px-4 md:px-6 bg-gray-800 text-white">
@@ -48,7 +60,7 @@
                 class="h-6 w-6 filter invert transition-opacity duration-100 {logoLoaded ? 'opacity-100' : 'opacity-0'}" 
                 src={logoPath} 
                 title="Site logo" 
-                on:error={handleError}
+                on:error={handleSvgError}
                 on:load={handleLoad}
             />
           {/if}
