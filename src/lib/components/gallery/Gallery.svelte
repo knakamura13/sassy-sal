@@ -3,7 +3,7 @@
     import { adminMode } from '$lib/stores/adminStore';
     import ImageCard from './ImageCard.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
 
     // New props for category support
     export let images: Image[] = [];
@@ -17,6 +17,9 @@
     // Image preview state
     let previewImage: Image | null = null;
     let showPreview = false;
+
+    // Modal container reference
+    let modalContainer: HTMLElement;
 
     // Subscribe to the image store and get updates if not in category mode
     onMount(() => {
@@ -74,28 +77,46 @@
 
     // Function to handle image click for preview
     function handleImageClick(image: Image) {
-        if (isCategory && !$adminMode) {
-            console.log('Image clicked');
+        if (isCategory && !$adminMode && !showPreview) {
             previewImage = image;
             showPreview = true;
         }
     }
 
     // Function to close the preview
-    function closePreview() {
+    async function closePreview() {
         showPreview = false;
-        setTimeout(() => {
-            previewImage = null;
-        }, 300); // Wait for transition to complete
+        await tick();
+        // Wait for the transition to complete using transitionend
+        if (modalContainer) {
+            await new Promise(resolve => {
+                const handleTransitionEnd = () => {
+                    modalContainer.removeEventListener('transitionend', handleTransitionEnd);
+                    resolve(undefined);
+                };
+                modalContainer.addEventListener('transitionend', handleTransitionEnd);
+            });
+        }
+        previewImage = null;
     }
 </script>
+
+<svelte:window
+    on:keydown={(e) => {
+        if (showPreview && (e.key === 'Escape' || e.key === 'Enter')) {
+            e.preventDefault();
+            e.stopPropagation();
+            closePreview();
+        }
+    }}
+/>
 
 <div class="gallery-container py-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {#each localImages as image (image.id)}
             <button
                 type="button"
-                class="bg-transparent border-0 p-0 w-full text-left"
+                class="bg-transparent border-0 p-0 w-full text-left rounded-lg"
                 on:click={() => handleImageClick(image)}
                 on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
                 aria-label={image.title || 'View image'}
@@ -123,16 +144,16 @@
     {#if showPreview && previewImage}
         <!-- Image Preview Modal -->
         <button
+            bind:this={modalContainer}
             type="button"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300 {showPreview
+            class="modal-container fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-opacity duration-300 backdrop-blur-sm {showPreview
                 ? 'opacity-100'
                 : 'opacity-0 pointer-events-none'}"
             on:click={closePreview}
-            on:keydown={(e) => e.key === 'Escape' && closePreview()}
             aria-label="Close modal overlay"
         >
             <button
-                class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 transition-colors focus:outline-none"
+                class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 focus:outline-none transition-all hover:scale-110"
                 on:click={closePreview}
                 aria-label="Close preview"
             >
@@ -142,7 +163,7 @@
             </button>
 
             <div
-                class="relative overflow-hidden rounded-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview
+                class="relative overflow-hidden rounded-md shadow-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview
                     ? 'scale-100'
                     : 'scale-95'}"
                 role="dialog"

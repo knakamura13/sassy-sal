@@ -4,9 +4,33 @@
     import Header from '$lib/components/Header.svelte';
 </script>
 
-<div class="app-wrapper flex flex-col min-h-[100vh]">
-    <Header></Header>
+<div class="app-wrapper flex flex-col">
+    <Header />
     <main class="main-content flex-1">
         <slot />
     </main>
 </div>
+
+<style>
+    /* Reset all conflicting styles */
+    :global(html), :global(body) {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        width: 100%;
+        overflow-x: hidden !important;
+    }
+    
+    /* Critical: ensure body is scrollable */
+    :global(body) {
+        position: relative;
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    
+    /* Make sure content container doesn't override scroll */
+    :global(.app-wrapper) {
+        position: relative;
+        min-height: auto;
+    }
+</style>
