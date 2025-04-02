@@ -72,7 +72,7 @@
 </script>
 
 <div 
-  class="upload-placeholder h-64 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center"
+  class="upload-placeholder aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center"
   class:border-blue-400={!dragActive}
   class:border-blue-600={dragActive}
   class:bg-blue-50={dragActive}

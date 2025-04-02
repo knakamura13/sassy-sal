@@ -25,4 +25,17 @@
 </div>
 
 <style lang="scss">
+  .page {
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Global styles - these will affect the app layout */
+  :global(html, body) {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
 </style>

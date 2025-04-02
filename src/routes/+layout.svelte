@@ -4,6 +4,21 @@
     import Header from '$lib/components/Header.svelte';
 </script>
 
-<Header></Header>
+<div class="app-wrapper">
+    <Header></Header>
+    <main class="main-content">
+        <slot />
+    </main>
+</div>
 
-<slot />
+<style lang="scss">
+    .app-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        flex: 1;
+    }
+</style>
