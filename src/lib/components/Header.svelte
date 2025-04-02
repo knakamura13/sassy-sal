@@ -52,20 +52,22 @@
 
 <header class="flex items-center justify-between h-16 px-4 md:px-6 bg-gray-800 text-white">
     <div class="flex gap-4 items-center">
-        <!-- Fixed width container prevents layout shift -->
-        <div class="h-6 w-6 flex items-center justify-center">
-          {#if showLogo}
-            <img 
-                alt="Site logo" 
-                class="h-6 w-6 filter invert transition-opacity duration-100 {logoLoaded ? 'opacity-100' : 'opacity-0'}" 
-                src={logoPath} 
-                title="Site logo" 
-                on:error={handleSvgError}
-                on:load={handleLoad}
-            />
-          {/if}
-        </div>
-        <h1 class="font-bold text-xl">Photography Portfolio</h1>
+        <a href="/" class="flex gap-4 items-center cursor-pointer">
+            <!-- Fixed width container prevents layout shift -->
+            <div class="h-6 w-6 flex items-center justify-center">
+              {#if showLogo}
+                <img 
+                    alt="Site logo" 
+                    class="h-6 w-6 filter invert transition-opacity duration-100 {logoLoaded ? 'opacity-100' : 'opacity-0'}" 
+                    src={logoPath} 
+                    title="Site logo" 
+                    on:error={handleSvgError}
+                    on:load={handleLoad}
+                />
+              {/if}
+            </div>
+            <h1 class="font-bold text-xl">Photography Portfolio</h1>
+        </a>
     </div>
     
     <div class="flex items-center gap-4">
