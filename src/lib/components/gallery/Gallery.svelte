@@ -89,7 +89,7 @@
         await tick();
         // Wait for the transition to complete using transitionend
         if (modalContainer) {
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
                 const handleTransitionEnd = () => {
                     modalContainer.removeEventListener('transitionend', handleTransitionEnd);
                     resolve(undefined);
@@ -167,7 +167,8 @@
                     ? 'scale-100'
                     : 'scale-95'}"
                 role="dialog"
-                aria-modal="true">
+                aria-modal="true"
+            >
                 <img
                     src={previewImage.url}
                     alt={previewImage.alt || 'Image preview'}
