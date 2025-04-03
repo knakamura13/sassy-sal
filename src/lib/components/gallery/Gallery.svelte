@@ -77,7 +77,7 @@
 
     // Function to handle image click for preview
     function handleImageClick(image: Image) {
-        if (isCategory && !$adminMode && !showPreview) {
+        if (isCategory && !showPreview) {
             previewImage = image;
             showPreview = true;
         }
@@ -116,8 +116,8 @@
         {#each localImages as image (image.id)}
             <button
                 type="button"
-                class="bg-transparent border-0 p-0 w-full text-left rounded-lg"
-                on:click={() => handleImageClick(image)}
+                class="bg-transparent border-0 p-0 w-full text-left rounded-lg cursor-pointer"
+                on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
                 on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
                 aria-label={image.title || 'View image'}
             >
