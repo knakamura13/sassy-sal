@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { adminMode } from '$lib/stores/adminStore';
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';

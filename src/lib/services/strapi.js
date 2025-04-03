@@ -50,15 +50,41 @@ async function fetchAPI(endpoint, options = {}) {
  * Fetch all categories
  */
 export const getCategories = async () => {
+    console.log('🔍 Fetching all categories...');
     try {
         const query = new URLSearchParams({
             populate: 'thumbnail'
         }).toString();
 
+        const url = `${STRAPI_API_URL}${API_PREFIX}/categories?${query}`;
+        console.log(`📡 Making API request to: ${url}`);
+
         const response = await fetchAPI(`/categories?${query}`);
+
+        console.log(`✅ Categories fetched successfully. Found ${response.data.length} categories:`);
+        response.data.forEach((category) => {
+            console.log(`  - "${category.attributes.name}" (ID: ${category.id}, Slug: ${category.attributes.slug})`);
+        });
+
+        // Check if specific categories exist
+        const weddingCategory = response.data.find((c) => c.attributes.name === 'Wedding Photos');
+        const portraitureCategory = response.data.find((c) => c.attributes.name === 'Portraiture');
+
+        if (weddingCategory) {
+            console.log('✓ Found "Wedding Photos" category');
+        } else {
+            console.log('✗ "Wedding Photos" category not found');
+        }
+
+        if (portraitureCategory) {
+            console.log('✓ Found "Portraiture" category');
+        } else {
+            console.log('✗ "Portraiture" category not found');
+        }
+
         return response.data;
     } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('❌ Error fetching categories:', error);
         return [];
     }
 };
