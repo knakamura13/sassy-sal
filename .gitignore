@@ -10,3 +10,4 @@ node_modules
 vite.config.*
 
 .qodo
+static/images/sample-photos
