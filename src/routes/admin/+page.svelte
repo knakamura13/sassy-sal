@@ -1,25 +1,27 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import { login } from '$lib/services/strapi';
+    import { onMount } from 'svelte';
     import { adminMode } from '$lib/stores/adminStore';
 
-    let identifier = '';
     let password = '';
-    let loading = false;
     let error = '';
 
-    async function handleLogin() {
-        error = '';
-        loading = true;
-
-        try {
-            await login(identifier, password);
-            adminMode.set(true);
+    // Handle admin login
+    function login() {
+        // Simple mock authentication for demo purposes
+        // In a real app, this would be server-side validated
+        if (password === 'password') {
+            adminMode.login();
             goto('/?admin=true');
-        } catch (err) {
-            error = 'Login failed. Please check your credentials.';
-        } finally {
-            loading = false;
+        } else {
+            error = 'Invalid password';
+        }
+    }
+
+    // Handle Enter key press
+    function handleKeyPress(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            login();
         }
     }
 </script>
@@ -28,58 +30,32 @@
     <title>Admin Login | Photography Portfolio</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Admin Login</h2>
-            <p class="mt-2 text-center text-sm text-gray-600">Sign in to manage your portfolio</p>
+<div class="admin-login min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 mb-2" for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                bind:value={password}
+                on:keypress={handleKeyPress}
+                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter password"
+            />
+            {#if error}
+                <p class="text-red-500 text-sm mt-1">{error}</p>
+            {/if}
         </div>
 
-        <form class="mt-8 space-y-6" on:submit|preventDefault={handleLogin}>
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div>
-                    <label for="email-address" class="sr-only">Email address</label>
-                    <input
-                        id="email-address"
-                        name="email"
-                        type="email"
-                        required
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                        placeholder="Email address"
-                        bind:value={identifier}
-                    />
-                </div>
-                <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        required
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                        placeholder="Password"
-                        bind:value={password}
-                    />
-                </div>
-            </div>
+        <button
+            on:click={login}
+            class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+            Login
+        </button>
 
-            {#if error}
-                <div class="text-red-500 text-sm text-center">{error}</div>
-            {/if}
-
-            <div>
-                <button
-                    type="submit"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    disabled={loading}
-                >
-                    {#if loading}
-                        Signing in...
-                    {:else}
-                        Sign in
-                    {/if}
-                </button>
-            </div>
-        </form>
+        <p class="mt-4 text-gray-600 text-sm text-center">Note: For demo purposes, the password is "password"</p>
     </div>
 </div>

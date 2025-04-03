@@ -1,20 +1,43 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import type { Category } from '$lib/stores/categoryStore';
-    import { v4 as uuidv4 } from 'uuid';
 
-    const dispatch = createEventDispatcher<{ addCategory: Category }>();
+    // Define the data structure that will be sent to Strapi
+    interface CategoryData {
+        data: {
+            name: string;
+            slug: string;
+            description?: string;
+        };
+    }
+
+    const dispatch = createEventDispatcher<{ addCategory: CategoryData }>();
 
     let showForm = false;
     let categoryName = '';
     let categoryDescription = '';
-    let categoryImageUrl = 'https://images.unsplash.com/photo-1607462109225-6b64ae2dd3cb';
+    let selectedFile: File | null = null;
+    let imagePreview = '';
 
     function resetForm() {
         showForm = false;
         categoryName = '';
         categoryDescription = '';
-        categoryImageUrl = 'https://images.unsplash.com/photo-1607462109225-6b64ae2dd3cb';
+        selectedFile = null;
+        imagePreview = '';
+    }
+
+    function handleFileChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (input.files && input.files[0]) {
+            selectedFile = input.files[0];
+
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview = e.target?.result as string;
+            };
+            reader.readAsDataURL(selectedFile);
+        }
     }
 
     function handleSubmit() {
@@ -23,20 +46,24 @@
             return;
         }
 
-        // Create a new category with a unique ID and slug
+        // Create a slug from the category name
         const slug = categoryName
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^\w-]+/g, '');
-        const newCategory: Category = {
-            id: uuidv4(),
-            slug,
-            name: categoryName.trim(),
-            imageUrl: categoryImageUrl,
-            description: categoryDescription.trim() || undefined
+
+        // Prepare the data for Strapi
+        const categoryData: CategoryData = {
+            data: {
+                name: categoryName.trim(),
+                slug,
+                description: categoryDescription.trim() || undefined
+            }
         };
 
-        dispatch('addCategory', newCategory);
+        // In a real implementation, we would upload the image file to Strapi
+        // and assign it to the category. For now, we just pass the form data.
+        dispatch('addCategory', categoryData);
         resetForm();
     }
 </script>
@@ -70,14 +97,19 @@
             </div>
 
             <div class="mb-3">
-                <label class="block text-sm font-medium mb-1" for="categoryImageUrl">Image URL</label>
+                <label class="block text-sm font-medium mb-1" for="categoryImage">Thumbnail Image</label>
                 <input
-                    type="text"
-                    id="categoryImageUrl"
+                    type="file"
+                    id="categoryImage"
+                    accept="image/*"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    bind:value={categoryImageUrl}
-                    placeholder="https://example.com/image.jpg"
+                    on:change={handleFileChange}
                 />
+                {#if imagePreview}
+                    <div class="mt-2 w-full h-20 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+                        <img src={imagePreview} alt="Preview" class="h-full w-auto object-cover" />
+                    </div>
+                {/if}
             </div>
 
             <div class="mt-auto flex space-x-2">

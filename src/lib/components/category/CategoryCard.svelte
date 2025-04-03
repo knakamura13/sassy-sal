@@ -1,14 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
-    // Strapi category structure
-    export let category: {
-        id: number;
+    // Define Strapi Category type locally
+    interface StrapiCategory {
+        id: string | number;
         attributes: {
             name: string;
             slug: string;
             description?: string;
-            isVisible?: boolean;
             thumbnail?: {
                 data: {
                     attributes: {
@@ -17,10 +16,14 @@
                 };
             };
         };
-    };
+    }
+
+    export let category: StrapiCategory;
     export let isAdmin: boolean = false;
 
-    const dispatch = createEventDispatcher();
+    const dispatch = createEventDispatcher<{
+        remove: string | number;
+    }>();
 
     function handleRemove() {
         dispatch('remove', category.id);
@@ -30,15 +33,19 @@
         // This would open an edit form in a real application
         const newName = prompt('Enter new category name:', category.attributes.name);
         if (newName && newName.trim() !== '') {
-            // In a real Strapi app, this would update via API
-            alert('In a real Strapi app, this would send an update API request');
+            category.attributes.name = newName.trim();
+            // In a real app, this would update Strapi
         }
     }
 
-    // Get the image URL from Strapi, or use a placeholder
-    const imageUrl = category.attributes.thumbnail?.data
-        ? `${import.meta.env.VITE_STRAPI_URL}${category.attributes.thumbnail.data.attributes.url}`
-        : 'https://via.placeholder.com/300x300.png?text=No+Image';
+    // Helper to get image URL with fallback
+    function getImageUrl() {
+        if (category.attributes.thumbnail?.data?.attributes?.url) {
+            return category.attributes.thumbnail.data.attributes.url;
+        }
+        // Fallback image if no thumbnail
+        return 'https://via.placeholder.com/300x300?text=No+Image';
+    }
 </script>
 
 <a
@@ -46,7 +53,7 @@
     class="category-card !m-0 block transition-all duration-200 overflow-hidden rounded-lg shadow-md hover:shadow-lg"
 >
     <div class="aspect-square w-full relative">
-        <img src={imageUrl} alt={category.attributes.name} class="w-full h-full object-cover" />
+        <img src={getImageUrl()} alt={category.attributes.name} class="w-full h-full object-cover" />
 
         <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-3 text-white">
             <h3 class="text-xl font-medium">{category.attributes.name}</h3>

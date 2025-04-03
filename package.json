@@ -33,7 +33,7 @@
     },
     "dependencies": {
         "@types/uuid": "^10.0.0",
-        "strapi-sdk-js": "^3.0.0",
+        "dotenv": "^16.4.7",
         "uuid": "^11.1.0"
     }
 }

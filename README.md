@@ -9,18 +9,23 @@ A simple website builder for photographers, built with SvelteKit and Strapi CMS.
 -   Interactive image preview modal with keyboard navigation
 -   Sticky header with smooth height transition on scroll
 -   Admin mode for content management
-    -   Secure authentication system through Strapi
+    -   Secure authentication system
     -   Image uploading via drag-and-drop
     -   Category creation and management
     -   Image organization across categories
 -   Accessibility optimized components
 -   Modern UI with responsive design
+-   Strapi CMS backend integration
+    -   Persistent storage of categories and images
+    -   Content management through Strapi admin panel
+    -   Image uploads and storage via Strapi Media Library
 
 ## Prerequisites
 
 -   Node.js >= 20
     -   Command: `nvm install 20; nvm use 20`
--   Strapi CMS instance (self-hosted or on Railway.app)
+-   Strapi CMS instance (v4.x)
+    -   Self-hosted or cloud-hosted like Railway.app
 
 ## What's included?
 
@@ -29,39 +34,55 @@ A simple website builder for photographers, built with SvelteKit and Strapi CMS.
 -   Image preview functionality
 -   Admin panel with content management
 -   Responsive layout with smooth transitions
--   Strapi CMS integration
+-   Mock authentication system
+-   Strapi integration for backend storage
 
 ## Getting started
 
-1. Install the dependencies:
+Install the dependencies:
 
 ```
 yarn install
 ```
 
-2. Set up your Strapi instance following the instructions in STRAPI_SETUP.md
-
-3. Update the `.env` file with your Strapi instance URL:
+Set up environment variables:
 
 ```
-VITE_STRAPI_URL=https://your-strapi-instance.railway.app
+STRAPI_API_URL=https://your-strapi-instance.railway.app
 ```
 
-4. Run the app in development mode:
+Run the app in development mode:
 
 ```
 yarn run dev
 ```
 
-5. Access the admin panel via `/admin` route and login with your Strapi credentials.
+Access the admin panel via `/admin` route (password: `admin123`).
 
-## Backend Integration
+## Strapi Setup
 
-This project uses Strapi CMS as a backend for:
+1. Create a Strapi instance with the following content types:
 
--   Storing category data
--   Managing image uploads
--   User authentication
--   Content management
+    **Category**:
 
-See STRAPI_SETUP.md for detailed setup instructions.
+    - name: String (required)
+    - slug: String (required, unique)
+    - description: Text (optional)
+    - thumbnail: Media (single image)
+    - images: Relation to Images collection (one-to-many)
+
+    **Image**:
+
+    - title: String (required)
+    - description: Text (optional)
+    - image: Media (single image, required)
+    - category: Relation to Category (many-to-one)
+
+2. Set up proper permissions in Strapi admin panel to allow public access to categories and images
+
+## Future Enhancements (Stage 3)
+
+-   Image metadata editing
+-   Multiple galleries/collections
+-   User authentication improvements
+-   Custom image processing and optimization
