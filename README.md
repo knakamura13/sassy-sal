@@ -19,6 +19,7 @@ A simple website builder for photographers, built with SvelteKit and Strapi CMS.
     -   Persistent storage of categories and images
     -   Content management through Strapi admin panel
     -   Image uploads and storage via Strapi Media Library
+    -   Direct REST API integration using fetch
 
 ## Prerequisites
 
@@ -79,6 +80,16 @@ Access the admin panel via `/admin` route (password: `admin123`).
     - category: Relation to Category (many-to-one)
 
 2. Set up proper permissions in Strapi admin panel to allow public access to categories and images
+
+## Strapi API Integration
+
+This project uses direct REST API calls to communicate with the Strapi backend:
+
+-   Categories: `/api/categories` endpoints for listing and managing categories
+-   Images: `/api/images` endpoints for managing images
+-   Upload: `/api/upload` endpoint for file uploads
+
+The integration is built using the native fetch API instead of a Strapi client library for better maintainability and direct control over API requests.
 
 ## Future Enhancements (Stage 3)
 
