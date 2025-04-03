@@ -8,6 +8,7 @@
     import ImageUploadPlaceholder from '$lib/components/gallery/ImageUploadPlaceholder.svelte';
     import { onMount } from 'svelte';
     import { STRAPI_API_URL } from '$lib/services/strapi';
+    import type { Image } from '$lib/stores/imageStore';
 
     // Log critical environment values
     console.log(`🔧 Environment check: STRAPI_API_URL=${STRAPI_API_URL}`);
@@ -74,6 +75,9 @@
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
+
+    // Transformed images in the format expected by Gallery component
+    let galleryImages: Image[] = [];
 
     onMount(() => {
         console.log(
@@ -259,6 +263,28 @@
         loadImageUrls();
     }
 
+    // Transform categoryImages to Gallery-compatible format
+    $: {
+        galleryImages = categoryImages.map((image) => {
+            // Extract title from different possible locations
+            const title = image.attributes?.title || image.title || 'Untitled';
+
+            // Get the URL from different possible locations
+            const url = image.url || image.attributes?.image?.data?.attributes?.url || '';
+
+            // Get the alt text
+            const alt = image.attributes?.image?.data?.attributes?.alternativeText || title;
+
+            return {
+                id: String(image.id), // Gallery expects string IDs
+                title,
+                url,
+                alt,
+                categoryId: category ? String(category.id) : undefined
+            };
+        });
+    }
+
     // Log the category data for debugging - with null checks
     if (category) {
         console.log(
@@ -353,51 +379,18 @@
                 </div>
             {/if}
 
-            <div class="image-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {#if categoryImages.length > 0}
-                    {#each categoryImages as image, i (image.id)}
-                        <div class="image-item overflow-hidden rounded-lg shadow-md">
-                            {#if image?.url}
-                                <!-- Direct URL on the image object -->
-                                <img
-                                    src={image.url}
-                                    alt={image.title || 'Gallery image'}
-                                    class="w-full aspect-square object-cover"
-                                />
-                            {:else if image?.attributes?.image?.data?.attributes?.url}
-                                <img
-                                    src={image.attributes.image.data.attributes.url}
-                                    alt={image.attributes.image.data.attributes.alternativeText ||
-                                        image.attributes.title ||
-                                        'Gallery image'}
-                                    class="w-full aspect-square object-cover"
-                                />
-                                <div class="p-2 bg-white">
-                                    <p class="text-sm font-medium">{image.attributes.title || 'Untitled'}</p>
-                                    {#if image.attributes.description}
-                                        <p class="text-xs text-gray-600">{image.attributes.description}</p>
-                                    {/if}
-                                </div>
-                            {:else}
-                                <div
-                                    class="w-full aspect-square bg-gray-200 flex items-center justify-center text-gray-400"
-                                >
-                                    <span>Image loading or not available</span>
-                                    <pre class="text-xs mt-2">ID: {image.id}</pre>
-                                </div>
-                            {/if}
-                        </div>
-                    {/each}
-                {:else}
-                    <div class="col-span-full py-8 text-center">
-                        <p class="text-lg text-gray-600 mb-4">No images in this category yet.</p>
-                    </div>
-                {/if}
+            <!-- Replace the existing image grid with the Gallery component -->
+            {#if galleryImages.length > 0}
+                <Gallery images={galleryImages} isCategory={true} categoryId={String(category.id)} />
+            {:else}
+                <div class="col-span-full py-8 text-center">
+                    <p class="text-lg text-gray-600 mb-4">No images in this category yet.</p>
+                </div>
+            {/if}
 
-                {#if $adminMode && category}
-                    <ImageUploadPlaceholder categoryId={category.id} on:imageAdded={handleImageAdded} />
-                {/if}
-            </div>
+            {#if $adminMode && category}
+                <ImageUploadPlaceholder categoryId={category.id} on:imageAdded={handleImageAdded} />
+            {/if}
         {:else}
             <div class="text-center py-12">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>
