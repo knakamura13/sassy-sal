@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
+    import { getRandomImageByQuery } from '$lib/services/unsplash';
 
     // Define Strapi Category type locally
     interface StrapiCategory {
@@ -25,35 +26,52 @@
         remove: string | number;
     }>();
 
+    // State for image URL (will be populated from Unsplash if missing)
+    let imageUrl = '';
+    let isLoading = true;
+
+    onMount(async () => {
+        await loadImage();
+    });
+
+    // Function to load image from thumbnail or Unsplash
+    async function loadImage() {
+        isLoading = true;
+
+        if (category.attributes.thumbnail?.data?.attributes?.url) {
+            imageUrl = category.attributes.thumbnail.data.attributes.url;
+        } else {
+            // If no thumbnail, get a random image from Unsplash or Picsum based on category name
+            imageUrl = await getRandomImageByQuery(category.attributes.name);
+        }
+
+        isLoading = false;
+    }
+
     function handleRemove() {
         dispatch('remove', category.id);
     }
 
     function handleEdit() {
-        // This would open an edit form in a real application
         const newName = prompt('Enter new category name:', category.attributes.name);
         if (newName && newName.trim() !== '') {
             category.attributes.name = newName.trim();
-            // In a real app, this would update Strapi
         }
-    }
-
-    // Helper to get image URL with fallback
-    function getImageUrl() {
-        if (category.attributes.thumbnail?.data?.attributes?.url) {
-            return category.attributes.thumbnail.data.attributes.url;
-        }
-        // Fallback image if no thumbnail
-        return 'https://via.placeholder.com/300x300?text=No+Image';
     }
 </script>
 
 <a
-    href={isAdmin ? `/${category.attributes.slug}?admin=true` : `/${category.attributes.slug}`}
+    href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
     class="category-card !m-0 block transition-all duration-200 overflow-hidden rounded-lg shadow-md hover:shadow-lg"
 >
     <div class="aspect-square w-full relative">
-        <img src={getImageUrl()} alt={category.attributes.name} class="w-full h-full object-cover" />
+        {#if isLoading}
+            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                <div class="animate-pulse">Loading...</div>
+            </div>
+        {:else}
+            <img src={imageUrl} alt={category.attributes.name} class="w-full h-full object-cover" />
+        {/if}
 
         <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-3 text-white">
             <h3 class="text-xl font-medium">{category.attributes.name}</h3>

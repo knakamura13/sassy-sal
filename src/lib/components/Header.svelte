@@ -52,11 +52,11 @@
             document.head.appendChild(linkSvg);
 
             // Also preload PNG as fallback
-            const linkPng = document.createElement('link');
-            linkPng.rel = 'preload';
-            linkPng.href = '/icons/logo.png';
-            linkPng.as = 'image';
-            document.head.appendChild(linkPng);
+            // const linkPng = document.createElement('link');
+            // linkPng.rel = 'preload';
+            // linkPng.href = '/icons/logo.png';
+            // linkPng.as = 'image';
+            // document.head.appendChild(linkPng);
         }
     });
 </script>
@@ -64,7 +64,7 @@
 <svelte:head>
     <!-- Preload both possible logo formats -->
     <link rel="preload" href="/icons/logo.svg" as="image" />
-    <link rel="preload" href="/icons/logo.png" as="image" />
+    <!-- <link rel="preload" href="/icons/logo.png" as="image" /> -->
 </svelte:head>
 
 <svelte:window bind:scrollY />
