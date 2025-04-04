@@ -1,13 +1,16 @@
+# General
 .DS_Store
 .env
 .env.*
 .idea/
 .output
 .vercel
+.vscode/
 /.svelte-kit
 /build
 node_modules
 vite.config.*
 
+# Specific
 .qodo
 static/images/sample-photos
