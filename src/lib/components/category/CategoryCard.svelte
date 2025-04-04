@@ -62,22 +62,24 @@
 
 <a
     href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
-    class="category-card !m-0 block transition-all duration-200 overflow-hidden rounded-lg shadow-md hover:shadow-lg"
+    class="category-card !m-0 block transition-all duration-300 overflow-hidden rounded-lg shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative"
 >
-    <div class="aspect-square w-full relative">
+    <div class="category-card-border absolute inset-0 rounded-lg opacity-0 transition-opacity duration-300"></div>
+    <div class="aspect-square w-full h-full relative">
         {#if isLoading}
             <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                 <div class="animate-pulse">Loading...</div>
             </div>
         {:else}
-            <img src={imageUrl} alt={category.attributes.name} class="w-full h-full object-cover" />
+            <div class="w-full h-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
+                <img src={imageUrl} alt={category.attributes.name} class="w-full h-full object-cover image-filter" />
+            </div>
         {/if}
 
-        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-3 text-white">
-            <h3 class="text-xl font-medium">{category.attributes.name}</h3>
-            {#if category.attributes.description}
-                <p class="text-sm mt-1 text-gray-200">{category.attributes.description}</p>
-            {/if}
+        <div class="absolute inset-0 flex items-center justify-center">
+            <h3 class="text-2xl font-bold text-gray-200 shadow-text transition-all duration-300 card-title">
+                {category.attributes.name}
+            </h3>
         </div>
 
         {#if isAdmin}
@@ -100,3 +102,36 @@
         {/if}
     </div>
 </a>
+
+<style>
+    .shadow-text {
+        text-shadow:
+            0px 0px 6px rgba(0, 0, 0, 0.8),
+            0px 0px 3px rgba(0, 0, 0, 0.9);
+    }
+
+    .category-card:hover .card-title {
+        transform: scale(1.1);
+        text-shadow:
+            0px 0px 10px rgba(0, 0, 0, 0.9),
+            0px 0px 5px rgba(0, 0, 0, 1);
+    }
+
+    .category-card-border {
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+        pointer-events: none;
+    }
+
+    .category-card:hover .category-card-border {
+        opacity: 1;
+    }
+
+    .image-filter {
+        filter: sepia(0.2) brightness(0.92) saturate(0.85);
+        transition: filter 0.4s ease-out;
+    }
+
+    .category-card:hover .image-filter {
+        filter: sepia(0) brightness(1) saturate(1.1);
+    }
+</style>

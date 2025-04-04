@@ -7,7 +7,6 @@
 
     // New props for category support
     export let images: Image[] = [];
-    export let isCategory: boolean = false;
     export let categoryId: string = '';
 
     // Local copy of images for editing in admin mode
@@ -22,24 +21,15 @@
     // Modal container reference
     let modalContainer: HTMLElement;
 
-    // Subscribe to the image store and get updates if not in category mode
+    // Initialize with provided category images
     onMount(() => {
-        if (!isCategory) {
-            const unsubscribe = imageStore.subscribe((value) => {
-                localImages = value;
-            });
-            return unsubscribe;
-        } else {
-            // If in category mode, use the provided images
-            localImages = images;
-        }
+        // Use the provided images for category mode
+        localImages = images;
     });
 
     $: {
         // Update local images when category images change
-        if (isCategory) {
-            localImages = images;
-        }
+        localImages = images;
     }
 
     // Function to handle saving changes
@@ -48,17 +38,8 @@
         isSaving = true;
 
         // Get the original images to compare with local images
-        let originalImages: Image[] = [];
-
-        if (!isCategory) {
-            // Get a fresh copy from the image store
-            imageStore.subscribe((value) => {
-                originalImages = value;
-            })();
-        } else {
-            // If in category mode, use the provided images
-            originalImages = images;
-        }
+        // If in category mode, use the provided images
+        const originalImages = images;
 
         // Find images to add, update, or remove
         const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
@@ -101,27 +82,20 @@
                     await Promise.all(additionPromises);
                 }
 
-                // Update the image store with the new set of images
-                if (!isCategory) {
-                    imageStore.set(localImages);
-                }
-
                 isModified = false;
                 isSaving = false;
                 alert('Changes saved successfully');
 
                 // Force page refresh to reflect the changes from the server
-                if (isCategory) {
-                    // Use a small timeout to ensure the alert is shown before refresh
-                    setTimeout(() => {
-                        // Add a timestamp to ensure cache is invalidated
-                        const timestamp = new Date().getTime();
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('t', timestamp.toString());
-                        // Force a complete reload to ensure we get fresh data from the server
-                        window.location.href = url.toString();
-                    }, 500);
-                }
+                // Use a small timeout to ensure the alert is shown before refresh
+                setTimeout(() => {
+                    // Add a timestamp to ensure cache is invalidated
+                    const timestamp = new Date().getTime();
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('t', timestamp.toString());
+                    // Force a complete reload to ensure we get fresh data from the server
+                    window.location.href = url.toString();
+                }, 500);
             } catch (error) {
                 console.error('Error saving changes:', error);
                 isSaving = false;
@@ -148,8 +122,8 @@
 
     // Function to handle new image addition
     function handleAddImages(newImages: Image[]) {
-        // If in category mode, set the category ID for new images
-        if (isCategory && categoryId) {
+        // Set the category ID for new images
+        if (categoryId) {
             newImages = newImages.map((img) => ({
                 ...img,
                 categoryId
@@ -161,7 +135,7 @@
 
     // Function to handle image click for preview
     function handleImageClick(image: Image) {
-        if (isCategory && !showPreview) {
+        if (!showPreview) {
             previewImage = image;
             showPreview = true;
         }
@@ -196,7 +170,7 @@
 />
 
 <div class="gallery-container py-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 gap-4">
         {#each localImages as image (image.id)}
             <button
                 type="button"
@@ -205,7 +179,12 @@
                 on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
                 aria-label={image.title || 'View image'}
             >
-                <ImageCard {image} {isCategory} isAdmin={$adminMode} on:remove={() => handleRemoveImage(image.id)} />
+                <ImageCard
+                    {image}
+                    isCategory={true}
+                    isAdmin={$adminMode}
+                    on:remove={() => handleRemoveImage(image.id)}
+                />
             </button>
         {/each}
 
@@ -286,12 +265,6 @@
                     alt={previewImage.alt || 'Image preview'}
                     class="max-w-full max-h-[90vh] object-contain"
                 />
-
-                {#if previewImage.title}
-                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-3 text-white">
-                        <h3 class="text-lg font-medium">{previewImage.title}</h3>
-                    </div>
-                {/if}
             </div>
         </button>
     {/if}

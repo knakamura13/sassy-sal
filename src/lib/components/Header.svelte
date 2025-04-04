@@ -97,7 +97,7 @@
                     {/if}
                 </div>
                 <h1 class="font-bold transition-all duration-300 {compact ? 'text-lg' : 'text-xl'}">
-                    Photography Portfolio
+                    Sally JK Photography
                 </h1>
             </a>
         </div>

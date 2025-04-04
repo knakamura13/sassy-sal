@@ -301,15 +301,11 @@
             {/if}
 
             {#if galleryImages.length > 0}
-                <Gallery images={galleryImages} isCategory={true} categoryId={String(category.id)} />
+                <Gallery images={galleryImages} categoryId={String(category.id)} />
             {:else}
                 <div class="col-span-full py-8 text-center">
                     <p class="text-lg text-gray-600 mb-4">No images in this category yet.</p>
                 </div>
-            {/if}
-
-            {#if $adminMode && category}
-                <ImageUploadPlaceholder categoryId={category.id} on:imageAdded={handleImageAdded} />
             {/if}
         {:else}
             <div class="text-center py-12">
