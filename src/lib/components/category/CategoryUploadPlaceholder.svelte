@@ -7,7 +7,6 @@
         id: number;
         name: string;
         url: string;
-        // Other properties not needed for this component
     }
 
     // Define the data structure that will be sent to Strapi
@@ -17,7 +16,7 @@
             slug: string;
             description?: string;
             thumbnail?: {
-                connect: [{ id: number }]; // Updated for Strapi v4 relationship format
+                connect: [{ id: number }];
             };
         };
     }
@@ -84,23 +83,15 @@
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
-                    console.log(`🔼 Uploading thumbnail for new category "${categoryName}"`);
                     const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
 
                     if (uploadedFile && uploadedFile.id) {
-                        console.log(`✅ Thumbnail uploaded with ID: ${uploadedFile.id}`);
                         // Add the thumbnail ID to the category data using Strapi v4 relationship format
                         categoryData.data.thumbnail = {
                             connect: [{ id: uploadedFile.id }]
                         };
-
-                        // Log the final category data structure for debugging
-                        console.log('📦 Category data being sent:', JSON.stringify(categoryData));
-                    } else {
-                        console.error('❌ Invalid upload response:', uploadedFile);
                     }
                 } catch (uploadError) {
-                    console.error('❌ Error uploading thumbnail:', uploadError);
                     // Continue without the thumbnail if upload fails
                     errorMessage = 'Failed to upload thumbnail, but category will be created without it.';
                 }
