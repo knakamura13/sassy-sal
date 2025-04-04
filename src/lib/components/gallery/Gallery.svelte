@@ -13,6 +13,7 @@
     // Local copy of images for editing in admin mode
     let localImages: Image[] = [];
     let isModified = false;
+    let isSaving = false; // New state for save operation
 
     // Image preview state
     let previewImage: Image | null = null;
@@ -43,10 +44,93 @@
 
     // Function to handle saving changes
     function saveChanges() {
-        imageStore.set(localImages);
-        isModified = false;
-        // In a real application, this would send data to a server
-        alert('Changes saved successfully (mock)');
+        if (isSaving) return; // Prevent multiple save operations
+        isSaving = true;
+
+        // Get the original images to compare with local images
+        let originalImages: Image[] = [];
+
+        if (!isCategory) {
+            // Get a fresh copy from the image store
+            imageStore.subscribe((value) => {
+                originalImages = value;
+            })();
+        } else {
+            // If in category mode, use the provided images
+            originalImages = images;
+        }
+
+        // Find images to add, update, or remove
+        const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
+
+        const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
+
+        // Process changes
+        const processChanges = async () => {
+            try {
+                // Import Strapi services
+                const { addImage, deleteImage } = await import('$lib/services/strapi');
+
+                // Process deletions first
+                if (imagesToRemove.length > 0) {
+                    const deletionPromises = imagesToRemove.map((image) => {
+                        // Use documentId first if available, otherwise fall back to strapiId, then regular id
+                        const idToDelete = image.documentId || image.strapiId || image.id;
+                        return deleteImage(idToDelete);
+                    });
+                    await Promise.all(deletionPromises);
+                }
+
+                // Process additions
+                if (imagesToAdd.length > 0) {
+                    const additionPromises = imagesToAdd.map((image) => {
+                        // Prepare image data for API
+                        const imageData = {
+                            title: image.title || '',
+                            description: '',
+                            image: image.url,
+                            // Handle numeric or string IDs for category
+                            categories: {
+                                connect: [{ id: parseInt(categoryId) || categoryId }]
+                            }
+                        };
+
+                        return addImage(imageData);
+                    });
+
+                    await Promise.all(additionPromises);
+                }
+
+                // Update the image store with the new set of images
+                if (!isCategory) {
+                    imageStore.set(localImages);
+                }
+
+                isModified = false;
+                isSaving = false;
+                alert('Changes saved successfully');
+
+                // Force page refresh to reflect the changes from the server
+                if (isCategory) {
+                    // Use a small timeout to ensure the alert is shown before refresh
+                    setTimeout(() => {
+                        // Add a timestamp to ensure cache is invalidated
+                        const timestamp = new Date().getTime();
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('t', timestamp.toString());
+                        // Force a complete reload to ensure we get fresh data from the server
+                        window.location.href = url.toString();
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                isSaving = false;
+                alert('Error saving changes. Please try again.');
+            }
+        };
+
+        // Start processing changes
+        processChanges();
     }
 
     // Function to discard changes
@@ -132,10 +216,38 @@
 
     {#if $adminMode && isModified}
         <div class="admin-actions mt-6 flex space-x-4">
-            <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded" on:click={saveChanges}>
-                Save Changes
+            <button
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center {isSaving
+                    ? 'opacity-70 cursor-not-allowed'
+                    : ''}"
+                on:click={saveChanges}
+                disabled={isSaving}
+            >
+                {#if isSaving}
+                    <svg
+                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                        ></circle>
+                        <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                    </svg>
+                    Saving...
+                {:else}
+                    Save Changes
+                {/if}
             </button>
-            <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded" on:click={discardChanges}>
+            <button
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                on:click={discardChanges}
+                disabled={isSaving}
+            >
                 Discard Changes
             </button>
         </div>

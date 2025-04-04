@@ -211,12 +211,18 @@
             // Fix the type error by ensuring categoryId is always a string
             const categoryId = category ? String(category.id) : '0';
 
+            // Extract the documentId for Strapi operations
+            // Use type assertion to access documentId property without TypeScript errors
+            const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
+
             return {
                 id: String(image.id),
                 title,
                 url,
                 alt,
-                categoryId
+                categoryId,
+                documentId, // Add documentId for Strapi operations
+                strapiId: image.id // Keep the original numeric ID as strapiId
             };
         });
     }

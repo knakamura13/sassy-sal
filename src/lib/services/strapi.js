@@ -342,13 +342,38 @@ export const addImage = async (imageData) => {
 
 /**
  * Delete an image
- * @param {string|number} id - The image documentId
+ * @param {string|number} id - The image ID or documentId
  */
 export const deleteImage = async (id) => {
     try {
-        await fetchAPI(`/images/${id}`, {
+        // Handle different ID types
+        let documentId;
+        const isNumericId = !isNaN(parseInt(id, 10));
+
+        if (isNumericId) {
+            // For numeric IDs, try to fetch the image to get its documentId
+            try {
+                const imageData = await fetchAPI(`/images/${id}?populate=*`);
+                if (imageData && imageData.data) {
+                    documentId = imageData.data.documentId || imageData.data.attributes?.documentId;
+                }
+
+                if (!documentId) {
+                    documentId = id;
+                }
+            } catch (fetchError) {
+                documentId = id; // Fall back to the provided ID
+            }
+        } else {
+            // Assume it's already a documentId
+            documentId = id;
+        }
+
+        // Perform the deletion
+        await fetchAPI(`/images/${documentId}`, {
             method: 'DELETE'
         });
+
         return true;
     } catch (error) {
         console.error(`Error deleting image ${id}:`, error);

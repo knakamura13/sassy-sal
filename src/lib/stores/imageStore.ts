@@ -7,6 +7,8 @@ export interface Image {
     alt: string;
     title?: string;
     categoryId: string; // Associate images with a category
+    documentId?: string | null; // Strapi documentId for API operations
+    strapiId?: number | string; // Original Strapi numeric ID
 }
 
 // Initial mock data for the image gallery
