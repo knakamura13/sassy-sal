@@ -1,17 +1,9 @@
 <script lang="ts">
-    // Add debugging information to the console
-    console.log('🔍 Loading category page component');
-
-    import { page } from '$app/stores';
     import { adminMode } from '$lib/stores/adminStore';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
     import ImageUploadPlaceholder from '$lib/components/gallery/ImageUploadPlaceholder.svelte';
-    import { onMount } from 'svelte';
     import { STRAPI_API_URL } from '$lib/services/strapi';
     import type { Image } from '$lib/stores/imageStore';
-
-    // Log critical environment values
-    console.log(`🔧 Environment check: STRAPI_API_URL=${STRAPI_API_URL}`);
 
     // Define Strapi types
     interface StrapiImage {
@@ -61,9 +53,6 @@
         isFallback?: boolean;
     };
 
-    // Debug - log the entire data object
-    console.log('📦 Raw data passed to component:', JSON.stringify(data));
-
     // Set admin mode from URL parameter
     $: if (data.admin) {
         adminMode.set(true);
@@ -79,18 +68,6 @@
     // Transformed images in the format expected by Gallery component
     let galleryImages: Image[] = [];
 
-    onMount(() => {
-        console.log(
-            '🏔️ Component mounted with data:',
-            JSON.stringify({
-                hasCategory: !!category,
-                hasData: !!data,
-                categoryId: category?.id,
-                admin: data?.admin
-            })
-        );
-    });
-
     // Safely extract images from category data
     $: {
         if (category && category.attributes && category.attributes.images) {
@@ -104,25 +81,6 @@
         } else {
             categoryImages = [];
         }
-
-        // Log the images for debugging
-        console.log(`📋 Category images extracted:`, {
-            count: categoryImages.length,
-            first: categoryImages.length > 0 ? categoryImages[0] : 'none'
-        });
-    }
-
-    // Log image URLs whenever categoryImages changes
-    $: {
-        if (categoryImages.length > 0) {
-            console.log('🔍 Current image URLs:');
-            categoryImages.forEach((img, idx) => {
-                if (idx < 10) {
-                    // Limit to first 10 images to avoid console spam
-                    console.log(`Image ${idx} (ID: ${img.id}): URL=${img.url || 'none'}`);
-                }
-            });
-        }
     }
 
     // Function to load image URLs if needed
@@ -130,48 +88,32 @@
         if (loadingImageUrls || imageUrlsLoaded || categoryImages.length === 0) return;
 
         loadingImageUrls = true;
-        console.log('🔄 Loading image URLs for images that need them');
 
         try {
             for (let i = 0; i < categoryImages.length; i++) {
                 const image = categoryImages[i];
 
-                // Log full image structure for debugging
-                console.log(`🔍 Image ${i} structure:`, JSON.stringify(image));
-
                 // Check for URL in different possible locations
                 const hasNestedUrl = !!image.attributes?.image?.data?.attributes?.url;
                 const hasDirectUrl = !!image.url;
 
-                console.log(`🔍 Image ${i} URL check: hasNestedUrl=${hasNestedUrl}, hasDirectUrl=${hasDirectUrl}`);
-
                 // Skip if image already has a URL in any format
                 if (hasNestedUrl || hasDirectUrl) {
-                    console.log(`✅ Image ${i} already has URL, skipping fetch`);
                     continue;
                 }
 
                 // If image has documentId but no URL, fetch it
                 const imageId = image.documentId || image.id;
                 if (imageId && !image.url && !image.attributes?.image?.data?.attributes?.url) {
-                    console.log(`🔄 Fetching URL for image ID: ${imageId} (documentId: ${image.documentId || 'N/A'})`);
-
                     try {
-                        console.log(`🔄 Starting fetch for image ${imageId}`);
-
                         const apiUrl = `${STRAPI_API_URL}/api/images/${imageId}?populate=*`;
-                        console.log(`📡 Requesting: ${apiUrl}`);
 
                         const response = await fetch(apiUrl);
-                        console.log(`🔄 Response status: ${response.status} ${response.statusText}`);
 
                         if (response.ok) {
-                            console.log(`✅ Response OK, parsing JSON`);
                             let data;
                             try {
                                 data = await response.json();
-                                console.log(`📦 Response data:`, data);
-                                console.log(`📦 Response data imageURL (relative path):`, data.data.image.url);
                             } catch (jsonError) {
                                 console.error(`❌ Error parsing JSON:`, jsonError);
                                 console.log(`📄 Response text:`, await response.text());
@@ -230,7 +172,6 @@
                                 // If nested structure exists, update it too
                                 if (image.attributes?.image?.data?.attributes) {
                                     image.attributes.image.data.attributes.url = processedThumbnailUrl;
-                                    // Add fullSizeUrl to nested structure as well
                                     image.attributes.image.data.attributes.fullSizeUrl = processedFullUrl;
                                 }
                             } else {
@@ -245,8 +186,6 @@
                             stack: error instanceof Error ? error.stack : 'No stack trace'
                         });
                     }
-                } else {
-                    console.log(`✅ Image ${imageId} already has URL, skipping fetch`);
                 }
             }
 
@@ -275,39 +214,21 @@
             // Get the alt text
             const alt = image.attributes?.image?.data?.attributes?.alternativeText || title;
 
+            // Fix the type error by ensuring categoryId is always a string
+            const categoryId = category ? String(category.id) : '0';
+
             return {
-                id: String(image.id), // Gallery expects string IDs
+                id: String(image.id),
                 title,
                 url,
                 alt,
-                categoryId: category ? String(category.id) : undefined
+                categoryId
             };
         });
     }
 
-    // Log the category data for debugging - with null checks
-    if (category) {
-        console.log(
-            `📋 Category data:`,
-            JSON.stringify({
-                id: category?.id,
-                name: category?.attributes?.name,
-                imageCount: categoryImages.length,
-                isFallback
-            })
-        );
-    } else {
-        console.log('⚠️ Category data is null or undefined');
-    }
-
     // Function to handle image upload success
-    function handleImageAdded(event: CustomEvent<any>) {
-        const uploadedImage = event.detail;
-        console.log(`✅ Image uploaded successfully:`, uploadedImage);
-        console.log(
-            `📋 Image details - ID: ${uploadedImage.id}, Category association: ${JSON.stringify(uploadedImage.attributes?.category)}`
-        );
-
+    function handleImageAdded(_: CustomEvent<any>) {
         // Show a success message
         alert('Image uploaded successfully! Refreshing the page to show the new image.');
 
@@ -379,7 +300,6 @@
                 </div>
             {/if}
 
-            <!-- Replace the existing image grid with the Gallery component -->
             {#if galleryImages.length > 0}
                 <Gallery images={galleryImages} isCategory={true} categoryId={String(category.id)} />
             {:else}
