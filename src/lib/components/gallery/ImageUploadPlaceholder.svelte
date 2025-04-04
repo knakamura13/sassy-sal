@@ -20,7 +20,6 @@
     let imagePreview = '';
     let isUploading = false;
     let errorMessage = '';
-    let debugInfo = '';
 
     // Generate a random title based on filename and random number
     function generateImageTitle(filename: string): string {
@@ -36,7 +35,6 @@
         selectedFile = null;
         imagePreview = '';
         errorMessage = '';
-        debugInfo = '';
     }
 
     function handleFileChange(event: Event) {
@@ -61,27 +59,19 @@
 
         if (!categoryId || categoryId < 0) {
             errorMessage = 'Invalid category ID. Please refresh the page and try again.';
-            debugInfo = `Category ID: ${categoryId}`;
             return;
         }
 
-        // Log the category ID for debugging
-        console.log(`🔍 Uploading image for category ID: ${categoryId}`);
-
         errorMessage = '';
-        debugInfo = '';
         isUploading = true;
 
         try {
-            debugInfo = 'Uploading file to Strapi Media Library...';
             // 1. Upload the file to Strapi Media Library
             const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
 
             if (!uploadedFile || typeof uploadedFile.id !== 'number') {
                 throw new Error('Failed to get valid file upload response from Strapi');
             }
-
-            debugInfo = `File uploaded successfully. File ID: ${uploadedFile.id}`;
 
             // Generate title based on filename
             const autoTitle = generateImageTitle(selectedFile.name);
@@ -96,12 +86,7 @@
                 image: uploadedFile.id
             };
 
-            debugInfo = `Creating image record with data: ${JSON.stringify(imageData)}`;
-            console.log(`📤 Sending image data with categories connect: ${JSON.stringify(imageData)}`);
-
             const savedImage = await addImage(imageData);
-            debugInfo = 'Image saved successfully';
-            console.log(`✅ Image saved with ID: ${savedImage.id}, associated with category: ${categoryId}`);
 
             // Dispatch event so parent can update the UI
             dispatch('imageAdded', savedImage);
@@ -110,7 +95,6 @@
         } catch (error) {
             console.error('Error uploading image:', error);
             errorMessage = 'Failed to upload image. Please try again.';
-            debugInfo = error instanceof Error ? error.message : String(error);
         } finally {
             isUploading = false;
         }
@@ -125,12 +109,6 @@
             {#if errorMessage}
                 <div class="mb-3 p-2 bg-red-100 text-red-700 rounded">
                     <p>{errorMessage}</p>
-                    {#if debugInfo}
-                        <details class="mt-2 text-xs">
-                            <summary>Technical details</summary>
-                            <pre class="p-2 bg-red-50 mt-1 overflow-auto">{debugInfo}</pre>
-                        </details>
-                    {/if}
                 </div>
             {/if}
 
