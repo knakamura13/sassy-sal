@@ -116,7 +116,6 @@
                                 data = await response.json();
                             } catch (jsonError) {
                                 console.error(`❌ Error parsing JSON:`, jsonError);
-                                console.log(`📄 Response text:`, await response.text());
                                 return;
                             }
 
@@ -180,11 +179,6 @@
                         }
                     } catch (error) {
                         console.error(`❌ Error fetching image ${imageId}:`, error);
-                        console.log(`⚠️ Error details:`, {
-                            type: error instanceof Error ? error.name : typeof error,
-                            message: error instanceof Error ? error.message : String(error),
-                            stack: error instanceof Error ? error.stack : 'No stack trace'
-                        });
                     }
                 }
             }

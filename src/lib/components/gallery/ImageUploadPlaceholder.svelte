@@ -10,7 +10,6 @@
         id: number;
         name: string;
         url: string;
-        // Other properties not needed for this component
     }
 
     const dispatch = createEventDispatcher<{ imageAdded: any }>();

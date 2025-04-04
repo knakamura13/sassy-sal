@@ -39,10 +39,6 @@
         adminMode.set(true);
     }
 
-    $: if (data) {
-        console.log('🔍 Data:', data);
-    }
-
     // Function to handle saving changes to Strapi
     async function saveChanges() {
         try {

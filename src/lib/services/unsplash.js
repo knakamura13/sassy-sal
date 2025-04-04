@@ -4,8 +4,6 @@
  * In production, you would need to sign up for an Unsplash API key
  */
 
-// Public Unsplash API for development use only
-// In production, use your own API key from https://unsplash.com/developers
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || 'your-unsplash-access-key';
 const UNSPLASH_API_URL = 'https://api.unsplash.com';
 
