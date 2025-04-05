@@ -30,7 +30,7 @@
 </svelte:head>
 
 <div class="admin-login min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
+    <div class="max-w-md w-full p-6 bg-white shadow-md">
         <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
         <div class="mb-4">

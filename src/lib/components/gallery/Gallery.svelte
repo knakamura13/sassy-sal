@@ -174,7 +174,7 @@
         {#each localImages as image (image.id)}
             <button
                 type="button"
-                class="bg-transparent border-0 p-0 w-full text-left rounded-lg cursor-pointer"
+                class="bg-transparent border-0 p-0 w-full text-left cursor-pointer"
                 on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
                 on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
                 aria-label={image.title || 'View image'}
@@ -196,7 +196,7 @@
     {#if $adminMode && isModified}
         <div class="admin-actions mt-6 flex space-x-4">
             <button
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center {isSaving
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center {isSaving
                     ? 'opacity-70 cursor-not-allowed'
                     : ''}"
                 on:click={saveChanges}
@@ -223,7 +223,7 @@
                 {/if}
             </button>
             <button
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
                 on:click={discardChanges}
                 disabled={isSaving}
             >
@@ -254,7 +254,7 @@
             </button>
 
             <div
-                class="relative overflow-hidden rounded-md shadow-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview
+                class="relative overflow-hidden shadow-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview
                     ? 'scale-100'
                     : 'scale-95'}"
                 role="dialog"

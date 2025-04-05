@@ -15,7 +15,7 @@
 
 <div class="image-card-wrapper aspect-square w-full relative !m-auto">
     <div
-        class="image-card transition-all duration-200 inset-0 relative overflow-hidden rounded-lg shadow-md w-full h-full hover:transform hover:scale-[1.01] cursor-pointer"
+        class="image-card transition-all duration-200 inset-0 relative overflow-hidden shadow-md w-full h-full hover:transform hover:scale-[1.01] cursor-pointer"
     >
         <img src={image.url} alt={image.alt} class="w-full h-full object-cover" />
 

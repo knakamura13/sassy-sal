@@ -109,9 +109,11 @@
     }
 </script>
 
-<div class="category-upload-placeholder aspect-square w-full">
+<div
+    class="aspect-[3/4] !m-auto block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative h-full"
+>
     {#if showForm}
-        <div class="h-full border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col">
+        <div class="h-full border-2 border-dashed border-gray-300 p-4 flex flex-col">
             <h3 class="font-didot text-lg font-medium mb-4">Add New Category</h3>
 
             <div class="mb-3">
@@ -188,7 +190,7 @@
         </div>
     {:else}
         <button
-            class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center p-4 hover:bg-gray-50 transition-colors"
+            class="w-full h-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center p-4 hover:bg-gray-50 transition-colors"
             on:click={() => (showForm = true)}
         >
             <div class="text-5xl text-gray-400 mb-2">+</div>

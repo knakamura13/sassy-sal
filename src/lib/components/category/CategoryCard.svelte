@@ -62,10 +62,10 @@
 
 <a
     href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
-    class="category-card !m-0 block transition-all duration-300 overflow-hidden rounded-lg shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative"
+    class="category-card aspect-[3/4] !m-auto block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative h-full"
 >
-    <div class="category-card-border absolute inset-0 rounded-lg opacity-0 transition-opacity duration-300"></div>
-    <div class="aspect-square w-full h-full relative">
+    <div class="category-card-border absolute inset-0 opacity-0 transition-opacity duration-300"></div>
+    <div class="w-full h-full relative">
         {#if isLoading}
             <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                 <div class="font-garamond animate-pulse">Loading...</div>
@@ -78,7 +78,7 @@
 
         <div class="absolute inset-0 flex items-center justify-center">
             <h3
-                class="font-didot text-2xl font-bold text-gray-200 shadow-text transition-all duration-300 card-title text-center"
+                class="font-didot text-2xl font-bold text-gray-800 shadow-text transition-all duration-300 card-title text-center"
             >
                 {category.attributes.name}
             </h3>
@@ -108,8 +108,14 @@
 <style>
     .shadow-text {
         text-shadow:
-            0px 0px 2px rgba(0, 0, 0, 0.7),
-            0px 0px 1px rgba(0, 0, 0, 0.8);
+            0px 0px 6px rgba(255, 255, 255, 0.9),
+            0px 0px 3px rgba(255, 255, 255, 0.9);
+    }
+
+    .category-card {
+        min-width: 240px;
+        width: 100%;
+        max-width: 320px;
     }
 
     .category-card .card-title {
@@ -120,8 +126,8 @@
         opacity: 1;
         transform: scale(1.1);
         text-shadow:
-            0px 0px 10px rgba(0, 0, 0, 0.9),
-            0px 0px 5px rgba(0, 0, 0, 1);
+            0px 0px 6px rgba(255, 255, 255, 0.7),
+            0px 0px 3px rgba(255, 255, 255, 0.8);
     }
 
     .category-card-border {

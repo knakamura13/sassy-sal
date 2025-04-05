@@ -258,10 +258,7 @@
     <div class="container mx-auto px-4 py-8">
         {#if category}
             <div class="category-header mb-4">
-                <a href={$adminMode ? '/?admin=true' : '/'} class="text-blue-600 hover:underline mb-2 inline-block"
-                    >← Back</a
-                >
-                <h1 class="text-3xl font-medium mt-2">{category.attributes.name}</h1>
+                <h1 class="text-3xl font-medium mt-2 text-center w-full">{category.attributes.name}</h1>
                 {#if category.attributes.description}
                     <p class="text-lg text-gray-600 mt-2">{category.attributes.description}</p>
                 {/if}
@@ -311,7 +308,7 @@
             <div class="text-center py-12">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>
                 <p class="mt-4">The category you're looking for doesn't exist.</p>
-                <a href="/" class="inline-block mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                <a href="/" class="inline-block mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white">
                     Return to Home
                 </a>
             </div>
