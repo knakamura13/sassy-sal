@@ -3,7 +3,20 @@
 @tailwind utilities;
 @tailwind variants;
 
-html,
-body {
-    @apply h-full;
+@layer base {
+    /* Apply Garamond Libre as the base font for everything */
+    html,
+    body {
+        @apply font-garamond h-full;
+    }
+
+    /* Apply Didot to all headings */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-didot;
+    }
 }

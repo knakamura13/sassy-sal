@@ -4,3 +4,27 @@
     margin: auto;
     padding: 2rem 1rem 4rem;
 }
+
+/* Title styles */
+.title,
+.heading,
+.section-title {
+    font-family: 'Didot', serif;
+}
+
+/* Navigation and buttons with consistent styling */
+.nav-link,
+.btn {
+    font-family: 'Didot', serif;
+}
+
+/* Content text */
+p,
+span,
+div,
+a,
+li,
+ul,
+ol {
+    font-family: 'Garamond Libre', serif;
+}

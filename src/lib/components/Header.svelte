@@ -96,8 +96,8 @@
                         />
                     {/if}
                 </div>
-                <h1 class="font-bold transition-all duration-300 {compact ? 'text-lg' : 'text-xl'}">
-                    Sally JK Photography
+                <h1 class="font-didot font-bold transition-all duration-300 {compact ? 'text-lg' : 'text-xl'}">
+                    sallyjkphoto
                 </h1>
             </a>
         </div>
@@ -105,12 +105,12 @@
         <div class="flex items-center gap-4">
             {#if $adminMode}
                 <span
-                    class="text-sm text-green-400 mr-2 transition-opacity duration-300 {compact
+                    class="font-garamond text-sm text-green-400 mr-2 transition-opacity duration-300 {compact
                         ? 'opacity-75'
                         : 'opacity-100'}">Admin Mode</span
                 >
                 <button
-                    class="transition-all duration-300 {compact
+                    class="font-didot transition-all duration-300 {compact
                         ? 'px-3 py-1 text-sm'
                         : 'px-4 py-2'} bg-red-600 hover:bg-red-700 text-white rounded-md"
                     on:click={handleLogout}

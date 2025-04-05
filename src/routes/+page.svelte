@@ -114,10 +114,16 @@
 
             {#if $adminMode && isModified}
                 <div class="admin-actions mt-6 flex space-x-4">
-                    <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded" on:click={saveChanges}>
+                    <button
+                        class="font-didot px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+                        on:click={saveChanges}
+                    >
                         Save Changes
                     </button>
-                    <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded" on:click={discardChanges}>
+                    <button
+                        class="font-didot px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                        on:click={discardChanges}
+                    >
                         Discard Changes
                     </button>
                 </div>
@@ -134,5 +140,6 @@
         overflow-x: hidden;
         margin: 0;
         padding: 0;
+        font-family: 'Garamond Libre', serif;
     }
 </style>

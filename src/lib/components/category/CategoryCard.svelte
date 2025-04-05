@@ -68,7 +68,7 @@
     <div class="aspect-square w-full h-full relative">
         {#if isLoading}
             <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div class="animate-pulse">Loading...</div>
+                <div class="font-garamond animate-pulse">Loading...</div>
             </div>
         {:else}
             <div class="w-full h-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
@@ -77,7 +77,9 @@
         {/if}
 
         <div class="absolute inset-0 flex items-center justify-center">
-            <h3 class="text-2xl font-bold text-gray-200 shadow-text transition-all duration-300 card-title">
+            <h3
+                class="font-didot text-2xl font-bold text-gray-200 shadow-text transition-all duration-300 card-title text-center"
+            >
                 {category.attributes.name}
             </h3>
         </div>
@@ -106,11 +108,16 @@
 <style>
     .shadow-text {
         text-shadow:
-            0px 0px 6px rgba(0, 0, 0, 0.8),
-            0px 0px 3px rgba(0, 0, 0, 0.9);
+            0px 0px 2px rgba(0, 0, 0, 0.7),
+            0px 0px 1px rgba(0, 0, 0, 0.8);
+    }
+
+    .category-card .card-title {
+        opacity: 0.9;
     }
 
     .category-card:hover .card-title {
+        opacity: 1;
         transform: scale(1.1);
         text-shadow:
             0px 0px 10px rgba(0, 0, 0, 0.9),

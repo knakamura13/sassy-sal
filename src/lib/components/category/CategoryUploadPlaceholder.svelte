@@ -112,14 +112,14 @@
 <div class="category-upload-placeholder aspect-square w-full">
     {#if showForm}
         <div class="h-full border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col">
-            <h3 class="text-lg font-medium mb-4">Add New Category</h3>
+            <h3 class="font-didot text-lg font-medium mb-4">Add New Category</h3>
 
             <div class="mb-3">
-                <label class="block text-sm font-medium mb-1" for="categoryName">Category Name*</label>
+                <label class="block font-garamond text-sm font-medium mb-1" for="categoryName">Category Name*</label>
                 <input
                     type="text"
                     id="categoryName"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    class="font-garamond w-full px-3 py-2 border border-gray-300 rounded-md"
                     bind:value={categoryName}
                     placeholder="e.g. Weddings"
                     required
@@ -128,11 +128,12 @@
             </div>
 
             <div class="mb-3">
-                <label class="block text-sm font-medium mb-1" for="categoryDescription">Description</label>
+                <label class="block font-garamond text-sm font-medium mb-1" for="categoryDescription">Description</label
+                >
                 <input
                     type="text"
                     id="categoryDescription"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    class="font-garamond w-full px-3 py-2 border border-gray-300 rounded-md"
                     bind:value={categoryDescription}
                     placeholder="Short description (optional)"
                     disabled={isUploading}
@@ -140,12 +141,12 @@
             </div>
 
             <div class="mb-3">
-                <label class="block text-sm font-medium mb-1" for="categoryImage">Thumbnail Image</label>
+                <label class="block font-garamond text-sm font-medium mb-1" for="categoryImage">Thumbnail Image</label>
                 <input
                     type="file"
                     id="categoryImage"
                     accept="image/*"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    class="font-garamond w-full px-3 py-2 border border-gray-300 rounded-md"
                     on:change={handleFileChange}
                     disabled={isUploading}
                 />
@@ -164,7 +165,7 @@
 
             <div class="mt-auto flex space-x-2">
                 <button
-                    class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center"
+                    class="font-didot flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center"
                     on:click={handleSubmit}
                     disabled={isUploading}
                 >
@@ -177,7 +178,7 @@
                     {/if}
                 </button>
                 <button
-                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
+                    class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
                     on:click={resetForm}
                     disabled={isUploading}
                 >
@@ -191,7 +192,7 @@
             on:click={() => (showForm = true)}
         >
             <div class="text-5xl text-gray-400 mb-2">+</div>
-            <div class="text-gray-500 font-medium">Add Category</div>
+            <div class="font-didot text-gray-500 font-medium">Add Category</div>
         </button>
     {/if}
 </div>
