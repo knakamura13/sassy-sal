@@ -77,9 +77,7 @@
         {/if}
 
         <div class="absolute inset-0 flex items-center justify-center">
-            <h3
-                class="font-didot text-2xl font-bold text-gray-800 shadow-text transition-all duration-300 card-title text-center"
-            >
+            <h3 class="font-didot text-2xl text-gray-500 transition-all duration-300 card-title text-center">
                 {category.attributes.name}
             </h3>
         </div>
@@ -106,12 +104,6 @@
 </a>
 
 <style>
-    .shadow-text {
-        text-shadow:
-            0px 0px 6px rgba(255, 255, 255, 0.9),
-            0px 0px 3px rgba(255, 255, 255, 0.9);
-    }
-
     .category-card {
         min-width: 240px;
         width: 100%;
@@ -125,13 +117,10 @@
     .category-card:hover .card-title {
         opacity: 1;
         transform: scale(1.1);
-        text-shadow:
-            0px 0px 6px rgba(255, 255, 255, 0.7),
-            0px 0px 3px rgba(255, 255, 255, 0.8);
+        color: rgb(31 41 55 / var(--tw-text-opacity));
     }
 
     .category-card-border {
-        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
         pointer-events: none;
     }
 

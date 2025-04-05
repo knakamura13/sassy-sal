@@ -5,8 +5,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                'garamond': ['Garamond Libre', 'serif'],
-                'didot': ['Didot', 'serif']
+                garamond: ['Garamond Libre', 'serif'],
+                didot: ['Didot', 'serif']
             }
         }
     },
