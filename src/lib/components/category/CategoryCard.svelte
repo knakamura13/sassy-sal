@@ -80,7 +80,7 @@
 
         <div class="absolute inset-0 flex items-center justify-center">
             <h3
-                class="card-title font-didot text-2xl transition-all duration-300 text-gray-200 text-center opacity-70 mix-blend-difference"
+                class="card-title font-didot text-2xl transition-all duration-300 text-white text-center px-4 py-10 w-full backdrop-blur-sm bg-black bg-opacity-30 shadow-text"
             >
                 {category.attributes.name}
             </h3>
@@ -112,10 +112,15 @@
         filter: sepia(0.2) brightness(0.92) saturate(0.85);
     }
 
+    .shadow-text {
+        text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
     .category-card:hover {
         .card-title {
             opacity: 1;
             transform: scale(1.1);
+            background-color: rgba(0, 0, 0, 0.5);
         }
         .category-card-border {
             opacity: 1;
