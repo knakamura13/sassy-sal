@@ -1,7 +1,6 @@
 <script lang="ts">
     import { adminMode } from '$lib/stores/adminStore';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
-    import ImageUploadPlaceholder from '$lib/components/gallery/ImageUploadPlaceholder.svelte';
     import { STRAPI_API_URL } from '$lib/services/strapi';
     import type { Image } from '$lib/stores/imageStore';
 

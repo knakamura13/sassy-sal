@@ -3,6 +3,9 @@
     import { v4 as uuidv4 } from 'uuid';
     import type { Image } from '$lib/stores/imageStore';
     import * as Dialog from '$lib/components/ui/dialog';
+    import { Label } from '$lib/components/ui/label';
+    import { Input } from '$lib/components/ui/input';
+    import { Button } from '$lib/components/ui/button';
 
     // Add categoryId as a prop to support category galleries
     export let categoryId: string = '';
@@ -94,13 +97,11 @@
 
 <div class="upload-placeholder aspect-square w-full">
     <Dialog.Root bind:open>
-        <Dialog.Trigger>
-            <button
-                class="w-full h-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center p-4 hover:bg-gray-50 transition-colors"
-            >
-                <div class="text-5xl text-gray-400 mb-2">+</div>
-                <div class="text-gray-500 font-medium">Add Image</div>
-            </button>
+        <Dialog.Trigger
+            class="w-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center py-16 hover:bg-gray-50 transition-colors"
+        >
+            <div class="text-4xl text-gray-400 mb-2">+</div>
+            <div class="text-gray-500 font-medium">Add Image</div>
         </Dialog.Trigger>
 
         <Dialog.Content class="sm:max-w-md">
@@ -108,9 +109,9 @@
                 <Dialog.Title>Add New Image</Dialog.Title>
             </Dialog.Header>
 
-            <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">
-                <div>
-                    <label for="imageFile" class="block text-sm font-medium mb-1 text-left">Select Image*</label>
+            <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+                <div class="space-y-2">
+                    <Label for="imageFile" class="text-left">Select Image*</Label>
 
                     <!-- Hidden file input -->
                     <input
@@ -167,23 +168,16 @@
                     </button>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-1 text-left" for="imageTitle">Title</label>
-                    <input
-                        type="text"
-                        id="imageTitle"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
-                        bind:value={imageTitle}
-                        placeholder="Image title"
-                    />
+                <div class="space-y-2">
+                    <Label for="imageTitle" class="text-left">Title</Label>
+                    <Input type="text" id="imageTitle" bind:value={imageTitle} placeholder="Image title" />
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-1 text-left" for="imageAlt">Alt Text</label>
-                    <input
+                <div class="space-y-2">
+                    <Label for="imageAlt" class="text-left">Alt Text</Label>
+                    <Input
                         type="text"
                         id="imageAlt"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
                         bind:value={imageAlt}
                         placeholder="Image description for accessibility"
                     />
@@ -197,13 +191,7 @@
                             Cancel
                         </Dialog.Close>
 
-                        <button
-                            type="submit"
-                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
-                            disabled={!imageFile}
-                        >
-                            Add Image
-                        </button>
+                        <Button type="submit" variant="default" disabled={!imageFile}>Add Image</Button>
                     </div>
                 </Dialog.Footer>
             </form>

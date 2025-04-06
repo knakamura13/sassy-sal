@@ -100,8 +100,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    -   [ ] Implement Shad-cn Dialog for New Category form
-    -   [ ] Integrate Shad-cn Form component for New Category and New Image forms
     -   [ ] Replace UI elements with Shad-cn components (buttons, text fields, etc.)
     -   [ ] Enable multiple image uploads via button or drag-and-drop
     -   [ ] Fix Strapi category thumbnails loading issue
