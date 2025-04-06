@@ -297,13 +297,13 @@
                 </div>
             {/if}
 
-            {#if galleryImages.length > 0}
-                <Gallery images={galleryImages} categoryId={String(category.id)} />
-            {:else}
+            {#if !galleryImages.length}
                 <div class="col-span-full py-8 text-center">
                     <p class="text-lg text-gray-600 mb-4">No images in this category yet.</p>
                 </div>
             {/if}
+
+            <Gallery images={galleryImages} categoryId={String(category.id)} />
         {:else}
             <div class="text-center py-12">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>
