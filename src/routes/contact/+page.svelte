@@ -12,7 +12,7 @@
 </div>
 
 <style lang="scss">
-    $secondary-color: #d19177;
+    @import '$lib/styles/variables.scss';
 
     a {
         color: $secondary-color;

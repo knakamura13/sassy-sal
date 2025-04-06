@@ -1,6 +1,4 @@
 // Variables
-$link-focus-outline-color: #2b5b9d;
-$link-ascendence-background: #1f2937;
 $base-transition-duration: 0.3s;
 $bezier-in: cubic-bezier(0.7, 0, 0.2, 1);
 $bezier-out: cubic-bezier(0.4, 1, 0.8, 1);
@@ -24,7 +22,7 @@ $bezier-out: cubic-bezier(0.4, 1, 0.8, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid $link-focus-outline-color;
+        outline: 2px solid;
         border-radius: 0.1rem;
         background: transparent;
     }
@@ -91,7 +89,6 @@ $bezier-out: cubic-bezier(0.4, 1, 0.8, 1);
             bottom: 0;
             width: 100%;
             height: 2px;
-            background: $link-ascendence-background;
             opacity: 0;
             transform: translateY(1px);
             transition:
