@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
     import { getRandomImageByQuery } from '$lib/services/unsplash';
+    import { STRAPI_API_URL } from '$lib/services/strapi';
 
     // Define Strapi Category type locally
     interface StrapiCategory {
@@ -14,7 +15,7 @@
                     attributes: {
                         url: string;
                     };
-                };
+                } | null;
             };
         };
     }
@@ -31,6 +32,8 @@
     let isLoading = true;
 
     onMount(async () => {
+        console.log(`[DEBUG] CategoryCard mounted for category: ${category.attributes.name} (ID: ${category.id})`);
+        console.log(`[DEBUG] Full category data:`, JSON.stringify(category, null, 2));
         await loadImage();
     });
 
@@ -38,13 +41,98 @@
     async function loadImage() {
         isLoading = true;
 
-        if (category.attributes.thumbnail?.data?.attributes?.url) {
-            imageUrl = category.attributes.thumbnail.data.attributes.url;
-        } else {
-            // If no thumbnail, get a random image from Unsplash or Picsum based on category name
-            imageUrl = await getRandomImageByQuery(category.attributes.name);
-        }
+        console.log(`[DEBUG] Loading image for category: ${category.attributes.name} (ID: ${category.id})`);
 
+        // Check if the category has a thumbnail property
+        if (category.attributes.thumbnail) {
+            console.log(`[DEBUG] Thumbnail property exists in category`);
+            console.log(`[DEBUG] Raw thumbnail data:`, JSON.stringify(category.attributes.thumbnail, null, 2));
+
+            // Check data property exists and is not null
+            if (category.attributes.thumbnail.data) {
+                console.log(`[DEBUG] Thumbnail data property exists and is not undefined`);
+
+                if (category.attributes.thumbnail.data === null) {
+                    console.warn(`[DEBUG] ⚠️ Thumbnail data is NULL - image reference exists but is empty`);
+                    await useUnsplashFallback();
+                    return;
+                }
+
+                // Check attributes and URL exist
+                if (category.attributes.thumbnail.data.attributes?.url) {
+                    const thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
+                    console.log(`[DEBUG] Raw thumbnail URL found: ${thumbnailUrl}`);
+
+                    // Check URL format and construct proper URL
+                    if (thumbnailUrl.startsWith('http')) {
+                        console.log(`[DEBUG] Thumbnail URL is absolute, using as-is`);
+                        imageUrl = thumbnailUrl;
+                    } else if (thumbnailUrl.startsWith('/')) {
+                        console.log(`[DEBUG] Thumbnail URL is relative, prepending Strapi URL: ${STRAPI_API_URL}`);
+                        imageUrl = `${STRAPI_API_URL}${thumbnailUrl}`;
+                    } else {
+                        console.warn(`[DEBUG] ⚠️ Thumbnail URL has unexpected format: ${thumbnailUrl}`);
+                        imageUrl = `${STRAPI_API_URL}/${thumbnailUrl}`;
+                    }
+
+                    console.log(`[DEBUG] Final thumbnail URL: ${imageUrl}`);
+
+                    // Verify the image loads correctly with a timeout
+                    try {
+                        console.log(`[DEBUG] Testing if thumbnail URL is valid: ${imageUrl}`);
+                        const testImg = new Image();
+
+                        // Set a timeout to prevent waiting too long for image load
+                        const timeoutPromise = new Promise((_, reject) => {
+                            setTimeout(() => reject(new Error('Image load timeout')), 5000);
+                        });
+
+                        const loadPromise = new Promise((resolve, reject) => {
+                            testImg.onload = () => {
+                                console.log(`[DEBUG] ✅ Thumbnail loaded successfully: ${imageUrl}`);
+                                resolve('success');
+                            };
+                            testImg.onerror = (e) => {
+                                console.error(`[DEBUG] ❌ Failed to load thumbnail: ${imageUrl}, Error:`, e);
+                                reject(new Error('Image load failed'));
+                            };
+                            testImg.src = imageUrl;
+                        });
+
+                        // Race between load and timeout
+                        await Promise.race([loadPromise, timeoutPromise]);
+                        isLoading = false;
+                    } catch (error) {
+                        console.error(`[DEBUG] ❌ Error loading thumbnail image:`, error);
+                        await useUnsplashFallback();
+                    }
+                } else {
+                    console.warn(`[DEBUG] ⚠️ Thumbnail data exists but URL is missing in the attributes`);
+                    await useUnsplashFallback();
+                }
+            } else {
+                console.warn(`[DEBUG] ⚠️ Thumbnail property exists but data property is undefined`);
+                await useUnsplashFallback();
+            }
+        } else {
+            console.log(`[DEBUG] No thumbnail property found for category ${category.attributes.name}`);
+            await useUnsplashFallback();
+        }
+    }
+
+    // Helper to use Unsplash fallback
+    async function useUnsplashFallback() {
+        console.log(`[DEBUG] 🔄 Using Unsplash fallback for category ${category.attributes.name}`);
+        try {
+            imageUrl = await getRandomImageByQuery(category.attributes.name);
+            console.log(`[DEBUG] ✅ Loaded Unsplash image: ${imageUrl}`);
+        } catch (error) {
+            console.error(`[DEBUG] ❌ Failed to load Unsplash image:`, error);
+            // Use a default image as last resort
+            imageUrl =
+                'https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D&w=1000&q=80';
+            console.log(`[DEBUG] Using default fallback image`);
+        }
         isLoading = false;
     }
 

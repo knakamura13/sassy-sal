@@ -109,6 +109,8 @@
                 .replace(/\s+/g, '-')
                 .replace(/[^\w-]+/g, '');
 
+            console.log(`[DEBUG] Creating new category "${categoryName}" with slug: ${slug}`);
+
             // Prepare the data for Strapi
             const categoryData: CategoryData = {
                 data: {
@@ -121,25 +123,69 @@
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
+                    console.log(`[DEBUG] Starting thumbnail upload for category "${categoryName}"`);
+                    console.log(
+                        `[DEBUG] File: ${selectedFile.name} (${selectedFile.size} bytes, type: ${selectedFile.type})`
+                    );
+
                     const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
+                    console.log(
+                        `[DEBUG] Thumbnail upload successful, received:`,
+                        JSON.stringify(uploadedFile, null, 2)
+                    );
 
                     if (uploadedFile && uploadedFile.id) {
+                        console.log(`[DEBUG] ✅ Thumbnail uploaded with ID: ${uploadedFile.id}`);
+
                         // Add the thumbnail ID to the category data using Strapi v4 relationship format
                         categoryData.data.thumbnail = {
                             connect: [{ id: uploadedFile.id }]
                         };
+
+                        console.log(
+                            `[DEBUG] Thumbnail data structure being sent to Strapi:`,
+                            JSON.stringify(categoryData.data.thumbnail, null, 2)
+                        );
+                        console.log(
+                            `[DEBUG] Full category data with thumbnail:`,
+                            JSON.stringify(categoryData, null, 2)
+                        );
+
+                        // Validate thumbnail structure matches what Strapi expects
+                        if (
+                            !categoryData.data.thumbnail.connect ||
+                            !Array.isArray(categoryData.data.thumbnail.connect)
+                        ) {
+                            console.error(
+                                `[DEBUG] ❌ Invalid thumbnail connection format! Expecting 'connect' property as array`
+                            );
+                        } else if (categoryData.data.thumbnail.connect.length === 0) {
+                            console.error(`[DEBUG] ❌ Thumbnail connect array is empty!`);
+                        } else if (!categoryData.data.thumbnail.connect[0].id) {
+                            console.error(`[DEBUG] ❌ Thumbnail connect item missing id property!`);
+                        } else {
+                            console.log(`[DEBUG] ✅ Thumbnail data structure looks valid for Strapi v4`);
+                        }
+                    } else {
+                        console.error(`[DEBUG] ❌ Upload response doesn't contain expected file ID:`, uploadedFile);
+                        errorMessage = 'Invalid response from server during thumbnail upload.';
                     }
                 } catch (uploadError) {
+                    console.error(`[DEBUG] ❌ Error uploading thumbnail:`, uploadError);
                     // Continue without the thumbnail if upload fails
                     errorMessage = 'Failed to upload thumbnail, but category will be created without it.';
                 }
+            } else {
+                console.log(`[DEBUG] Creating category without thumbnail - no file selected`);
             }
+
+            console.log(`[DEBUG] Final category data being sent to Strapi:`, JSON.stringify(categoryData, null, 2));
 
             // Dispatch the event to create the category
             dispatch('addCategory', categoryData);
             open = false; // Close dialog after successful submission
         } catch (error) {
-            console.error('❌ Error creating category:', error);
+            console.error('[DEBUG] ❌ Error creating category:', error);
             errorMessage = 'Failed to create category. Please try again.';
         } finally {
             isUploading = false;
