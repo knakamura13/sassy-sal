@@ -9,6 +9,7 @@ export interface Image {
     categoryId: string; // Associate images with a category
     documentId?: string | null; // Strapi documentId for API operations
     strapiId?: number | string; // Original Strapi numeric ID
+    file?: File; // Optional file property for file uploads
 }
 
 // Initial mock data for the image gallery
