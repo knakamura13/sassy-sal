@@ -12,11 +12,13 @@
 </div>
 
 <style lang="scss">
+    $secondary-color: #d19177;
+
     a {
-        color: #d19177;
+        color: $secondary-color;
 
         &:hover {
-            color: darken(#d19177, 10%);
+            color: darken($secondary-color, 10%);
         }
     }
 </style>

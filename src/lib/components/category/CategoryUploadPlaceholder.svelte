@@ -255,26 +255,24 @@
                     </div>
                 {/if}
 
-                <Dialog.Footer class="sm:justify-end">
-                    <div class="flex space-x-3">
-                        <Dialog.Close
-                            class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
-                        >
-                            Cancel
-                        </Dialog.Close>
+                <Dialog.Footer class="flex flex-row justify-end space-x-3">
+                    <Dialog.Close
+                        class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
+                    >
+                        Cancel
+                    </Dialog.Close>
 
-                        <Button type="submit" variant="default" class="font-didot" disabled={isUploading}>
-                            {#if isUploading}
-                                <span class="mr-2">Creating...</span>
-                                <!-- Simple loading spinner -->
-                                <div
-                                    class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
-                                ></div>
-                            {:else}
-                                Add
-                            {/if}
-                        </Button>
-                    </div>
+                    <Button type="submit" variant="default" class="font-didot" disabled={!categoryName || isUploading}>
+                        {#if isUploading}
+                            <span class="mr-2">Creating...</span>
+                            <!-- Simple loading spinner -->
+                            <div
+                                class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+                            ></div>
+                        {:else}
+                            Add
+                        {/if}
+                    </Button>
                 </Dialog.Footer>
             </form>
         </Dialog.Content>

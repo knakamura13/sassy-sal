@@ -100,7 +100,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    -   [ ] Replace UI elements with Shad-cn components (buttons, text fields, etc.)
     -   [ ] Enable multiple image uploads via button or drag-and-drop
     -   [ ] Fix Strapi category thumbnails loading issue
         - Issue Overview: category thumbnails aren't being loaded from Strapi
