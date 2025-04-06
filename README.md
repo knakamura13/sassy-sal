@@ -97,3 +97,22 @@ The integration is built using the native fetch API instead of a Strapi client l
 -   Multiple galleries/collections
 -   User authentication improvements
 -   Custom image processing and optimization
+
+## TODO Checklist
+
+-   [ ] Quick Wins
+
+    -   [ ] Create hover effects for navigation items
+    -   [ ] Add contact nav button to header
+    -   [ ] Fix Strapi category thumbnails loading issue
+
+-   [ ] Medium Effort
+
+    -   [ ] Implement Shad-cn Dialog for New Category form
+    -   [ ] Add contact form page with mock submission
+    -   [ ] Improve Gallery layout for desktop screens
+
+-   [ ] Major Updates
+    -   [ ] Integrate Shad-cn Form component (`yarn dlx shadcn-svelte@latest add form`)
+    -   [ ] Replace UI elements with Shad-cn components (buttons, dialogs, forms, etc.)
+    -   [ ] Enable multiple image uploads via button or drag-and-drop
