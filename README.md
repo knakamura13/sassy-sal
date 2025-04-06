@@ -108,8 +108,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 -   [ ] Medium Effort
 
     -   [ ] Implement Shad-cn Dialog for New Category form
-    -   [ ] Add contact form page with mock submission
-    -   [ ] Improve Gallery layout for desktop screens
 
 -   [ ] Major Updates
 
