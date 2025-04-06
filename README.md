@@ -100,17 +100,11 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
--   [ ] Quick Wins
-
-    -   [ ] Add contact nav button to header
-    -   [ ] Fix Strapi category thumbnails loading issue
-
--   [ ] Medium Effort
-
     -   [ ] Implement Shad-cn Dialog for New Category form
-
--   [ ] Major Updates
-
-    -   [ ] Integrate Shad-cn Form component (`yarn dlx shadcn-svelte@latest add form`)
-    -   [ ] Replace UI elements with Shad-cn components (buttons, dialogs, forms, etc.)
+    -   [ ] Integrate Shad-cn Form component for New Category and New Image forms
+    -   [ ] Replace UI elements with Shad-cn components (buttons, text fields, etc.)
     -   [ ] Enable multiple image uploads via button or drag-and-drop
+    -   [ ] Fix Strapi category thumbnails loading issue
+        - Issue Overview: category thumbnails aren't being loaded from Strapi
+        - We need to first verify that categories created using the admin mode are created in Strapi along with the thumbnail image that the user uploaded
+        - Assuming creating new categories with thumbnails is working properly, then we need to make sure the thumbnails are displayed instead of placeholder images from Unsplashed

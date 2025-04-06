@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
     import { v4 as uuidv4 } from 'uuid';
     import type { Image } from '$lib/stores/imageStore';
     import * as Dialog from '$lib/components/ui/dialog';
