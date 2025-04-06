@@ -170,7 +170,7 @@
 />
 
 <div class="gallery-container py-6">
-    <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl m-auto md:px-4">
         {#each localImages as image (image.id)}
             <button
                 type="button"

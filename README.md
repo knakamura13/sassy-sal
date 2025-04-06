@@ -113,7 +113,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 -   [ ] Major Updates
 
-    -   [x] Create hover effects for navigation items
     -   [ ] Integrate Shad-cn Form component (`yarn dlx shadcn-svelte@latest add form`)
     -   [ ] Replace UI elements with Shad-cn components (buttons, dialogs, forms, etc.)
     -   [ ] Enable multiple image uploads via button or drag-and-drop
