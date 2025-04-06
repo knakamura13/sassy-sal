@@ -62,22 +62,26 @@
 
 <a
     href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
-    class="category-card aspect-[3/4] !m-auto block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative h-full"
+    class="category-card aspect-[3/4] min-w-[240px] max-w-[320px] w-full !m-auto block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative h-full"
 >
-    <div class="category-card-border absolute inset-0 opacity-0 transition-opacity duration-300"></div>
+    <div
+        class="category-card-border absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
+    ></div>
     <div class="w-full h-full relative">
-        {#if isLoading}
-            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div class="font-garamond animate-pulse">Loading...</div>
-            </div>
-        {:else}
+        {#if !isLoading}
             <div class="w-full h-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
-                <img src={imageUrl} alt={category.attributes.name} class="w-full h-full object-cover image-filter" />
+                <img
+                    src={imageUrl}
+                    alt={category.attributes.name}
+                    class="w-full h-full object-cover image-filter transition-[filter] duration-300 ease-out"
+                />
             </div>
         {/if}
 
         <div class="absolute inset-0 flex items-center justify-center">
-            <h3 class="font-didot text-2xl text-gray-500 transition-all duration-300 card-title text-center">
+            <h3
+                class="card-title font-didot text-2xl transition-all duration-300 text-gray-200 text-center opacity-70 mix-blend-difference"
+            >
                 {category.attributes.name}
             </h3>
         </div>
@@ -103,37 +107,21 @@
     </div>
 </a>
 
-<style>
-    .category-card {
-        min-width: 240px;
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .category-card .card-title {
-        opacity: 0.9;
-    }
-
-    .category-card:hover .card-title {
-        opacity: 1;
-        transform: scale(1.1);
-        color: rgb(31 41 55 / var(--tw-text-opacity));
-    }
-
-    .category-card-border {
-        pointer-events: none;
-    }
-
-    .category-card:hover .category-card-border {
-        opacity: 1;
-    }
-
+<style lang="scss">
     .image-filter {
         filter: sepia(0.2) brightness(0.92) saturate(0.85);
-        transition: filter 0.4s ease-out;
     }
 
-    .category-card:hover .image-filter {
-        filter: sepia(0) brightness(1) saturate(1.1);
+    .category-card:hover {
+        .card-title {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .category-card-border {
+            opacity: 1;
+        }
+        .image-filter {
+            filter: sepia(0) brightness(1) saturate(1.1);
+        }
     }
 </style>
