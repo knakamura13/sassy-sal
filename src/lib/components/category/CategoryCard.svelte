@@ -163,7 +163,7 @@
 
         <div class="absolute inset-0 flex items-center justify-center">
             <h3
-                class="card-title font-didot text-2xl transition-all duration-300 text-white text-center px-4 py-10 w-full backdrop-blur-sm bg-black bg-opacity-30 shadow-text"
+                class="flex justify-center items-center card-title font-didot text-2xl transition-all duration-300 text-white text-center px-4 h-24 w-full bg-black bg-opacity-20 shadow-text"
             >
                 {category.attributes.name}
             </h3>
@@ -172,14 +172,14 @@
         {#if isAdmin}
             <div class="absolute top-2 right-2 flex space-x-2">
                 <button
-                    class="bg-gray-800 bg-opacity-70 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700 focus:outline-none shadow-md"
+                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700 focus:outline-none shadow-md"
                     on:click|stopPropagation|preventDefault={handleEdit}
                     aria-label="Edit category"
                 >
                     ✎
                 </button>
                 <button
-                    class="bg-gray-800 bg-opacity-70 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md"
+                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md"
                     on:click|stopPropagation|preventDefault={handleRemove}
                     aria-label="Remove category"
                 >
@@ -203,7 +203,14 @@
         .card-title {
             opacity: 1;
             transform: scale(1.1);
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.2);
+            --tw-backdrop-blur: blur(2px);
+            -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
+                var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+                var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+            backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
+                var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+                var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
         }
         .category-card-border {
             opacity: 1;
