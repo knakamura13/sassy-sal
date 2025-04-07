@@ -5,6 +5,7 @@
     import { Label } from '$lib/components/ui/label';
     import { Input } from '$lib/components/ui/input';
     import { Button } from '$lib/components/ui/button';
+    import { showToast } from '$lib/utils';
 
     // Define interface for Strapi uploaded file
     interface StrapiUploadedFile {
@@ -94,7 +95,7 @@
 
     async function handleSubmit() {
         if (!categoryName.trim()) {
-            alert('Please enter a category name');
+            showToast.error('Please enter a category name');
             return;
         }
 

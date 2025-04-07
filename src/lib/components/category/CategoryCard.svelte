@@ -6,6 +6,7 @@
     import { Label } from '$lib/components/ui/label';
     import { Input } from '$lib/components/ui/input';
     import { Button } from '$lib/components/ui/button';
+    import { showToast } from '$lib/utils';
 
     // Define Strapi Category type locally
     interface StrapiCategory {
@@ -220,7 +221,7 @@
 
     async function handleSubmit() {
         if (!editName.trim()) {
-            alert('Please enter a category name');
+            showToast.error('Please enter a category name');
             return;
         }
 

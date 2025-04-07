@@ -6,6 +6,7 @@
     import { Label } from '$lib/components/ui/label';
     import { Input } from '$lib/components/ui/input';
     import { Button } from '$lib/components/ui/button';
+    import { showToast } from '$lib/utils';
 
     // Add categoryId as a prop to support category galleries
     export let categoryId: string = '';
@@ -72,7 +73,7 @@
 
     function handleSubmit() {
         if (!imageFile) {
-            alert('Please select an image file');
+            showToast.error('Please select an image file');
             return;
         }
 

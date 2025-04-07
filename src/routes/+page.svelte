@@ -6,6 +6,7 @@
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
     import { writable } from 'svelte/store';
+    import { showToast } from '$lib/utils';
 
     // Interface for category data from Strapi
     interface Category {
@@ -110,12 +111,12 @@
                     addDeletedCategory(id);
                     const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
                     updateCategoriesAndRender(filteredCategories);
-                    alert('Category deleted, but there was an error refreshing the category list.');
+                    showToast.info('Category deleted, but there was an error refreshing the category list.');
                 }
             }
         } catch (error) {
             console.error('Error removing category:', error);
-            alert('Failed to delete category');
+            showToast.error('Failed to delete category');
         } finally {
             // Reset alert dialog state
             $showDeleteDialog = false;
@@ -145,7 +146,7 @@
                     const updatedCategories = await getCategories();
                     if (updatedCategories && updatedCategories.length > 0) {
                         updateCategoriesAndRender(updatedCategories);
-                        alert('Category added successfully');
+                        showToast.success('Category added successfully');
                         return;
                     }
                 } catch (refreshError) {
@@ -154,11 +155,11 @@
 
                 // Fallback: update local state with the saved category
                 updateCategoriesAndRender([...categories, savedCategory]);
-                alert('Category added successfully');
+                showToast.success('Category added successfully');
             }
         } catch (error) {
             console.error('Error adding category:', error);
-            alert('Failed to add category');
+            showToast.error('Failed to add category');
         }
     }
 
@@ -214,7 +215,7 @@
                         updateError.status === 404 ||
                         (typeof updateError.message === 'string' && updateError.message.includes('404'))
                     ) {
-                        alert('Category not found. It may have been deleted from the server.');
+                        showToast.error('Category not found. It may have been deleted from the server.');
 
                         // Try to refresh categories from server
                         try {
@@ -228,7 +229,7 @@
                         }
                     } else {
                         // Handle other errors
-                        alert(`Failed to update category: ${updateError.message || 'Unknown error'}`);
+                        showToast.error(`Failed to update category: ${updateError.message || 'Unknown error'}`);
                     }
                     throw updateError; // Re-throw for the outer catch
                 }

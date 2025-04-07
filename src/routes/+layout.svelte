@@ -2,9 +2,7 @@
     import '../app.postcss';
     import './styles.scss';
     import Header from '$lib/components/Header.svelte';
-    import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
-
-    // Initialize the store even if not used directly
+    import { Toaster } from '$lib/components/ui/sonner';
 </script>
 
 <div class="app-wrapper flex flex-col">
@@ -12,6 +10,7 @@
     <main class="main-content flex-1">
         <slot />
     </main>
+    <Toaster />
 </div>
 
 <style>

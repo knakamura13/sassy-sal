@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
+import { toast } from "svelte-sonner";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -59,4 +60,17 @@ export const flyAndScale = (
 		},
 		easing: cubicOut
 	};
+};
+
+// Toast utility functions
+export const showToast = {
+	success: (message: string) => {
+		toast.success(message);
+	},
+	error: (message: string) => {
+		toast.error(message);
+	},
+	info: (message: string) => {
+		toast(message);
+	}
 };

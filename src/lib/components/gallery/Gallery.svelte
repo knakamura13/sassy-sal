@@ -4,6 +4,7 @@
     import ImageCard from './ImageCard.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';
     import { onMount, tick } from 'svelte';
+    import { showToast } from '$lib/utils';
 
     // New props for category support
     export let images: Image[] = [];
@@ -84,10 +85,10 @@
 
                 isModified = false;
                 isSaving = false;
-                alert('Changes saved successfully');
+                showToast.success('Changes saved successfully');
 
                 // Force page refresh to reflect the changes from the server
-                // Use a small timeout to ensure the alert is shown before refresh
+                // Use a small timeout to ensure the toast is shown before refresh
                 setTimeout(() => {
                     // Add a timestamp to ensure cache is invalidated
                     const timestamp = new Date().getTime();
@@ -95,11 +96,11 @@
                     url.searchParams.set('t', timestamp.toString());
                     // Force a complete reload to ensure we get fresh data from the server
                     window.location.href = url.toString();
-                }, 500);
+                }, 1000); // Increased timeout to allow toast to be visible
             } catch (error) {
                 console.error('Error saving changes:', error);
                 isSaving = false;
-                alert('Error saving changes. Please try again.');
+                showToast.error('Error saving changes. Please try again.');
             }
         };
 
@@ -111,7 +112,7 @@
     function discardChanges() {
         imageStore.reset();
         isModified = false;
-        alert('Changes discarded');
+        showToast.info('Changes discarded');
     }
 
     // Function to handle image removal

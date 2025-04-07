@@ -6,6 +6,7 @@
     import Gallery from '$lib/components/gallery/Gallery.svelte';
     import { STRAPI_API_URL } from '$lib/services/strapi';
     import type { Image } from '$lib/stores/imageStore';
+    import { showToast } from '$lib/utils';
 
     // Define Strapi types
     interface StrapiImage {
@@ -243,14 +244,14 @@
     // Function to handle image upload success
     function handleImageAdded(_: CustomEvent<any>) {
         // Show a success message
-        alert('Image uploaded successfully! Refreshing the page to show the new image.');
+        showToast.success('Image uploaded successfully! Refreshing the page to show the new image.');
 
         // Refresh the page to show the newly added image
-        // Use a small timeout to ensure the alert is shown before refresh
+        // Use a small timeout to ensure the toast is shown before refresh
         setTimeout(() => {
             // Force a complete reload to ensure we get fresh data from the server
             window.location.href = window.location.href;
-        }, 500);
+        }, 1000); // Increased timeout to allow toast to be visible
     }
 
     // Retry loading the page
