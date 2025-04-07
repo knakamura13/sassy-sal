@@ -399,6 +399,70 @@ export const deleteCategory = async (id) => {
 };
 
 /**
+ * Update a category
+ * @param {string|number} id - The category ID
+ * @param {Object} data - The category data to update
+ * @returns {Promise<Object>} The updated category data
+ */
+export const updateCategory = async (id, data) => {
+    try {
+        // Ensure the ID is in the right format
+        const categoryId = String(id);
+        
+        // Make the update request
+        const response = await fetchAPI(`/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.data) {
+            console.error('Invalid response from Strapi:', response);
+            throw new Error('Failed to update category: Invalid response');
+        }
+        
+        // If we have a thumbnail in the update data, try to fetch the complete category with thumbnails populated
+        if (data.data?.thumbnail && response.data.id) {
+            try {
+                // Wait a moment for Strapi to process the relationship
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Fetch the complete category with all relations including thumbnails
+                const categoryWithThumbnail = await fetchAPI(`/categories/${response.data.id}?populate=*`);
+                
+                if (categoryWithThumbnail?.data) {
+                    return categoryWithThumbnail.data;
+                }
+            } catch (fetchError) {
+                console.warn('Error fetching updated category with thumbnails:', fetchError);
+                // Continue with the original response if fetching fails
+            }
+        }
+        
+        return response.data;
+    } catch (error) {
+        console.error(`Error updating category ${id}:`, error);
+        
+        // Create a more detailed error object that preserves the original status code
+        const enhancedError = new Error(error.message || 'Failed to update category');
+        
+        // Preserve the status code if it exists
+        if (error.status) {
+            enhancedError.status = error.status;
+        } 
+        // Check if the error message contains 404
+        else if (error.message && error.message.includes('404')) {
+            enhancedError.status = 404;
+            enhancedError.message = `Category with ID ${id} no longer exists or was deleted`;
+        }
+        
+        throw enhancedError;
+    }
+};
+
+/**
  * Add a new image associated with a category
  * @param {Object} imageData - The image data with category ID
  */

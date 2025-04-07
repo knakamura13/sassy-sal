@@ -2,7 +2,7 @@
     import { adminMode } from '$lib/stores/adminStore';
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
-    import { addCategory, deleteCategory, getCategories } from '$lib/services/strapi';
+    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/strapi';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
 
     // Define the Category interface for Strapi data
@@ -132,6 +132,63 @@
             alert('Failed to add category');
         }
     }
+
+    // Function to handle category update
+    async function handleUpdateCategory(event: CustomEvent<any>) {
+        try {
+            const { id, data } = event.detail;
+
+            if ($adminMode) {
+                try {
+                    // Update in Strapi
+                    await updateCategory(id, data);
+
+                    // Mark as modified for admin save button
+                    isModified = true;
+
+                    // Since the thumbnail association might not be immediately available,
+                    // fetch all categories again to get the most updated data
+                    try {
+                        const updatedCategories = await getCategories();
+                        if (updatedCategories && updatedCategories.length > 0) {
+                            categories = updatedCategories;
+                            return;
+                        }
+                    } catch (refreshError) {
+                        // Handle error silently
+                    }
+
+                    // Update the category locally
+                    categories = categories.map((cat) => (cat.id === id ? { ...cat, ...data.data } : cat));
+                } catch (updateError: any) {
+                    // Handle 404 errors specifically
+                    if (
+                        updateError.status === 404 ||
+                        (typeof updateError.message === 'string' && updateError.message.includes('404'))
+                    ) {
+                        alert('Category not found. It may have been deleted from the server.');
+
+                        // Refresh categories to show current state
+                        try {
+                            const updatedCategories = await getCategories();
+                            if (updatedCategories && updatedCategories.length > 0) {
+                                categories = updatedCategories;
+                            }
+                        } catch (refreshError) {
+                            // If refresh fails, remove the category from local state
+                            categories = categories.filter((cat) => cat.id !== id);
+                        }
+                    } else {
+                        // For other errors
+                        alert(`Failed to update category: ${updateError.message || 'Unknown error'}`);
+                    }
+                    throw updateError; // Re-throw to be caught by the outer catch
+                }
+            }
+        } catch (error) {
+            console.error('Error updating category:', error);
+        }
+    }
 </script>
 
 <div class="page relative min-h-[100vh]" id="home">
@@ -139,7 +196,12 @@
         <div class="category-container py-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {#each filteredCategories as category (category.id)}
-                    <CategoryCard {category} isAdmin={$adminMode} on:remove={handleRemoveCategory} />
+                    <CategoryCard
+                        {category}
+                        isAdmin={$adminMode}
+                        on:remove={handleRemoveCategory}
+                        on:update={handleUpdateCategory}
+                    />
                 {/each}
 
                 {#if $adminMode}

@@ -2,6 +2,11 @@
     import { createEventDispatcher, onMount } from 'svelte';
     import { getRandomImageByQuery } from '$lib/services/unsplash';
     import { STRAPI_API_URL } from '$lib/services/strapi';
+    import { uploadFile } from '$lib/services/strapi';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import { Label } from '$lib/components/ui/label';
+    import { Input } from '$lib/components/ui/input';
+    import { Button } from '$lib/components/ui/button';
 
     // Define Strapi Category type locally
     interface StrapiCategory {
@@ -14,16 +19,34 @@
         };
     }
 
+    // Define interface for Strapi uploaded file
+    interface StrapiUploadedFile {
+        id: number;
+        name: string;
+        url: string;
+    }
+
     export let category: StrapiCategory;
     export let isAdmin: boolean = false;
 
     const dispatch = createEventDispatcher<{
         remove: string | number;
+        update: { id: string | number; data: any };
     }>();
 
     // State for image URL (will be populated from Unsplash if missing)
     let imageUrl = '';
     let isLoading = true;
+
+    // Edit dialog state
+    let editDialogOpen = false;
+    let editName = '';
+    let selectedFile: File | null = null;
+    let imagePreview = '';
+    let isUploading = false;
+    let errorMessage = '';
+    let fileInput: HTMLInputElement;
+    let isDragging = false;
 
     // Make sure category has the expected structure to prevent errors
     if (!category) {
@@ -136,9 +159,145 @@
     }
 
     function handleEdit() {
-        const newName = prompt('Enter new category name:', category.attributes.name);
-        if (newName && newName.trim() !== '') {
-            category.attributes.name = newName.trim();
+        editName = category.attributes.name;
+        imagePreview = imageUrl;
+        editDialogOpen = true;
+    }
+
+    function handleFileChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (input.files && input.files[0]) {
+            processFile(input.files[0]);
+        }
+    }
+
+    function processFile(file: File) {
+        selectedFile = file;
+
+        // Create preview URL
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview = e.target?.result as string;
+        };
+        reader.readAsDataURL(selectedFile);
+    }
+
+    function handleDropZoneClick() {
+        fileInput.click();
+    }
+
+    // Common handler for drag events
+    function handleDragEvent(event: DragEvent, entering: boolean) {
+        event.preventDefault();
+        event.stopPropagation();
+        isDragging = entering;
+    }
+
+    function handleDrop(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        isDragging = false;
+
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+            processFile(files[0]);
+        }
+    }
+
+    function resetForm() {
+        editName = category.attributes.name;
+        selectedFile = null;
+        imagePreview = imageUrl;
+        isUploading = false;
+        errorMessage = '';
+        isDragging = false;
+    }
+
+    // Reset form data when the dialog is closed
+    $: if (!editDialogOpen) {
+        resetForm();
+    }
+
+    async function handleSubmit() {
+        if (!editName.trim()) {
+            alert('Please enter a category name');
+            return;
+        }
+
+        isUploading = true;
+        errorMessage = '';
+
+        try {
+            // Create a slug from the category name if it changed
+            const slug =
+                editName !== category.attributes.name
+                    ? editName
+                          .toLowerCase()
+                          .replace(/\s+/g, '-')
+                          .replace(/[^\w-]+/g, '')
+                    : category.attributes.slug;
+
+            // Prepare the update data
+            const updateData: any = {
+                name: editName.trim(),
+                slug
+            };
+
+            // If there's a selected file, upload it first
+            if (selectedFile) {
+                try {
+                    const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
+
+                    if (uploadedFile && uploadedFile.id) {
+                        // Add the thumbnail ID to the category data using Strapi v4 relationship format
+                        updateData.thumbnail = {
+                            connect: [{ id: uploadedFile.id }]
+                        };
+                    } else {
+                        errorMessage = 'Invalid response from server during thumbnail upload.';
+                    }
+                } catch (uploadError) {
+                    console.error('Error uploading thumbnail:', uploadError);
+                    // Continue without the thumbnail if upload fails
+                    errorMessage = 'Failed to upload thumbnail, but category will be updated without it.';
+                }
+            }
+
+            try {
+                // Dispatch the update event
+                dispatch('update', { id: category.id, data: { data: updateData } });
+
+                // Update local state to reflect changes
+                category.attributes.name = editName.trim();
+                category.attributes.slug = slug;
+
+                // Force a reload of the image when a new one is uploaded
+                if (selectedFile) {
+                    // Small delay to ensure the upload completes
+                    setTimeout(async () => {
+                        await loadImage();
+                    }, 1000);
+                }
+
+                // Close dialog after successful submission
+                editDialogOpen = false;
+            } catch (updateError: any) {
+                // Check for 404 errors specifically
+                if (
+                    updateError?.status === 404 ||
+                    (typeof updateError?.message === 'string' && updateError.message.includes('404'))
+                ) {
+                    errorMessage = 'This category no longer exists. It may have been deleted from the server.';
+                } else {
+                    errorMessage = `Failed to update category: ${updateError?.message || 'Unknown error'}`;
+                }
+                console.error('Error updating category:', updateError);
+            }
+        } catch (error) {
+            console.error('Error in category update process:', error);
+            errorMessage = 'Failed to update category. Please try again.';
+        } finally {
+            isUploading = false;
         }
     }
 </script>
@@ -189,6 +348,109 @@
         {/if}
     </div>
 </a>
+
+<!-- Edit Category Dialog -->
+<Dialog.Root bind:open={editDialogOpen}>
+    <Dialog.Content class="sm:max-w-md">
+        <Dialog.Header>
+            <Dialog.Title>Edit Category</Dialog.Title>
+        </Dialog.Header>
+
+        <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+            <div class="space-y-2">
+                <Label for="editCategoryName" class="font-garamond">Category Name*</Label>
+                <Input
+                    type="text"
+                    id="editCategoryName"
+                    bind:value={editName}
+                    placeholder="e.g. Weddings"
+                    class="font-garamond"
+                    required
+                    disabled={isUploading}
+                />
+            </div>
+
+            <div class="space-y-2">
+                <Label for="editCategoryImage" class="font-garamond">Thumbnail Image</Label>
+
+                <!-- Hidden file input -->
+                <input
+                    bind:this={fileInput}
+                    type="file"
+                    id="editCategoryImage"
+                    class="sr-only"
+                    accept="image/*"
+                    on:change={handleFileChange}
+                    disabled={isUploading}
+                />
+
+                <!-- Custom Drop Zone -->
+                <button
+                    type="button"
+                    class="group w-full cursor-pointer p-6 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-center transition-colors font-garamond {isDragging
+                        ? 'bg-gray-100 border-blue-500'
+                        : imagePreview
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
+                    on:click={handleDropZoneClick}
+                    on:dragenter={(e) => handleDragEvent(e, true)}
+                    on:dragover={(e) => handleDragEvent(e, true)}
+                    on:dragleave={(e) => handleDragEvent(e, false)}
+                    on:drop={handleDrop}
+                    disabled={isUploading}
+                >
+                    {#if imagePreview}
+                        <div class="mb-2">
+                            <img src={imagePreview} alt="Preview" class="max-h-32 max-w-full object-contain mx-auto" />
+                        </div>
+                        <p class="text-sm text-gray-600">{selectedFile?.name || 'Current image'}</p>
+                        <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                    {:else}
+                        <svg
+                            class="w-10 h-10 text-gray-400 mb-2 group-hover:text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                        </svg>
+                        <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop a thumbnail here</p>
+                        <p class="text-gray-500 text-sm mt-1">or click to browse</p>
+                    {/if}
+                </button>
+            </div>
+
+            {#if errorMessage}
+                <div class="p-2 bg-red-100 text-red-800 rounded text-sm">
+                    {errorMessage}
+                </div>
+            {/if}
+
+            <Dialog.Footer class="flex flex-row justify-end space-x-3">
+                <Dialog.Close
+                    class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
+                >
+                    Cancel
+                </Dialog.Close>
+
+                <Button type="submit" variant="default" class="font-didot" disabled={!editName || isUploading}>
+                    {#if isUploading}
+                        <span class="mr-2">Updating...</span>
+                        <!-- Simple loading spinner -->
+                        <div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    {:else}
+                        Update
+                    {/if}
+                </Button>
+            </Dialog.Footer>
+        </form>
+    </Dialog.Content>
+</Dialog.Root>
 
 <style lang="scss">
     .image-filter {
