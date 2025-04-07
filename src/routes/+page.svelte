@@ -85,15 +85,8 @@
                         if (categoryStillExists) {
                             // Track this category as deleted in our store
                             addDeletedCategory(id);
-                            // Update local state with all categories for consistency
-                            categories = updatedCategories;
-                            alert(
-                                'Category marked as deleted. The server has been notified, but you may continue to see the category in API responses.'
-                            );
-                        } else {
-                            categories = updatedCategories;
-                            alert('Category deleted successfully');
                         }
+                        categories = updatedCategories;
                     } catch (fetchError) {
                         // Fallback to local state update and track as deleted
                         addDeletedCategory(id);
