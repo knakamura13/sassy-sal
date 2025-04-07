@@ -10,7 +10,6 @@
         id: string | number;
         attributes: {
             name: string;
-            slug: string;
             order: number;
             description?: string;
             thumbnail?: {

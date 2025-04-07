@@ -40,7 +40,6 @@
         id: number;
         attributes: {
             name: string;
-            slug: string;
             description?: string;
             images?: {
                 data: StrapiImage[];

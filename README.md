@@ -67,7 +67,6 @@ Access the admin panel via `/admin` route (password: `admin123`).
     **Category**:
 
     - name: String (required)
-    - slug: String (required, unique)
     - description: Text (optional)
     - thumbnail: Media (single image)
     - images: Relation to Images collection (one-to-many)
@@ -102,4 +101,3 @@ The integration is built using the native fetch API instead of a Strapi client l
 
     - [ ] Fix image upload (error when saving changes)
     - [ ] Enable batch image upload
-    - [ ] Remove slug attribute from categories

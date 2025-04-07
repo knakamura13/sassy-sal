@@ -89,16 +89,15 @@ export const getCategories = async () => {
                             documentId: category.documentId
                         };
                     }
-                    return category;
+                    return category; 
                 }
                 // Otherwise, transform flat data to nested attributes structure
-                else if (category.name && category.slug) {
+                else if (category.name) {
                     const transformed = {
                         id: category.id,
                         documentId: category.documentId,
                         attributes: {
                             name: category.name,
-                            slug: category.slug,
                             description: category.description,
                             order: category.order !== undefined ? category.order : 0
                         }
@@ -152,15 +151,15 @@ export const getCategories = async () => {
 
 /**
  * Fetch a specific category with all its images
- * @param {string} slugOrId - The category slug or ID
+ * @param {string} nameOrId - The category name or ID
  */
-export const getCategoryWithImages = async (slugOrId) => {
+export const getCategoryWithImages = async (nameOrId) => {
     try {
         // Check if it looks like a documentId (alphanumeric string)
-        const isDocumentId = typeof slugOrId === 'string' && /^[a-z0-9]+$/i.test(slugOrId) && slugOrId.length > 10;
+        const isDocumentId = typeof nameOrId === 'string' && /^[a-z0-9]+$/i.test(nameOrId) && nameOrId.length > 10;
 
         // Check if it's a numeric ID
-        const isNumericId = !isNaN(parseInt(slugOrId, 10));
+        const isNumericId = !isNaN(parseInt(nameOrId, 10));
 
         let endpoint;
         let queryParams;
@@ -168,21 +167,21 @@ export const getCategoryWithImages = async (slugOrId) => {
         if (isDocumentId) {
             endpoint = '/categories';
             queryParams = new URLSearchParams({
-                'filters[documentId][$eq]': slugOrId,
+                'filters[documentId][$eq]': nameOrId,
                 populate: '*'
             }).toString();
         } else if (isNumericId) {
-            endpoint = `/categories/${slugOrId}`;
+            endpoint = `/categories/${nameOrId}`;
             queryParams = new URLSearchParams({
                 populate: '*'
             }).toString();
         } else {
-            // Otherwise, normalize the slug and use slug-based filtering
-            const normalizedSlug = slugOrId.trim().toLowerCase();
+            // Otherwise, normalize the name and use name-based filtering
+            const normalizedName = nameOrId.trim().toLowerCase();
 
             endpoint = '/categories';
             queryParams = new URLSearchParams({
-                'filters[slug][$eq]': normalizedSlug,
+                'filters[name][$eq]': normalizedName,
                 populate: '*'
             }).toString();
         }
@@ -198,16 +197,16 @@ export const getCategoryWithImages = async (slugOrId) => {
         } else {
             // Filtering returns an array of matches
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                // Get the first category that matches the slug
+                // Get the first category that matches the name
                 category = response.data[0];
             } else {
-                console.warn(`⚠️ No category found with slug: ${slugOrId}`);
+                console.warn(`⚠️ No category found with name: ${nameOrId}`);
                 return null;
             }
         }
 
         // Step 1: Check if we have a flat structure (based on the logs we're seeing)
-        if (category.name && category.slug && !category.attributes) {
+        if (category.name && !category.attributes) {
             // Deep clone the category to avoid reference issues
             const flatCategory = { ...category };
 
@@ -216,7 +215,6 @@ export const getCategoryWithImages = async (slugOrId) => {
                 id: flatCategory.id,
                 attributes: {
                     name: flatCategory.name,
-                    slug: flatCategory.slug,
                     description: flatCategory.description || null,
                     order: flatCategory.order !== undefined ? flatCategory.order : 0
                 }
@@ -242,13 +240,12 @@ export const getCategoryWithImages = async (slugOrId) => {
             // Already in the right format
         }
         // If category doesn't have attributes but has expected properties directly
-        else if (category.name && category.slug) {
+        else if (category.name) {
             // Convert to expected format with attributes
             category = {
                 id: category.id,
                 attributes: {
                     name: category.name,
-                    slug: category.slug,
                     description: category.description,
                     // Handle images if they exist
                     images: category.images || { data: [] }
@@ -260,11 +257,10 @@ export const getCategoryWithImages = async (slugOrId) => {
             category = {
                 id: category.id || 0,
                 attributes: {
-                    name: slugOrId
+                    name: nameOrId
                         .split('-')
                         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
                         .join(' '),
-                    slug: slugOrId,
                     images: { data: [] }
                 }
             };
@@ -289,7 +285,7 @@ export const getCategoryWithImages = async (slugOrId) => {
 
         return category;
     } catch (error) {
-        console.error(`❌ Error fetching category ${slugOrId}:`, error);
+        console.error(`❌ Error fetching category ${nameOrId}:`, error);
         throw error;
     }
 };

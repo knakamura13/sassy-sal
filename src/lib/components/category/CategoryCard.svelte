@@ -13,7 +13,6 @@
         id: string | number;
         attributes: {
             name: string;
-            slug: string;
             order: number;
             description?: string;
             thumbnail?: any; // Using any type to handle various Strapi response structures
@@ -57,7 +56,6 @@
             id: 'placeholder',
             attributes: {
                 name: 'Missing Category',
-                slug: 'missing-category',
                 order: 0
             }
         };
@@ -65,7 +63,6 @@
         console.error(`Category is missing attributes`);
         category.attributes = {
             name: (category as any).name || 'Unknown Category',
-            slug: (category as any).slug || 'unknown-category',
             order: (category as any).order || 0
         };
     } else if (category.attributes.order === undefined) {
@@ -237,20 +234,12 @@
         errorMessage = '';
 
         try {
-            // Create a slug from the category name if it changed
-            const slug =
-                editName !== category.attributes.name
-                    ? editName
-                          .toLowerCase()
-                          .replace(/\s+/g, '-')
-                          .replace(/[^\w-]+/g, '')
-                    : category.attributes.slug;
-
             // Prepare the update data
             const updateData: any = {
-                name: editName.trim(),
-                slug,
-                order: Number(editOrder) || 0 // Convert to number with fallback to 0
+                data: {
+                    name: editName,
+                    order: editOrder
+                }
             };
 
             // If there's a selected file, upload it first
@@ -260,7 +249,7 @@
 
                     if (uploadedFile && uploadedFile.id) {
                         // Add the thumbnail ID to the category data using Strapi v4 relationship format
-                        updateData.thumbnail = {
+                        updateData.data.thumbnail = {
                             connect: [{ id: uploadedFile.id }]
                         };
                     } else {
@@ -277,14 +266,11 @@
                 // Dispatch the update event
                 dispatch('update', {
                     id: category.id,
-                    data: {
-                        data: updateData
-                    }
+                    data: updateData.data
                 });
 
                 // Update local state to reflect changes
                 category.attributes.name = editName.trim();
-                category.attributes.slug = slug;
                 category.attributes.order = Number(editOrder) || 0;
 
                 // Force a reload of the image when a new one is uploaded

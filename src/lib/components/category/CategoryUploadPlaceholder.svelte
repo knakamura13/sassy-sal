@@ -17,7 +17,6 @@
     interface CategoryData {
         data: {
             name: string;
-            slug: string;
             order: number;
             thumbnail?: {
                 connect: [{ id: number }];
@@ -103,17 +102,10 @@
         errorMessage = '';
 
         try {
-            // Create a slug from the category name
-            const slug = categoryName
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-                .replace(/[^\w-]+/g, '');
-
             // Prepare the data for Strapi
             const categoryData: CategoryData = {
                 data: {
                     name: categoryName.trim(),
-                    slug,
                     order: Number(orderValue) || 0 // Convert to number with fallback to 0
                 }
             };

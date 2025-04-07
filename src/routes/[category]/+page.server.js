@@ -35,7 +35,6 @@ export async function load({ params, url }) {
                 id: category.id,
                 attributes: {
                     name: category.name,
-                    slug: category.slug,
                     description: category.description
                 }
             };
@@ -84,17 +83,12 @@ export async function load({ params, url }) {
             category.attributes = {}; // Add an empty attributes object as a fallback
         }
 
-        // Add name if missing (fallback to capitalized slug)
+        // Add name if missing (fallback to capitalized category parameter)
         if (!category.attributes.name) {
             category.attributes.name = categoryParam
                 .split('-')
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-        }
-
-        // Ensure slug property exists
-        if (!category.attributes.slug) {
-            category.attributes.slug = categoryParam;
         }
 
         // Ensure images data is properly structured, even if empty
@@ -143,7 +137,6 @@ export async function load({ params, url }) {
                         .split('-')
                         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                         .join(' '),
-                    slug: categoryParam,
                     description: 'We encountered an issue while loading all details for this category.',
                     images: { data: [] }
                 }
