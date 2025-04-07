@@ -11,6 +11,7 @@
         attributes: {
             name: string;
             slug: string;
+            order: number;
             description?: string;
             thumbnail?: {
                 data: {
@@ -35,8 +36,17 @@
     let categories = data.categories || [];
     let isModified = false;
 
-    // Filter out deleted categories (those in our local deletion tracking)
-    $: filteredCategories = categories.filter((cat) => !$deletedCategories.includes(cat.id));
+    // Filter out deleted categories and sort by order, then by name for deterministic ordering
+    $: filteredCategories = categories
+        .filter((cat) => !$deletedCategories.includes(cat.id))
+        .sort((a, b) => {
+            // First sort by order (ascending)
+            const orderDiff = a.attributes.order - b.attributes.order;
+            if (orderDiff !== 0) return orderDiff;
+
+            // If order is the same, sort alphabetically by name for deterministic ordering
+            return a.attributes.name.localeCompare(b.attributes.name);
+        });
 
     // Set admin mode from URL parameter
     $: if (data.admin) {
@@ -172,7 +182,18 @@
                     }, 1000);
 
                     // Update the category locally
-                    categories = categories.map((cat) => (cat.id === id ? { ...cat, ...data.data } : cat));
+                    categories = categories.map((cat) => {
+                        if (cat.id === id) {
+                            return {
+                                ...cat,
+                                attributes: {
+                                    ...cat.attributes,
+                                    ...data.data
+                                }
+                            };
+                        }
+                        return cat;
+                    });
                 } catch (updateError: any) {
                     // Handle 404 errors specifically
                     if (

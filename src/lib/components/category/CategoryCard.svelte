@@ -14,6 +14,7 @@
         attributes: {
             name: string;
             slug: string;
+            order: number;
             description?: string;
             thumbnail?: any; // Using any type to handle various Strapi response structures
         };
@@ -41,6 +42,7 @@
     // Edit dialog state
     let editDialogOpen = false;
     let editName = '';
+    let editOrder = 0;
     let selectedFile: File | null = null;
     let imagePreview = '';
     let isUploading = false;
@@ -55,15 +57,20 @@
             id: 'placeholder',
             attributes: {
                 name: 'Missing Category',
-                slug: 'missing-category'
+                slug: 'missing-category',
+                order: 0
             }
         };
     } else if (!category.attributes) {
         console.error(`Category is missing attributes`);
         category.attributes = {
             name: (category as any).name || 'Unknown Category',
-            slug: (category as any).slug || 'unknown-category'
+            slug: (category as any).slug || 'unknown-category',
+            order: (category as any).order || 0
         };
+    } else if (category.attributes.order === undefined) {
+        // Ensure order has a default value if missing
+        category.attributes.order = 0;
     }
 
     onMount(async () => {
@@ -160,6 +167,7 @@
 
     function handleEdit() {
         editName = category.attributes.name;
+        editOrder = category.attributes.order;
         imagePreview = imageUrl;
         editDialogOpen = true;
     }
@@ -206,6 +214,7 @@
 
     function resetForm() {
         editName = category.attributes.name;
+        editOrder = category.attributes.order;
         selectedFile = null;
         imagePreview = imageUrl;
         isUploading = false;
@@ -240,7 +249,8 @@
             // Prepare the update data
             const updateData: any = {
                 name: editName.trim(),
-                slug
+                slug,
+                order: Number(editOrder) || 0 // Convert to number with fallback to 0
             };
 
             // If there's a selected file, upload it first
@@ -265,11 +275,17 @@
 
             try {
                 // Dispatch the update event
-                dispatch('update', { id: category.id, data: { data: updateData } });
+                dispatch('update', {
+                    id: category.id,
+                    data: {
+                        data: updateData
+                    }
+                });
 
                 // Update local state to reflect changes
                 category.attributes.name = editName.trim();
                 category.attributes.slug = slug;
+                category.attributes.order = Number(editOrder) || 0;
 
                 // Force a reload of the image when a new one is uploaded
                 if (selectedFile) {
@@ -368,6 +384,20 @@
                     required
                     disabled={isUploading}
                 />
+            </div>
+
+            <div class="space-y-2">
+                <Label for="editCategoryOrder" class="font-garamond">Display Order</Label>
+                <Input
+                    type="number"
+                    id="editCategoryOrder"
+                    bind:value={editOrder}
+                    placeholder="0"
+                    class="font-garamond"
+                    min="0"
+                    disabled={isUploading}
+                />
+                <p class="text-xs text-gray-500">Categories are displayed in ascending order (lower numbers first)</p>
             </div>
 
             <div class="space-y-2">

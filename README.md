@@ -100,6 +100,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    - [ ] Fix category deletion (after deletion, the alert says "Category deleted successfully" but the category persists after page refresh)
     - [ ] Fix image upload (error when saving changes)
     - [ ] Enable batch image upload
+    - [ ] Remove slug attribute from categories

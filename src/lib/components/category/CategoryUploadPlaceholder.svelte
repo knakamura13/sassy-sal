@@ -18,6 +18,7 @@
         data: {
             name: string;
             slug: string;
+            order: number;
             thumbnail?: {
                 connect: [{ id: number }];
             };
@@ -35,6 +36,7 @@
     let dropZone: HTMLElement;
     let fileInput: HTMLInputElement;
     let isDragging = false;
+    let orderValue = 0; // Default order value is 0
 
     // Reset form data when the dialog is closed
     $: if (!open) {
@@ -48,6 +50,7 @@
         isUploading = false;
         errorMessage = '';
         isDragging = false;
+        orderValue = 0;
     }
 
     function handleFileChange(event: Event) {
@@ -110,7 +113,8 @@
             const categoryData: CategoryData = {
                 data: {
                     name: categoryName.trim(),
-                    slug
+                    slug,
+                    order: Number(orderValue) || 0 // Convert to number with fallback to 0
                 }
             };
 
@@ -172,6 +176,22 @@
                         required
                         disabled={isUploading}
                     />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="categoryOrder" class="font-garamond">Display Order</Label>
+                    <Input
+                        type="number"
+                        id="categoryOrder"
+                        bind:value={orderValue}
+                        placeholder="0"
+                        class="font-garamond"
+                        min="0"
+                        disabled={isUploading}
+                    />
+                    <p class="text-xs text-gray-500">
+                        Categories are displayed in ascending order (lower numbers first)
+                    </p>
                 </div>
 
                 <div class="space-y-2">

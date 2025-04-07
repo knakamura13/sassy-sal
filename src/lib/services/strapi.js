@@ -99,7 +99,8 @@ export const getCategories = async () => {
                         attributes: {
                             name: category.name,
                             slug: category.slug,
-                            description: category.description
+                            description: category.description,
+                            order: category.order !== undefined ? category.order : 0
                         }
                     };
                     
@@ -216,7 +217,8 @@ export const getCategoryWithImages = async (slugOrId) => {
                 attributes: {
                     name: flatCategory.name,
                     slug: flatCategory.slug,
-                    description: flatCategory.description || null
+                    description: flatCategory.description || null,
+                    order: flatCategory.order !== undefined ? flatCategory.order : 0
                 }
             };
 
