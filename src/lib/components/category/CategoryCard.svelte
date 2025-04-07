@@ -469,6 +469,8 @@
 </Dialog.Root>
 
 <style lang="scss">
+    @import '$lib/styles/variables.scss';
+
     .image-filter {
         filter: sepia(0.2) brightness(0.92) saturate(0.85);
     }
@@ -479,7 +481,7 @@
 
     /* Styling for the category placeholder when no thumbnail is available */
     .category-placeholder {
-        background-color: #87675c;
+        background-color: lighten($secondary-color, 10%);
     }
 
     .category-card:hover {
