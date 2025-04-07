@@ -14,3 +14,4 @@ vite.config.*
 # Specific
 .qodo
 static/images/sample-photos
+.aider*

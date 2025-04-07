@@ -3,7 +3,6 @@
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
     import { addCategory, deleteCategory, getCategories } from '$lib/services/strapi';
-    import { onMount } from 'svelte';
 
     // Define the Category interface for Strapi data
     interface Category {
@@ -35,21 +34,6 @@
     let categories = data.categories || [];
     let isModified = false;
 
-    onMount(() => {
-        console.log(`[DEBUG] Home page mounted with ${categories.length} categories`);
-        console.log(`[DEBUG] Categories data:`, JSON.stringify(categories, null, 2));
-
-        // Check if any categories have thumbnails
-        const withThumbnails = categories.filter((c) => c.attributes.thumbnail?.data?.attributes?.url);
-        console.log(`[DEBUG] Categories with thumbnail URLs: ${withThumbnails.length}/${categories.length}`);
-
-        withThumbnails.forEach((c) => {
-            console.log(
-                `[DEBUG] Category "${c.attributes.name}" has thumbnail URL: ${c.attributes.thumbnail?.data?.attributes?.url}`
-            );
-        });
-    });
-
     // Set admin mode from URL parameter
     $: if (data.admin) {
         adminMode.set(true);
@@ -80,12 +64,10 @@
     // Function to handle category removal
     async function handleRemoveCategory(event: CustomEvent<string | number>) {
         const id = event.detail;
-        console.log(`[DEBUG] Attempting to remove category with ID: ${id}`);
 
         if (confirm('Are you sure you want to delete this category?')) {
             try {
                 if ($adminMode) {
-                    console.log(`[DEBUG] Deleting category from Strapi with ID: ${id}`);
                     // Only try to remove from Strapi in admin mode
                     await deleteCategory(id);
                     alert('Category deleted successfully');
@@ -93,7 +75,7 @@
                     categories = categories.filter((cat: Category) => cat.id !== id);
                 }
             } catch (error) {
-                console.error('[DEBUG] Error removing category:', error);
+                console.error('Error removing category:', error);
                 alert('Failed to delete category');
             }
         }
@@ -101,63 +83,24 @@
 
     // Function to handle new category addition
     async function handleAddCategory(event: CustomEvent<any>) {
-        console.log(`[DEBUG] Adding new category from dialog`);
-        console.log(`[DEBUG] Raw category data from event:`, JSON.stringify(event.detail, null, 2));
-
         try {
             const newCategory = event.detail;
 
-            // Check if thumbnail data exists in the category
-            if (newCategory.data?.thumbnail) {
-                console.log(
-                    `[DEBUG] Category has thumbnail data in the request:`,
-                    JSON.stringify(newCategory.data.thumbnail, null, 2)
-                );
-            } else {
-                console.log(`[DEBUG] No thumbnail data found in the category request`);
-            }
-
             if ($adminMode) {
-                console.log(`[DEBUG] Sending category data to Strapi API`);
                 // Add to Strapi
                 const savedCategory = await addCategory(newCategory);
-                console.log(`[DEBUG] Category successfully saved to Strapi:`, JSON.stringify(savedCategory, null, 2));
 
-                // Verify if thumbnail exists in the saved category
-                if (savedCategory.attributes?.thumbnail) {
-                    console.log(
-                        `[DEBUG] Saved category has thumbnail data:`,
-                        JSON.stringify(savedCategory.attributes.thumbnail, null, 2)
-                    );
-
-                    // Check for thumbnail URL
-                    const thumbnailData = savedCategory.attributes.thumbnail.data;
-                    if (thumbnailData && thumbnailData.attributes?.url) {
-                        console.log(`[DEBUG] ✅ Thumbnail URL found:`, thumbnailData.attributes.url);
-                    } else if (thumbnailData === null) {
-                        console.error(`[DEBUG] ❌ Thumbnail data is NULL in saved category!`);
-                    } else {
-                        console.warn(`[DEBUG] ⚠️ Thumbnail exists but no URL found in the data`);
+                // Since the thumbnail association might not be immediately available,
+                // fetch all categories again to get the most updated data
+                try {
+                    const updatedCategories = await getCategories();
+                    if (updatedCategories && updatedCategories.length > 0) {
+                        categories = updatedCategories;
+                        alert('Category added successfully');
+                        return;
                     }
-                } else {
-                    console.warn(`[DEBUG] ⚠️ No thumbnail data in saved category response`);
-
-                    // Since the thumbnail association might not be immediately available,
-                    // fetch all categories again to get the most updated data
-                    console.log(`[DEBUG] Fetching all categories again to get updated data`);
-                    try {
-                        const updatedCategories = await getCategories();
-                        if (updatedCategories && updatedCategories.length > 0) {
-                            console.log(
-                                `[DEBUG] ✅ Refreshed categories data with ${updatedCategories.length} categories`
-                            );
-                            categories = updatedCategories;
-                            alert('Category added successfully');
-                            return;
-                        }
-                    } catch (refreshError) {
-                        console.error(`[DEBUG] ❌ Error refreshing categories:`, refreshError);
-                    }
+                } catch (refreshError) {
+                    // Handle error silently
                 }
 
                 // Only add the category directly if we didn't refresh the categories list
@@ -165,7 +108,7 @@
                 alert('Category added successfully');
             }
         } catch (error) {
-            console.error('[DEBUG] ❌ Error adding category:', error);
+            console.error('Error adding category:', error);
             alert('Failed to add category');
         }
     }
