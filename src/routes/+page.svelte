@@ -3,6 +3,7 @@
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
     import { addCategory, deleteCategory, getCategories } from '$lib/services/strapi';
+    import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
 
     // Define the Category interface for Strapi data
     interface Category {
@@ -33,6 +34,9 @@
     // Local copy of categories for editing in admin mode
     let categories = data.categories || [];
     let isModified = false;
+
+    // Filter out deleted categories (those in our local deletion tracking)
+    $: filteredCategories = categories.filter((cat) => !$deletedCategories.includes(cat.id));
 
     // Set admin mode from URL parameter
     $: if (data.admin) {
@@ -70,9 +74,32 @@
                 if ($adminMode) {
                     // Only try to remove from Strapi in admin mode
                     await deleteCategory(id);
-                    alert('Category deleted successfully');
-                    // Remove from local state too
-                    categories = categories.filter((cat: Category) => cat.id !== id);
+
+                    // After successful deletion, fetch updated categories from Strapi
+                    try {
+                        const updatedCategories = await getCategories();
+
+                        // Check if the deleted category is still in the response
+                        const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
+
+                        if (categoryStillExists) {
+                            // Track this category as deleted in our store
+                            addDeletedCategory(id);
+                            // Update local state with all categories for consistency
+                            categories = updatedCategories;
+                            alert(
+                                'Category marked as deleted. The server has been notified, but you may continue to see the category in API responses.'
+                            );
+                        } else {
+                            categories = updatedCategories;
+                            alert('Category deleted successfully');
+                        }
+                    } catch (fetchError) {
+                        // Fallback to local state update and track as deleted
+                        addDeletedCategory(id);
+                        categories = categories.filter((cat: Category) => cat.id !== id);
+                        alert('Category deleted, but there was an error refreshing the category list.');
+                    }
                 }
             } catch (error) {
                 console.error('Error removing category:', error);
@@ -118,7 +145,7 @@
     <div class="container mx-auto px-4">
         <div class="category-container py-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {#each categories as category (category.id)}
+                {#each filteredCategories as category (category.id)}
                     <CategoryCard {category} isAdmin={$adminMode} on:remove={handleRemoveCategory} />
                 {/each}
 

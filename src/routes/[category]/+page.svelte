@@ -1,5 +1,8 @@
 <script lang="ts">
     import { adminMode } from '$lib/stores/adminStore';
+    import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
+    import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
     import { STRAPI_API_URL } from '$lib/services/strapi';
     import type { Image } from '$lib/stores/imageStore';
@@ -63,6 +66,18 @@
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
+
+    // Check if this category is in our deleted list
+    onMount(() => {
+        if (category && $deletedCategories.includes(category.id)) {
+            goto('/');
+        }
+    });
+
+    // Watch for changes to deleted categories store
+    $: if (category && $deletedCategories.includes(category.id)) {
+        goto('/');
+    }
 
     // Transformed images in the format expected by Gallery component
     let galleryImages: Image[] = [];

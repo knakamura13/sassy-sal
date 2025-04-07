@@ -115,8 +115,6 @@ export async function load({ params, url }) {
         const result = { category, admin };
         return result;
     } catch (err) {
-        console.error(`❌ Error loading category '${categoryParam}':`, err);
-
         // Specific Strapi error handling
         if (err.status === 404) {
             throw error(404, 'Category not found');
@@ -129,7 +127,6 @@ export async function load({ params, url }) {
                 err.message.includes('NetworkError') ||
                 err.message.includes('Network request failed'))
         ) {
-            console.error(`🌐 Network error connecting to Strapi API`);
             throw error(503, 'Cannot connect to content API');
         }
 
@@ -158,7 +155,6 @@ export async function load({ params, url }) {
                 isFallback: true
             };
         } catch (fallbackErr) {
-            console.error(`❌ Failed to create fallback:`, fallbackErr);
             throw error(500, 'Failed to load category');
         }
     }

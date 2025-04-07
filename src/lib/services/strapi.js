@@ -30,7 +30,7 @@ async function fetchAPI(endpoint, options = {}) {
 
         // Handle non-OK responses
         if (!response.ok) {
-            console.error(`❌ Response not OK: ${response.status} ${response.statusText}`);
+            console.error(`Response not OK: ${response.status} ${response.statusText}`);
             let errorBody;
             try {
                 errorBody = await response.json();
@@ -52,7 +52,7 @@ async function fetchAPI(endpoint, options = {}) {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error(`❌ API error for ${url}:`, error);
+        console.error(`API error for ${url}:`, error);
         throw error;
     }
 }
@@ -63,18 +63,20 @@ async function fetchAPI(endpoint, options = {}) {
 export const getCategories = async () => {
     try {
         // Use the wildcard populate parameter to get all relations including thumbnails
+        // Add a timestamp to prevent caching
         const query = new URLSearchParams({
-            'populate': '*'
+            'populate': '*',
+            '_t': Date.now() // Cache busting parameter
         }).toString();
 
         const response = await fetchAPI(`/categories?${query}`);
 
         // Validate the response has the expected format
         if (!response.data || !Array.isArray(response.data)) {
-            console.error('❌ Invalid categories response format');
+            console.error('Invalid categories response format');
             return [];
         }
-
+        
         // Transform the data to match the expected structure in the UI components
         const transformedData = response.data
             .map((category) => {
@@ -134,6 +136,7 @@ export const getCategories = async () => {
                 }
                 // Skip invalid entries
                 else {
+                    console.warn('Invalid category entry:', category);
                     return null;
                 }
             })
@@ -141,7 +144,7 @@ export const getCategories = async () => {
         
         return transformedData;
     } catch (error) {
-        console.error('❌ Error fetching categories:', error);
+        console.error('Error fetching categories:', error);
         return [];
     }
 };
@@ -370,13 +373,24 @@ export const addCategory = async (categoryData) => {
 
 /**
  * Delete a category
- * @param {string|number} id - The category documentId
+ * @param {string|number} id - The category ID
  */
 export const deleteCategory = async (id) => {
     try {
-        await fetchAPI(`/categories/${id}`, {
-            method: 'DELETE'
+        // Ensure the ID is in the right format
+        const categoryId = String(id);
+        
+        // Properly format the request according to Strapi v4 docs
+        const deleteResponse = await fetchAPI(`/categories/${categoryId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
+        
+        // Wait a moment for Strapi to process the deletion
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         return true;
     } catch (error) {
         console.error(`Error deleting category ${id}:`, error);
