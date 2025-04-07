@@ -35,6 +35,17 @@
     // Local copy of categories for editing in admin mode
     let categories = data.categories || [];
     let isModified = false;
+    // Add a counter to force re-renders when needed
+    let updateCounter = 0;
+
+    // Utility function to update categories safely and force a re-render
+    function updateCategoriesAndRender(newCategories: Category[]) {
+        // Create a deep copy to ensure reactivity
+        const categoriesCopy = JSON.parse(JSON.stringify(newCategories));
+        categories = categoriesCopy;
+        // Force re-render
+        updateCounter++;
+    }
 
     // Filter out deleted categories and sort by order, then by name for deterministic ordering
     $: filteredCategories = categories
@@ -47,6 +58,9 @@
             // If order is the same, sort alphabetically by name for deterministic ordering
             return a.attributes.name.localeCompare(b.attributes.name);
         });
+
+    // A derived store to force re-renders
+    $: categoryGrid = { categories: filteredCategories, updateCounter };
 
     // Set admin mode from URL parameter
     $: if (data.admin) {
@@ -70,7 +84,7 @@
     // Function to discard changes
     function discardChanges() {
         // Reset to original data from server
-        categories = [...data.categories];
+        updateCategoriesAndRender([...data.categories]);
         isModified = false;
         alert('Changes discarded');
     }
@@ -96,11 +110,12 @@
                             // Track this category as deleted in our store
                             addDeletedCategory(id);
                         }
-                        categories = updatedCategories;
+                        updateCategoriesAndRender(updatedCategories);
                     } catch (fetchError) {
                         // Fallback to local state update and track as deleted
                         addDeletedCategory(id);
-                        categories = categories.filter((cat: Category) => cat.id !== id);
+                        const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
+                        updateCategoriesAndRender(filteredCategories);
                         alert('Category deleted, but there was an error refreshing the category list.');
                     }
                 }
@@ -125,7 +140,7 @@
                 try {
                     const updatedCategories = await getCategories();
                     if (updatedCategories && updatedCategories.length > 0) {
-                        categories = updatedCategories;
+                        updateCategoriesAndRender(updatedCategories);
                         alert('Category added successfully');
                         return;
                     }
@@ -134,7 +149,7 @@
                 }
 
                 // Only add the category directly if we didn't refresh the categories list
-                categories = [...categories, savedCategory];
+                updateCategoriesAndRender([...categories, savedCategory]);
                 alert('Category added successfully');
             }
         } catch (error) {
@@ -167,22 +182,8 @@
                     // Mark as modified for admin save button
                     isModified = true;
 
-                    // Since the thumbnail association might not be immediately available,
-                    // fetch all categories again after 1 second to get the most updated data
-                    setTimeout(async () => {
-                        try {
-                            const updatedCategories = await getCategories();
-                            if (updatedCategories && updatedCategories.length > 0) {
-                                categories = updatedCategories;
-                                return;
-                            }
-                        } catch (refreshError) {
-                            // Handle error silently
-                        }
-                    }, 1000);
-
-                    // Update the category locally
-                    categories = categories.map((cat) => {
+                    // Important: Update the local categories array immediately
+                    const updatedCategories = categories.map((cat) => {
                         if (cat.id === id) {
                             return {
                                 ...cat,
@@ -194,6 +195,21 @@
                         }
                         return cat;
                     });
+
+                    // Update and force re-render
+                    updateCategoriesAndRender(updatedCategories);
+
+                    // Since the thumbnail association might not be immediately available,
+                    // fetch all categories again get the most updated data
+                    try {
+                        const updatedCategories = await getCategories();
+                        if (updatedCategories && updatedCategories.length > 0) {
+                            updateCategoriesAndRender(updatedCategories);
+                            return;
+                        }
+                    } catch (refreshError) {
+                        // Handle error silently
+                    }
                 } catch (updateError: any) {
                     // Handle 404 errors specifically
                     if (
@@ -229,7 +245,7 @@
     <div class="container mx-auto px-4">
         <div class="category-container py-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {#each filteredCategories as category (category.id)}
+                {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
                     <CategoryCard
                         {category}
                         isAdmin={$adminMode}
