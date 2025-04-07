@@ -5,6 +5,8 @@
     import UploadPlaceholder from './UploadPlaceholder.svelte';
     import { onMount, tick } from 'svelte';
     import { showToast } from '$lib/utils';
+    import { Button } from '$lib/components/ui/button';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
     // New props for category support
     export let images: Image[] = [];
@@ -14,6 +16,9 @@
     let localImages: Image[] = [];
     let isModified = false;
     let isSaving = false; // New state for save operation
+
+    // Alert dialog state
+    let showDiscardDialog = false;
 
     // Image preview state
     let previewImage: Image | null = null;
@@ -109,10 +114,11 @@
     }
 
     // Function to discard changes
-    function discardChanges() {
+    function confirmDiscardChanges() {
         imageStore.reset();
         isModified = false;
         showToast.info('Changes discarded');
+        showDiscardDialog = false;
     }
 
     // Function to handle image removal
@@ -170,6 +176,51 @@
     }}
 />
 
+{#if $adminMode && isModified}
+    <div class="admin-actions mt-6 flex justify-end space-x-4 max-w-3xl m-auto md:px-4">
+        <AlertDialog.Root bind:open={showDiscardDialog}>
+            <AlertDialog.Trigger asChild let:builder>
+                <Button variant="destructive" size="default" disabled={isSaving} builders={[builder]}>
+                    Discard Changes
+                </Button>
+            </AlertDialog.Trigger>
+            <AlertDialog.Content>
+                <AlertDialog.Header>
+                    <AlertDialog.Title>Discard Changes</AlertDialog.Title>
+                    <AlertDialog.Description>
+                        Are you sure you want to discard your changes? This action cannot be undone.
+                    </AlertDialog.Description>
+                </AlertDialog.Header>
+                <AlertDialog.Footer>
+                    <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+                    <AlertDialog.Action on:click={confirmDiscardChanges}>Discard</AlertDialog.Action>
+                </AlertDialog.Footer>
+            </AlertDialog.Content>
+        </AlertDialog.Root>
+
+        <Button variant="default" size="default" disabled={isSaving} on:click={saveChanges} class="flex items-center">
+            {#if isSaving}
+                <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                Saving...
+            {:else}
+                Save Changes
+            {/if}
+        </Button>
+    </div>
+{/if}
+
 <div class="gallery-container py-6">
     <div class="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl m-auto md:px-4">
         {#each localImages as image (image.id)}
@@ -193,45 +244,6 @@
             <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} />
         {/if}
     </div>
-
-    {#if $adminMode && isModified}
-        <div class="admin-actions mt-6 flex space-x-4">
-            <button
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center {isSaving
-                    ? 'opacity-70 cursor-not-allowed'
-                    : ''}"
-                on:click={saveChanges}
-                disabled={isSaving}
-            >
-                {#if isSaving}
-                    <svg
-                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
-                    Saving...
-                {:else}
-                    Save Changes
-                {/if}
-            </button>
-            <button
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
-                on:click={discardChanges}
-                disabled={isSaving}
-            >
-                Discard Changes
-            </button>
-        </div>
-    {/if}
 
     {#if showPreview && previewImage}
         <!-- Image Preview Modal -->

@@ -91,7 +91,7 @@
     }
 </script>
 
-<div class="upload-placeholder aspect-square w-full">
+<div class="upload-placeholder w-full">
     <Dialog.Root bind:open>
         <Dialog.Trigger
             class="w-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center py-16 hover:bg-gray-50 transition-colors"
