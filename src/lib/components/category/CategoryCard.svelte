@@ -266,7 +266,7 @@
                 // Dispatch the update event
                 dispatch('update', {
                     id: category.id,
-                    data: updateData.data
+                    data: updateData
                 });
 
                 // Update local state to reflect changes
