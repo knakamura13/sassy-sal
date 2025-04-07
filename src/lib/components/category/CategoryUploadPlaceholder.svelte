@@ -171,7 +171,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="categoryOrder" class="font-garamond">Display Order</Label>
+                    <Label for="categoryOrder" class="font-garamond">Display Order*</Label>
                     <Input
                         type="number"
                         id="categoryOrder"

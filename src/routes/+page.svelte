@@ -4,6 +4,8 @@
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
     import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/strapi';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
+    import { writable } from 'svelte/store';
 
     // Interface for category data from Strapi
     interface Category {
@@ -37,6 +39,11 @@
     // Counter to force component re-renders when category data changes
     let updateCounter = 0;
 
+    // Alert dialog state
+    let showDeleteDialog = writable(false);
+    let categoryToDelete = writable<string | number | null>(null);
+    let categoryNameToDelete = writable<string>('');
+
     // Updates the categories state and forces component re-render
     function updateCategoriesAndRender(newCategories: Category[]) {
         // Deep copy to ensure reactivity when updating nested properties
@@ -69,36 +76,59 @@
     // Handles category deletion with confirmation
     async function handleRemoveCategory(event: CustomEvent<string | number>) {
         const id = event.detail;
+        $categoryToDelete = id;
 
-        if (confirm('Are you sure you want to delete this category?')) {
-            try {
-                if ($adminMode) {
-                    // Delete from Strapi backend in admin mode
-                    await deleteCategory(id);
+        // Find the category name to display in the confirmation dialog
+        const categoryToRemove = categories.find((cat) => cat.id === id);
+        $categoryNameToDelete = categoryToRemove?.attributes?.name || 'Unknown';
 
-                    // Refresh category list from server after deletion
-                    try {
-                        const updatedCategories = await getCategories();
+        $showDeleteDialog = true;
+    }
 
-                        // If category still exists in response, track it as deleted locally
-                        const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
-                        if (categoryStillExists) {
-                            addDeletedCategory(id);
-                        }
-                        updateCategoriesAndRender(updatedCategories);
-                    } catch (fetchError) {
-                        // If server refresh fails, update local state and mark as deleted
+    // Performs the actual category deletion after confirmation
+    async function confirmDeleteCategory() {
+        const id = $categoryToDelete;
+        if (!id) return;
+
+        try {
+            if ($adminMode) {
+                // Delete from Strapi backend in admin mode
+                await deleteCategory(id);
+
+                // Refresh category list from server after deletion
+                try {
+                    const updatedCategories = await getCategories();
+
+                    // If category still exists in response, track it as deleted locally
+                    const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
+                    if (categoryStillExists) {
                         addDeletedCategory(id);
-                        const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
-                        updateCategoriesAndRender(filteredCategories);
-                        alert('Category deleted, but there was an error refreshing the category list.');
                     }
+                    updateCategoriesAndRender(updatedCategories);
+                } catch (fetchError) {
+                    // If server refresh fails, update local state and mark as deleted
+                    addDeletedCategory(id);
+                    const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
+                    updateCategoriesAndRender(filteredCategories);
+                    alert('Category deleted, but there was an error refreshing the category list.');
                 }
-            } catch (error) {
-                console.error('Error removing category:', error);
-                alert('Failed to delete category');
             }
+        } catch (error) {
+            console.error('Error removing category:', error);
+            alert('Failed to delete category');
+        } finally {
+            // Reset alert dialog state
+            $showDeleteDialog = false;
+            $categoryToDelete = null;
+            $categoryNameToDelete = '';
         }
+    }
+
+    // Cancels the delete operation
+    function cancelDelete() {
+        $showDeleteDialog = false;
+        $categoryToDelete = null;
+        $categoryNameToDelete = '';
     }
 
     // Handles adding a new category
@@ -228,6 +258,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <AlertDialog.Root bind:open={$showDeleteDialog}>
+        <AlertDialog.Content>
+            <AlertDialog.Header>
+                <AlertDialog.Title>Confirm Deletion</AlertDialog.Title>
+                <AlertDialog.Description>
+                    Are you sure you want to delete the category "{$categoryNameToDelete}"? All images belonging to this
+                    category will also be deleted. <strong>This action cannot be undone.</strong>
+                </AlertDialog.Description>
+            </AlertDialog.Header>
+            <AlertDialog.Footer>
+                <AlertDialog.Cancel on:click={cancelDelete}>Cancel</AlertDialog.Cancel>
+                <AlertDialog.Action on:click={confirmDeleteCategory}>Delete</AlertDialog.Action>
+            </AlertDialog.Footer>
+        </AlertDialog.Content>
+    </AlertDialog.Root>
 </div>
 
 <style lang="scss">

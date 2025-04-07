@@ -373,7 +373,7 @@
             </div>
 
             <div class="space-y-2">
-                <Label for="editCategoryOrder" class="font-garamond">Display Order</Label>
+                <Label for="editCategoryOrder" class="font-garamond">Display Order*</Label>
                 <Input
                     type="number"
                     id="editCategoryOrder"
