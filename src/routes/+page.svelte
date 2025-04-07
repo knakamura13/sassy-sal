@@ -5,7 +5,7 @@
     import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/strapi';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
 
-    // Define the Category interface for Strapi data
+    // Interface for category data from Strapi
     interface Category {
         id: string | number;
         attributes: {
@@ -23,96 +23,72 @@
         };
     }
 
-    // Define the data from page server load
+    // Interface for data received from page server load function
     interface PageData {
         admin?: boolean;
         categories: Category[];
     }
 
-    // Get data from server load function
+    // Data from server load function
     export let data: PageData;
 
-    // Local copy of categories for editing in admin mode
+    // Working copy of categories that maintains current state
     let categories = data.categories || [];
-    let isModified = false;
-    // Add a counter to force re-renders when needed
+
+    // Counter to force component re-renders when category data changes
     let updateCounter = 0;
 
-    // Utility function to update categories safely and force a re-render
+    // Updates the categories state and forces component re-render
     function updateCategoriesAndRender(newCategories: Category[]) {
-        // Create a deep copy to ensure reactivity
+        // Deep copy to ensure reactivity when updating nested properties
         const categoriesCopy = JSON.parse(JSON.stringify(newCategories));
         categories = categoriesCopy;
-        // Force re-render
+        // Increment counter to trigger re-render
         updateCounter++;
     }
 
-    // Filter out deleted categories and sort by order, then by name for deterministic ordering
+    // Reactive statement: filter deleted categories and sort by order, then by name
     $: filteredCategories = categories
         .filter((cat) => !$deletedCategories.includes(cat.id))
         .sort((a, b) => {
-            // First sort by order (ascending)
+            // Primary sort by order (ascending)
             const orderDiff = a.attributes.order - b.attributes.order;
             if (orderDiff !== 0) return orderDiff;
 
-            // If order is the same, sort alphabetically by name for deterministic ordering
+            // Secondary sort by name for consistent ordering when order is the same
             return a.attributes.name.localeCompare(b.attributes.name);
         });
 
-    // A derived store to force re-renders
+    // Reactive derived value for category grid that triggers re-renders
     $: categoryGrid = { categories: filteredCategories, updateCounter };
 
-    // Set admin mode from URL parameter
+    // Set admin mode when URL parameter is present
     $: if (data.admin) {
         adminMode.set(true);
     }
 
-    // Function to handle saving changes to Strapi
-    async function saveChanges() {
-        try {
-            // In a real implementation, this would update Strapi with all changes
-            alert('Changes saved successfully');
-            isModified = false;
-            // Reload the page to get fresh data
-            window.location.reload();
-        } catch (error) {
-            console.error('Error saving changes:', error);
-            alert('Failed to save changes');
-        }
-    }
-
-    // Function to discard changes
-    function discardChanges() {
-        // Reset to original data from server
-        updateCategoriesAndRender([...data.categories]);
-        isModified = false;
-        alert('Changes discarded');
-    }
-
-    // Function to handle category removal
+    // Handles category deletion with confirmation
     async function handleRemoveCategory(event: CustomEvent<string | number>) {
         const id = event.detail;
 
         if (confirm('Are you sure you want to delete this category?')) {
             try {
                 if ($adminMode) {
-                    // Only try to remove from Strapi in admin mode
+                    // Delete from Strapi backend in admin mode
                     await deleteCategory(id);
 
-                    // After successful deletion, fetch updated categories from Strapi
+                    // Refresh category list from server after deletion
                     try {
                         const updatedCategories = await getCategories();
 
-                        // Check if the deleted category is still in the response
+                        // If category still exists in response, track it as deleted locally
                         const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
-
                         if (categoryStillExists) {
-                            // Track this category as deleted in our store
                             addDeletedCategory(id);
                         }
                         updateCategoriesAndRender(updatedCategories);
                     } catch (fetchError) {
-                        // Fallback to local state update and track as deleted
+                        // If server refresh fails, update local state and mark as deleted
                         addDeletedCategory(id);
                         const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
                         updateCategoriesAndRender(filteredCategories);
@@ -126,17 +102,16 @@
         }
     }
 
-    // Function to handle new category addition
+    // Handles adding a new category
     async function handleAddCategory(event: CustomEvent<any>) {
         try {
             const newCategory = event.detail;
 
             if ($adminMode) {
-                // Add to Strapi
+                // Save new category to Strapi
                 const savedCategory = await addCategory(newCategory);
 
-                // Since the thumbnail association might not be immediately available,
-                // fetch all categories again to get the most updated data
+                // Refresh categories from server to get complete data with associations
                 try {
                     const updatedCategories = await getCategories();
                     if (updatedCategories && updatedCategories.length > 0) {
@@ -145,10 +120,10 @@
                         return;
                     }
                 } catch (refreshError) {
-                    // Handle error silently
+                    // Silently continue if refresh fails
                 }
 
-                // Only add the category directly if we didn't refresh the categories list
+                // Fallback: update local state with the saved category
                 updateCategoriesAndRender([...categories, savedCategory]);
                 alert('Category added successfully');
             }
@@ -158,14 +133,14 @@
         }
     }
 
-    // Function to handle category update
+    // Handles updating an existing category
     async function handleUpdateCategory(event: CustomEvent<any>) {
         try {
             const { id, data } = event.detail;
 
             if ($adminMode) {
                 try {
-                    // Find the category's documentId by fetching the latest categories
+                    // Fetch latest categories to find the correct documentId
                     const allCategories = await getCategories();
                     const categoryToUpdate = allCategories.find((cat: Category) => cat.id === id);
 
@@ -173,16 +148,13 @@
                         throw new Error('Category not found');
                     }
 
-                    // Use the documentId from the fetched category data, or fall back to id if not found
+                    // Get documentId or fall back to id
                     const documentId = categoryToUpdate.documentId || id;
 
-                    // Update in Strapi
+                    // Send update to Strapi
                     await updateCategory(documentId, data);
 
-                    // Mark as modified for admin save button
-                    isModified = true;
-
-                    // Important: Update the local categories array immediately
+                    // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat) => {
                         if (cat.id === id) {
                             return {
@@ -196,29 +168,26 @@
                         return cat;
                     });
 
-                    // Update and force re-render
                     updateCategoriesAndRender(updatedCategories);
 
-                    // Since the thumbnail association might not be immediately available,
-                    // fetch all categories again get the most updated data
+                    // Refresh from server to get complete updated data
                     try {
-                        const updatedCategories = await getCategories();
-                        if (updatedCategories && updatedCategories.length > 0) {
-                            updateCategoriesAndRender(updatedCategories);
-                            return;
+                        const refreshedCategories = await getCategories();
+                        if (refreshedCategories && refreshedCategories.length > 0) {
+                            updateCategoriesAndRender(refreshedCategories);
                         }
                     } catch (refreshError) {
-                        // Handle error silently
+                        // Already updated local state, so continue silently
                     }
                 } catch (updateError: any) {
-                    // Handle 404 errors specifically
+                    // Special handling for 404 errors (category not found)
                     if (
                         updateError.status === 404 ||
                         (typeof updateError.message === 'string' && updateError.message.includes('404'))
                     ) {
                         alert('Category not found. It may have been deleted from the server.');
 
-                        // Refresh categories to show current state
+                        // Try to refresh categories from server
                         try {
                             const updatedCategories = await getCategories();
                             if (updatedCategories && updatedCategories.length > 0) {
@@ -229,10 +198,10 @@
                             categories = categories.filter((cat) => cat.id !== id);
                         }
                     } else {
-                        // For other errors
+                        // Handle other errors
                         alert(`Failed to update category: ${updateError.message || 'Unknown error'}`);
                     }
-                    throw updateError; // Re-throw to be caught by the outer catch
+                    throw updateError; // Re-throw for the outer catch
                 }
             }
         } catch (error) {
@@ -258,29 +227,12 @@
                     <CategoryUploadPlaceholder on:addCategory={handleAddCategory} />
                 {/if}
             </div>
-
-            {#if $adminMode && isModified}
-                <div class="admin-actions mt-6 flex space-x-4">
-                    <button
-                        class="font-didot px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
-                        on:click={saveChanges}
-                    >
-                        Save Changes
-                    </button>
-                    <button
-                        class="font-didot px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
-                        on:click={discardChanges}
-                    >
-                        Discard Changes
-                    </button>
-                </div>
-            {/if}
         </div>
     </div>
 </div>
 
 <style lang="scss">
-    /* Global styles - these will affect the app layout */
+    /* Global styles for basic page layout */
     :global(html, body) {
         height: 100%;
         overflow-y: auto;
