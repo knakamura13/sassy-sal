@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { getRandomImageByQuery } from '$lib/services/unsplash';
     import { STRAPI_API_URL } from '$lib/services/strapi';
     import { uploadFile } from '$lib/services/strapi';
     import * as Dialog from '$lib/components/ui/dialog';
@@ -74,7 +73,7 @@
         await loadImage();
     });
 
-    // Function to load image from thumbnail or Unsplash
+    // Function to load image from thumbnail or show placeholder background
     async function loadImage() {
         isLoading = true;
 
@@ -136,25 +135,20 @@
                     await Promise.race([loadPromise, timeoutPromise]);
                     isLoading = false;
                 } catch (error) {
-                    await useUnsplashFallback();
+                    usePlaceholderBackground();
                 }
             } else {
-                await useUnsplashFallback();
+                usePlaceholderBackground();
             }
         } else {
-            await useUnsplashFallback();
+            usePlaceholderBackground();
         }
     }
 
-    // Helper to use Unsplash fallback
-    async function useUnsplashFallback() {
-        try {
-            imageUrl = await getRandomImageByQuery(category.attributes.name);
-        } catch (error) {
-            // Use a default image as last resort
-            imageUrl =
-                'https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D&w=1000&q=80';
-        }
+    // Helper to use placeholder background when no image is available
+    function usePlaceholderBackground() {
+        // Set imageUrl to empty string to trigger placeholder background display
+        imageUrl = '';
         isLoading = false;
     }
 
@@ -165,7 +159,7 @@
     function handleEdit() {
         editName = category.attributes.name;
         editOrder = category.attributes.order;
-        imagePreview = imageUrl;
+        imagePreview = imageUrl || ''; // Handle cases where imageUrl is empty
         editDialogOpen = true;
     }
 
@@ -313,13 +307,18 @@
     ></div>
     <div class="w-full h-full relative">
         {#if !isLoading}
-            <div class="w-full h-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
-                <img
-                    src={imageUrl}
-                    alt={category.attributes.name}
-                    class="w-full h-full object-cover image-filter transition-[filter] duration-300 ease-out"
-                />
-            </div>
+            {#if imageUrl}
+                <div class="w-full h-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
+                    <img
+                        src={imageUrl}
+                        alt={category.attributes.name}
+                        class="w-full h-full object-cover image-filter transition-[filter] duration-300 ease-out"
+                    />
+                </div>
+            {:else}
+                <!-- Placeholder background for categories without images -->
+                <div class="w-full h-full category-placeholder transition-all duration-300"></div>
+            {/if}
         {/if}
 
         <div class="absolute inset-0 flex items-center justify-center">
@@ -475,6 +474,11 @@
 
     .shadow-text {
         text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Styling for the category placeholder when no thumbnail is available */
+    .category-placeholder {
+        background-color: #87675c;
     }
 
     .category-card:hover {
