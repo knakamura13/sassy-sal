@@ -18,7 +18,6 @@
         data: {
             name: string;
             slug: string;
-            description?: string;
             thumbnail?: {
                 connect: [{ id: number }];
             };
@@ -29,7 +28,6 @@
 
     let open = false;
     let categoryName = '';
-    let categoryDescription = '';
     let selectedFile: File | null = null;
     let imagePreview = '';
     let isUploading = false;
@@ -45,7 +43,6 @@
 
     function resetForm() {
         categoryName = '';
-        categoryDescription = '';
         selectedFile = null;
         imagePreview = '';
         isUploading = false;
@@ -113,8 +110,7 @@
             const categoryData: CategoryData = {
                 data: {
                     name: categoryName.trim(),
-                    slug,
-                    description: categoryDescription.trim() || undefined
+                    slug
                 }
             };
 
@@ -174,18 +170,6 @@
                         placeholder="e.g. Weddings"
                         class="font-garamond"
                         required
-                        disabled={isUploading}
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <Label for="categoryDescription" class="font-garamond">Description</Label>
-                    <Input
-                        type="text"
-                        id="categoryDescription"
-                        bind:value={categoryDescription}
-                        placeholder="Short description"
-                        class="font-garamond"
                         disabled={isUploading}
                     />
                 </div>

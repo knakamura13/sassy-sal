@@ -12,8 +12,6 @@
 
     const dispatch = createEventDispatcher<{ addImages: Image[] }>();
 
-    let imageTitle = '';
-    let imageAlt = '';
     let imageFile: File | null = null;
     let previewUrl: string | null = null;
     let dropZone: HTMLElement;
@@ -27,8 +25,6 @@
     }
 
     function resetForm() {
-        imageTitle = '';
-        imageAlt = '';
         imageFile = null;
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl);
@@ -84,8 +80,7 @@
         const newImage: Image = {
             id: uuidv4(),
             url: previewUrl as string,
-            alt: imageAlt.trim() || 'Image description',
-            title: imageTitle.trim() || undefined,
+            alt: 'Image description',
             categoryId: categoryId || '1', // Default to first category if not specified
             file: imageFile
         };
@@ -166,21 +161,6 @@
                             <p class="text-gray-500 text-sm mt-1">or click to browse</p>
                         {/if}
                     </button>
-                </div>
-
-                <div class="space-y-2">
-                    <Label for="imageTitle" class="text-left">Title</Label>
-                    <Input type="text" id="imageTitle" bind:value={imageTitle} placeholder="Image title" />
-                </div>
-
-                <div class="space-y-2">
-                    <Label for="imageAlt" class="text-left">Alt Text</Label>
-                    <Input
-                        type="text"
-                        id="imageAlt"
-                        bind:value={imageAlt}
-                        placeholder="Image description for accessibility"
-                    />
                 </div>
 
                 <Dialog.Footer class="flex flex-row justify-end space-x-3">

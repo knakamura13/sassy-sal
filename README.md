@@ -100,9 +100,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    - [ ] Remove blur from category title background-rectangle
-    - [ ] Remove optional title and description fields from image upload form
-    - [ ] Remove optional description field from category creation form
     - [ ] Fix category deletion (delete button does nothing)
     - [ ] Fix image upload (error when saving changes)
     - [ ] Enable batch image upload
