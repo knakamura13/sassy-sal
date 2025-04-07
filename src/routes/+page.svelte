@@ -140,23 +140,36 @@
 
             if ($adminMode) {
                 try {
+                    // Find the category's documentId by fetching the latest categories
+                    const allCategories = await getCategories();
+                    const categoryToUpdate = allCategories.find((cat: Category) => cat.id === id);
+
+                    if (!categoryToUpdate) {
+                        throw new Error('Category not found');
+                    }
+
+                    // Use the documentId from the fetched category data, or fall back to id if not found
+                    const documentId = categoryToUpdate.documentId || id;
+
                     // Update in Strapi
-                    await updateCategory(id, data);
+                    await updateCategory(documentId, data);
 
                     // Mark as modified for admin save button
                     isModified = true;
 
                     // Since the thumbnail association might not be immediately available,
-                    // fetch all categories again to get the most updated data
-                    try {
-                        const updatedCategories = await getCategories();
-                        if (updatedCategories && updatedCategories.length > 0) {
-                            categories = updatedCategories;
-                            return;
+                    // fetch all categories again after 1 second to get the most updated data
+                    setTimeout(async () => {
+                        try {
+                            const updatedCategories = await getCategories();
+                            if (updatedCategories && updatedCategories.length > 0) {
+                                categories = updatedCategories;
+                                return;
+                            }
+                        } catch (refreshError) {
+                            // Handle error silently
                         }
-                    } catch (refreshError) {
-                        // Handle error silently
-                    }
+                    }, 1000);
 
                     // Update the category locally
                     categories = categories.map((cat) => (cat.id === id ? { ...cat, ...data.data } : cat));

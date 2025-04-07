@@ -406,11 +406,8 @@ export const deleteCategory = async (id) => {
  */
 export const updateCategory = async (id, data) => {
     try {
-        // Ensure the ID is in the right format
-        const categoryId = String(id);
-        
         // Make the update request
-        const response = await fetchAPI(`/categories/${categoryId}`, {
+        const response = await fetchAPI(`/categories/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
