@@ -333,14 +333,14 @@
         {#if isAdmin}
             <div class="absolute top-2 right-2 flex space-x-2">
                 <button
-                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700 focus:outline-none shadow-md"
+                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700 focus:outline-none shadow-md hover:shadow-lg transition-all duration-200"
                     on:click|stopPropagation|preventDefault={handleEdit}
                     aria-label="Edit category"
                 >
                     ✎
                 </button>
                 <button
-                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md"
+                    class="bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md hover:shadow-lg transition-all duration-200"
                     on:click|stopPropagation|preventDefault={handleRemove}
                     aria-label="Remove category"
                 >

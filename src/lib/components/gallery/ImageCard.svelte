@@ -27,7 +27,7 @@
 
         {#if isAdmin}
             <button
-                class="absolute !m-0 top-2 right-2 bg-gray-800 bg-opacity-0 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 focus:outline-none shadow-md"
+                class="absolute !m-0 top-2 right-2 bg-gray-800 bg-opacity-0 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 shadow-md hover:shadow-lg focus:outline-none transition-all duration-200"
                 on:click|stopPropagation={handleRemove}
                 aria-label="Remove image"
             >
