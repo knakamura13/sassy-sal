@@ -100,8 +100,7 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    -   [ ] Enable multiple image uploads via button or drag-and-drop
-    -   [ ] Fix Strapi category thumbnails loading issue
-        - Issue Overview: category thumbnails aren't being loaded from Strapi
-        - We need to first verify that categories created using the admin mode are created in Strapi along with the thumbnail image that the user uploaded
-        - Assuming creating new categories with thumbnails is working properly, then we need to make sure the thumbnails are displayed instead of placeholder images from Unsplashed
+    - [ ] Enable multiple image uploads via button or drag-and-drop
+    - [ ] Remove blur filter from category title bg
+    - [ ] Fix category deletion
+    - [ ] Fix image upload

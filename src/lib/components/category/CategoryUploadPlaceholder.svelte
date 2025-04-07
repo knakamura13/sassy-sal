@@ -159,7 +159,7 @@
                             console.error(
                                 `[DEBUG] ❌ Invalid thumbnail connection format! Expecting 'connect' property as array`
                             );
-                        } else if (categoryData.data.thumbnail.connect.length === 0) {
+                        } else if (categoryData.data.thumbnail.connect.length < 1) {
                             console.error(`[DEBUG] ❌ Thumbnail connect array is empty!`);
                         } else if (!categoryData.data.thumbnail.connect[0].id) {
                             console.error(`[DEBUG] ❌ Thumbnail connect item missing id property!`);

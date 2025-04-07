@@ -10,13 +10,7 @@
             name: string;
             slug: string;
             description?: string;
-            thumbnail?: {
-                data: {
-                    attributes: {
-                        url: string;
-                    };
-                } | null;
-            };
+            thumbnail?: any; // Using any type to handle various Strapi response structures
         };
     }
 
@@ -31,9 +25,25 @@
     let imageUrl = '';
     let isLoading = true;
 
+    // Make sure category has the expected structure to prevent errors
+    if (!category) {
+        console.error(`Category is undefined!`);
+        category = {
+            id: 'placeholder',
+            attributes: {
+                name: 'Missing Category',
+                slug: 'missing-category'
+            }
+        };
+    } else if (!category.attributes) {
+        console.error(`Category is missing attributes`);
+        category.attributes = {
+            name: (category as any).name || 'Unknown Category',
+            slug: (category as any).slug || 'unknown-category'
+        };
+    }
+
     onMount(async () => {
-        console.log(`[DEBUG] CategoryCard mounted for category: ${category.attributes.name} (ID: ${category.id})`);
-        console.log(`[DEBUG] Full category data:`, JSON.stringify(category, null, 2));
         await loadImage();
     });
 
@@ -41,97 +51,82 @@
     async function loadImage() {
         isLoading = true;
 
-        console.log(`[DEBUG] Loading image for category: ${category.attributes.name} (ID: ${category.id})`);
-
         // Check if the category has a thumbnail property
         if (category.attributes.thumbnail) {
-            console.log(`[DEBUG] Thumbnail property exists in category`);
-            console.log(`[DEBUG] Raw thumbnail data:`, JSON.stringify(category.attributes.thumbnail, null, 2));
+            // Handle different possible structures for thumbnail data from Strapi
+            let thumbnailUrl = null;
 
-            // Check data property exists and is not null
-            if (category.attributes.thumbnail.data) {
-                console.log(`[DEBUG] Thumbnail data property exists and is not undefined`);
+            // Structure 1: Modern Strapi v4 with data.attributes.url
+            if (category.attributes.thumbnail.data && category.attributes.thumbnail.data.attributes?.url) {
+                thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
+            }
+            // Structure 2: Object with direct URL property
+            else if (category.attributes.thumbnail.url) {
+                thumbnailUrl = category.attributes.thumbnail.url;
+            }
+            // Structure 3: Nested data array format
+            else if (
+                Array.isArray(category.attributes.thumbnail.data) &&
+                category.attributes.thumbnail.data.length > 0
+            ) {
+                const firstItem = category.attributes.thumbnail.data[0];
+                if (firstItem && 'attributes' in firstItem && firstItem.attributes && 'url' in firstItem.attributes) {
+                    thumbnailUrl = firstItem.attributes.url;
+                }
+            }
 
-                if (category.attributes.thumbnail.data === null) {
-                    console.warn(`[DEBUG] ⚠️ Thumbnail data is NULL - image reference exists but is empty`);
-                    await useUnsplashFallback();
-                    return;
+            // If we found a URL, process it
+            if (thumbnailUrl) {
+                // Format the URL properly
+                if (thumbnailUrl.startsWith('http')) {
+                    imageUrl = thumbnailUrl;
+                } else if (thumbnailUrl.startsWith('/')) {
+                    imageUrl = `${STRAPI_API_URL}${thumbnailUrl}`;
+                } else {
+                    imageUrl = `${STRAPI_API_URL}/${thumbnailUrl}`;
                 }
 
-                // Check attributes and URL exist
-                if (category.attributes.thumbnail.data.attributes?.url) {
-                    const thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
-                    console.log(`[DEBUG] Raw thumbnail URL found: ${thumbnailUrl}`);
+                // Verify the image loads correctly with a timeout
+                try {
+                    const testImg = new Image();
 
-                    // Check URL format and construct proper URL
-                    if (thumbnailUrl.startsWith('http')) {
-                        console.log(`[DEBUG] Thumbnail URL is absolute, using as-is`);
-                        imageUrl = thumbnailUrl;
-                    } else if (thumbnailUrl.startsWith('/')) {
-                        console.log(`[DEBUG] Thumbnail URL is relative, prepending Strapi URL: ${STRAPI_API_URL}`);
-                        imageUrl = `${STRAPI_API_URL}${thumbnailUrl}`;
-                    } else {
-                        console.warn(`[DEBUG] ⚠️ Thumbnail URL has unexpected format: ${thumbnailUrl}`);
-                        imageUrl = `${STRAPI_API_URL}/${thumbnailUrl}`;
-                    }
+                    // Set a timeout to prevent waiting too long for image load
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Image load timeout')), 5000);
+                    });
 
-                    console.log(`[DEBUG] Final thumbnail URL: ${imageUrl}`);
+                    const loadPromise = new Promise((resolve, reject) => {
+                        testImg.onload = () => {
+                            resolve('success');
+                        };
+                        testImg.onerror = (e) => {
+                            reject(new Error('Image load failed'));
+                        };
+                        testImg.src = imageUrl;
+                    });
 
-                    // Verify the image loads correctly with a timeout
-                    try {
-                        console.log(`[DEBUG] Testing if thumbnail URL is valid: ${imageUrl}`);
-                        const testImg = new Image();
-
-                        // Set a timeout to prevent waiting too long for image load
-                        const timeoutPromise = new Promise((_, reject) => {
-                            setTimeout(() => reject(new Error('Image load timeout')), 5000);
-                        });
-
-                        const loadPromise = new Promise((resolve, reject) => {
-                            testImg.onload = () => {
-                                console.log(`[DEBUG] ✅ Thumbnail loaded successfully: ${imageUrl}`);
-                                resolve('success');
-                            };
-                            testImg.onerror = (e) => {
-                                console.error(`[DEBUG] ❌ Failed to load thumbnail: ${imageUrl}, Error:`, e);
-                                reject(new Error('Image load failed'));
-                            };
-                            testImg.src = imageUrl;
-                        });
-
-                        // Race between load and timeout
-                        await Promise.race([loadPromise, timeoutPromise]);
-                        isLoading = false;
-                    } catch (error) {
-                        console.error(`[DEBUG] ❌ Error loading thumbnail image:`, error);
-                        await useUnsplashFallback();
-                    }
-                } else {
-                    console.warn(`[DEBUG] ⚠️ Thumbnail data exists but URL is missing in the attributes`);
+                    // Race between load and timeout
+                    await Promise.race([loadPromise, timeoutPromise]);
+                    isLoading = false;
+                } catch (error) {
                     await useUnsplashFallback();
                 }
             } else {
-                console.warn(`[DEBUG] ⚠️ Thumbnail property exists but data property is undefined`);
                 await useUnsplashFallback();
             }
         } else {
-            console.log(`[DEBUG] No thumbnail property found for category ${category.attributes.name}`);
             await useUnsplashFallback();
         }
     }
 
     // Helper to use Unsplash fallback
     async function useUnsplashFallback() {
-        console.log(`[DEBUG] 🔄 Using Unsplash fallback for category ${category.attributes.name}`);
         try {
             imageUrl = await getRandomImageByQuery(category.attributes.name);
-            console.log(`[DEBUG] ✅ Loaded Unsplash image: ${imageUrl}`);
         } catch (error) {
-            console.error(`[DEBUG] ❌ Failed to load Unsplash image:`, error);
             // Use a default image as last resort
             imageUrl =
                 'https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D&w=1000&q=80';
-            console.log(`[DEBUG] Using default fallback image`);
         }
         isLoading = false;
     }

@@ -2,7 +2,7 @@
     import { adminMode } from '$lib/stores/adminStore';
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
-    import { addCategory, deleteCategory } from '$lib/services/strapi';
+    import { addCategory, deleteCategory, getCategories } from '$lib/services/strapi';
     import { onMount } from 'svelte';
 
     // Define the Category interface for Strapi data
@@ -141,8 +141,26 @@
                     }
                 } else {
                     console.warn(`[DEBUG] ⚠️ No thumbnail data in saved category response`);
+
+                    // Since the thumbnail association might not be immediately available,
+                    // fetch all categories again to get the most updated data
+                    console.log(`[DEBUG] Fetching all categories again to get updated data`);
+                    try {
+                        const updatedCategories = await getCategories();
+                        if (updatedCategories && updatedCategories.length > 0) {
+                            console.log(
+                                `[DEBUG] ✅ Refreshed categories data with ${updatedCategories.length} categories`
+                            );
+                            categories = updatedCategories;
+                            alert('Category added successfully');
+                            return;
+                        }
+                    } catch (refreshError) {
+                        console.error(`[DEBUG] ❌ Error refreshing categories:`, refreshError);
+                    }
                 }
 
+                // Only add the category directly if we didn't refresh the categories list
                 categories = [...categories, savedCategory];
                 alert('Category added successfully');
             }
