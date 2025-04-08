@@ -503,5 +503,16 @@
         .image-filter {
             filter: sepia(0) brightness(1) saturate(1.1);
         }
+
+        .drag-handle {
+            opacity: 1;
+            background-opacity: 0.5;
+        }
+    }
+
+    /* Drag handle styles */
+    .drag-handle {
+        opacity: 0.7;
+        transition: all 0.2s ease;
     }
 </style>

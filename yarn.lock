@@ -5069,6 +5069,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"svelte-dnd-action@npm:^0.9.60":
+  version: 0.9.60
+  resolution: "svelte-dnd-action@npm:0.9.60"
+  peerDependencies:
+    svelte: ">=3.23.0 || ^5.0.0-next.0"
+  checksum: 10c0/71a1d6bb09e4dd5cb6f2b1e6e213ff79f6eb94c801156c55fab5c0f167a3bfd33ad6ee1228728c12e78d8ca6b634bec1d6cc3cacf13807440e1edfdb0962e1b0
+  languageName: node
+  linkType: hard
+
 "svelte-hmr@npm:^0.16.0":
   version: 0.16.0
   resolution: "svelte-hmr@npm:0.16.0"
@@ -5180,6 +5189,7 @@ __metadata:
     shadcn-svelte: "npm:^0.14.0"
     svelte: "npm:^4.2.19"
     svelte-check: "npm:^3.8.5"
+    svelte-dnd-action: "npm:^0.9.60"
     svelte-sonner: "npm:^0.3.28"
     sveltekit-superforms: "npm:^2.24.0"
     tailwind-merge: "npm:^3.1.0"

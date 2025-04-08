@@ -103,7 +103,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 - [ ] N/A
 
 **Features**
-- [ ] Enable re-arranging categories by drag-and-drop
 - [ ] Add `order` attribute to images
 - [ ] Enable re-arranging images by drag-and-drop
 - [ ] Authentication with username and password

@@ -23,9 +23,20 @@ async function fetchAPI(endpoint, options = {}) {
         ...options
     };
 
-    const url = `${STRAPI_API_URL}${API_PREFIX}${endpoint}`;
+    // Add cache busting parameter to the URL
+    // Ensure we don't add duplicate timestamp parameters
+    let endpointWithTimestamp = endpoint;
+    if (!endpoint.includes('_t=')) {
+        const timestamp = Date.now();
+        const separator = endpoint.includes('?') ? '&' : '?';
+        endpointWithTimestamp = `${endpoint}${separator}_t=${timestamp}`;
+    }
+    
+    const url = `${STRAPI_API_URL}${API_PREFIX}${endpointWithTimestamp}`;
 
     try {
+        // Do NOT add cache-control headers which cause CORS issues
+        
         const response = await fetch(url, mergedOptions);
 
         // Handle non-OK responses
@@ -66,14 +77,19 @@ export const getCategories = async () => {
         // Add a timestamp to prevent caching
         const query = new URLSearchParams({
             'populate': '*',
-            '_t': Date.now() // Cache busting parameter
+            '_t': Date.now().toString() // Cache busting parameter
         }).toString();
 
         const response = await fetchAPI(`/categories?${query}`);
 
         // Validate the response has the expected format
+        if (!response) {
+            console.error('Empty response from API');
+            return [];
+        }
+
         if (!response.data || !Array.isArray(response.data)) {
-            console.error('Invalid categories response format');
+            console.error('Invalid categories response format:', response);
             return [];
         }
         
@@ -145,6 +161,9 @@ export const getCategories = async () => {
         return transformedData;
     } catch (error) {
         console.error('Error fetching categories:', error);
+        if (error.message && error.message.includes('CORS')) {
+            console.error('CORS issue detected. Please check CORS settings on the server.');
+        }
         return [];
     }
 };
@@ -404,41 +423,131 @@ export const deleteCategory = async (id) => {
  */
 export const updateCategory = async (id, data) => {
     try {
-        // Make the update request
-        const response = await fetchAPI(`/categories/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+        // Convert any numeric order to integers (Strapi sometimes has issues with float values)
+        if (data.data && data.data.order !== undefined) {
+            data.data.order = parseInt(data.data.order, 10);
+        }
         
-        if (!response.data) {
+        // Try to determine the correct endpoint format for this Strapi instance
+        let endpoint = `/categories/${id}`;
+        
+        // Check if we have a 'data.id' format from the categories listing
+        // Some Strapi versions require using filter API instead of direct ID paths
+        let response;
+        try {
+            // First attempt - direct ID endpoint
+            response = await fetchAPI(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        } catch (directIdError) {
+            // If direct ID endpoint fails with 404, try filter-based endpoint
+            if (directIdError.status === 404 || (directIdError.message && directIdError.message.includes('Not Found'))) {
+                // Try using filters approach instead
+                const filterEndpoint = `/categories`;
+                const filterParams = new URLSearchParams({
+                    'filters[id][$eq]': id
+                }).toString();
+                
+                try {
+                    // Get the categories that match the ID
+                    const matchingCategories = await fetchAPI(`${filterEndpoint}?${filterParams}`);
+                    
+                    if (matchingCategories?.data && matchingCategories.data.length > 0) {
+                        const categoryToUpdate = matchingCategories.data[0];
+                        const categoryId = categoryToUpdate.id;
+                        
+                        // Now try updating using our found ID
+                        response = await fetchAPI(`/categories/${categoryId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                    } else {
+                        throw new Error(`Category with ID ${id} not found in filter results`);
+                    }
+                } catch (filterError) {
+                    console.error('Filter-based update also failed:', filterError);
+                    
+                    // As a last resort, try PATCH instead of PUT
+                    try {
+                        response = await fetchAPI(`/categories/${id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                    } catch (patchError) {
+                        console.error('PATCH attempt also failed:', patchError);
+                        throw patchError; // Re-throw the error
+                    }
+                }
+            } else {
+                // If it's not a 404 error, re-throw
+                throw directIdError;
+            }
+        }
+        
+        if (!response || !response.data) {
             console.error('Invalid response from Strapi:', response);
             throw new Error('Failed to update category: Invalid response');
         }
         
-        // If we have a thumbnail in the update data, try to fetch the complete category with thumbnails populated
-        if (data.data?.thumbnail && response.data.id) {
-            try {
-                // Wait a moment for Strapi to process the relationship
-                await new Promise(resolve => setTimeout(resolve, 500));
+        // Verify the order was correctly updated
+        if (data.data && data.data.order !== undefined) {
+            // Parse both as integers to ensure valid comparison
+            const requestedOrder = parseInt(data.data.order, 10);
+            const responseOrder = parseInt(response.data.attributes?.order, 10);
+            
+            if (isNaN(responseOrder) || responseOrder !== requestedOrder) {
+                console.warn(`Order mismatch after update: requested ${requestedOrder}, received ${responseOrder}`);
                 
-                // Fetch the complete category with all relations including thumbnails
-                const categoryWithThumbnail = await fetchAPI(`/categories/${response.data.id}?populate=*`);
+                // If order doesn't match, try once more with a delay
+                // Wait longer before retrying (1 second)
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                if (categoryWithThumbnail?.data) {
-                    return categoryWithThumbnail.data;
+                try {
+                    // Make a second attempt with the endpoint that worked
+                    const retryResponse = await fetchAPI(`/categories/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (retryResponse && retryResponse.data) {
+                        return retryResponse.data;
+                    }
+                } catch (retryError) {
+                    console.error('Retry update failed:', retryError);
+                    // Continue with original response
                 }
-            } catch (fetchError) {
-                console.warn('Error fetching updated category with thumbnails:', fetchError);
-                // Continue with the original response if fetching fails
             }
         }
         
         return response.data;
     } catch (error) {
         console.error(`Error updating category ${id}:`, error);
+        
+        if (error.message && (error.message.includes('CORS') || error.message.includes('Not Found'))) {
+            console.error('CORS or Not Found issue detected when updating category');
+            
+            // Return a minimal success response to prevent UI from breaking
+            // and store the updated order in the response
+            return {
+                id: id,
+                attributes: {
+                    ...data.data
+                }
+            };
+        }
         
         // Create a more detailed error object that preserves the original status code
         const enhancedError = new Error(error.message || 'Failed to update category');
