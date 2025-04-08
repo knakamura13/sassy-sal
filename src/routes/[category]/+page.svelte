@@ -14,6 +14,7 @@
         attributes?: {
             title: string;
             description?: string;
+            order?: number;
             image?: {
                 data?: {
                     attributes?: {
@@ -32,6 +33,7 @@
         description?: string;
         url?: string;
         fullSizeUrl?: string;
+        order?: number;
         createdAt?: string;
         updatedAt?: string;
         publishedAt?: string;
@@ -244,6 +246,9 @@
             // Extract the documentId for Strapi operations
             const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
 
+            // Extract the order attribute if available, default to 0
+            const order = image.attributes?.order !== undefined ? image.attributes.order : 0;
+
             return {
                 id: String(image.id),
                 title,
@@ -251,7 +256,8 @@
                 alt,
                 categoryId,
                 documentId, // Add documentId for Strapi operations
-                strapiId: image.id // Keep the original numeric ID as strapiId
+                strapiId: image.id, // Keep the original numeric ID as strapiId
+                order // Include the order attribute for sorting
             };
         });
     }

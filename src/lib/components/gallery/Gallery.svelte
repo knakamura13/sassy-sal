@@ -14,8 +14,10 @@
 
     // Local copy of images for editing in admin mode
     let localImages: Image[] = [];
+    let sortedImages: Image[] = [];
     let isModified = false;
     let isSaving = false; // New state for save operation
+    let isReorderingImages = false; // State for tracking image reordering
 
     // Alert dialog state
     let showDiscardDialog = false;
@@ -38,6 +40,22 @@
         localImages = images;
     }
 
+    // Sort images by order and then by title as a fallback
+    $: sortedImages = [...localImages].sort((a, b) => {
+        // Primary sort by order (ascending)
+        // Make sure we're comparing numbers
+        const orderA = typeof a.order === 'number' ? a.order : 0;
+        const orderB = typeof b.order === 'number' ? b.order : 0;
+        const orderDiff = orderA - orderB;
+
+        if (orderDiff !== 0) return orderDiff;
+
+        // Secondary sort by title for consistent ordering when order is the same
+        const titleA = a.title || '';
+        const titleB = b.title || '';
+        return titleA.localeCompare(titleB);
+    });
+
     // Function to handle saving changes
     function saveChanges() {
         if (isSaving) return; // Prevent multiple save operations
@@ -49,14 +67,19 @@
 
         // Find images to add, update, or remove
         const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
-
         const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
+
+        // Find images with changed order
+        const imagesToUpdate = localImages.filter((local) => {
+            const orig = originalImages.find((o) => o.id === local.id);
+            return orig && local.order !== orig.order;
+        });
 
         // Process changes
         const processChanges = async () => {
             try {
                 // Import Strapi services
-                const { addImage, deleteImage, uploadFile } = await import('$lib/services/strapi');
+                const { addImage, deleteImage, uploadFile, updateImage } = await import('$lib/services/strapi');
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
@@ -90,6 +113,7 @@
                             const imageData = {
                                 title: image.title || '',
                                 description: '',
+                                order: typeof image.order === 'number' ? image.order : 0,
                                 // Use the uploadedFile.id for the image relation - Strapi expects a direct ID for media fields
                                 image: (uploadedFile as any).id,
                                 categories: {
@@ -117,6 +141,20 @@
                     }
                 }
 
+                // Process updates (order changes)
+                if (imagesToUpdate.length > 0) {
+                    const updatePromises = imagesToUpdate.map((image) => {
+                        // Use documentId or strapiId for updates
+                        const idToUpdate = image.documentId || image.strapiId || image.id;
+                        return updateImage(idToUpdate, {
+                            data: {
+                                order: typeof image.order === 'number' ? image.order : 0
+                            }
+                        });
+                    });
+                    await Promise.all(updatePromises);
+                }
+
                 isModified = false;
                 isSaving = false;
                 showToast.success('Changes saved successfully');
@@ -140,6 +178,58 @@
 
         // Start processing changes
         processChanges();
+    }
+
+    // Function to handle image order change
+    function updateImageOrder(imageId: string, newOrder: number) {
+        if (!$adminMode || isReorderingImages) return;
+
+        isReorderingImages = true;
+        try {
+            // Find the image to update
+            const imageIndex = localImages.findIndex((img) => img.id === imageId);
+            if (imageIndex === -1) {
+                console.error('Image not found:', imageId);
+                return;
+            }
+
+            // Update the order of the specific image
+            localImages[imageIndex] = {
+                ...localImages[imageIndex],
+                order: newOrder
+            };
+
+            // Mark as modified
+            isModified = true;
+        } finally {
+            isReorderingImages = false;
+        }
+    }
+
+    // Function to move image up in order (decrease order number)
+    function moveImageUp(imageId: string) {
+        const imageIndex = sortedImages.findIndex((img) => img.id === imageId);
+        if (imageIndex <= 0) return; // Already at the top
+
+        const currentImage = sortedImages[imageIndex];
+        const prevImage = sortedImages[imageIndex - 1];
+
+        // Swap orders
+        updateImageOrder(currentImage.id, prevImage.order || 0);
+        updateImageOrder(prevImage.id, currentImage.order || 0);
+    }
+
+    // Function to move image down in order (increase order number)
+    function moveImageDown(imageId: string) {
+        const imageIndex = sortedImages.findIndex((img) => img.id === imageId);
+        if (imageIndex === -1 || imageIndex >= sortedImages.length - 1) return; // Already at the bottom
+
+        const currentImage = sortedImages[imageIndex];
+        const nextImage = sortedImages[imageIndex + 1];
+
+        // Swap orders
+        updateImageOrder(currentImage.id, nextImage.order || 0);
+        updateImageOrder(nextImage.id, currentImage.order || 0);
     }
 
     // Function to discard changes
@@ -252,25 +342,73 @@
 
 <div class="gallery-container py-6">
     <div class="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl m-auto md:px-4">
-        {#each localImages as image (image.id)}
-            <button
-                type="button"
-                class="bg-transparent border-0 p-0 w-full text-left cursor-pointer"
-                on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
-                on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
-                aria-label={image.title || 'View image'}
-            >
-                <ImageCard
-                    {image}
-                    isCategory={true}
-                    isAdmin={$adminMode}
-                    on:remove={() => handleRemoveImage(image.id)}
-                />
-            </button>
+        {#each sortedImages as image (image.id)}
+            <div class="image-container relative">
+                {#if $adminMode}
+                    <div
+                        class="order-controls absolute -left-12 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1"
+                    >
+                        <button
+                            type="button"
+                            class="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                            on:click|preventDefault|stopPropagation={() => moveImageUp(image.id)}
+                            disabled={sortedImages.indexOf(image) === 0}
+                            title="Move up"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            class="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                            on:click|preventDefault|stopPropagation={() => moveImageDown(image.id)}
+                            disabled={sortedImages.indexOf(image) === sortedImages.length - 1}
+                            title="Move down"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                {/if}
+                <button
+                    type="button"
+                    class="bg-transparent border-0 p-0 w-full text-left cursor-pointer"
+                    on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
+                    on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
+                    aria-label={image.title || 'View image'}
+                >
+                    <ImageCard
+                        {image}
+                        isCategory={true}
+                        isAdmin={$adminMode}
+                        on:remove={() => handleRemoveImage(image.id)}
+                    />
+                </button>
+            </div>
         {/each}
 
         {#if $adminMode}
-            <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} />
+            <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} {categoryId} />
         {/if}
     </div>
 

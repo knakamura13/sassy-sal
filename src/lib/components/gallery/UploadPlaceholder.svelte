@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { v4 as uuidv4 } from 'uuid';
     import type { Image } from '$lib/stores/imageStore';
     import * as Dialog from '$lib/components/ui/dialog';
@@ -19,10 +19,59 @@
     let fileInput: HTMLInputElement;
     let isDragging = false;
     let open = false;
+    let orderValue = 0; // Default order value
+    let isLoadingImages = false; // Loading state for fetching latest order
+
+    // Fetch latest order value when dialog opens
+    $: if (open && categoryId) {
+        fetchLatestOrderValue();
+    }
+
+    onMount(() => {
+        // Initial fetch on mount if categoryId is available
+        if (categoryId) {
+            fetchLatestOrderValue();
+        }
+    });
 
     // Reset form data when the dialog is closed
     $: if (!open) {
         resetForm();
+    }
+
+    // Function to fetch the latest order value for images
+    async function fetchLatestOrderValue() {
+        isLoadingImages = true;
+        try {
+            // Dynamic import to avoid SSR issues
+            const { getCategoryWithImages } = await import('$lib/services/strapi');
+
+            const categoryData = await getCategoryWithImages(categoryId);
+            if (
+                categoryData &&
+                categoryData.attributes?.images?.data &&
+                Array.isArray(categoryData.attributes.images.data)
+            ) {
+                // Find the highest order value among images
+                const highestOrder = categoryData.attributes.images.data.reduce((max: number, image: any) => {
+                    const currentOrder = image.attributes?.order || 0;
+                    return currentOrder > max ? currentOrder : max;
+                }, 0);
+
+                // Set the order value to highest + 1 as a suggestion
+                // The admin can adjust this in the order input field
+                orderValue = highestOrder + 1;
+            } else {
+                // If no images exist, default to 0
+                orderValue = 0;
+            }
+        } catch (error) {
+            console.error('Error fetching images for order value:', error);
+            // Default to 0 if there's an error
+            orderValue = 0;
+        } finally {
+            isLoadingImages = false;
+        }
     }
 
     function resetForm() {
@@ -30,6 +79,7 @@
         // Revoke all object URLs to prevent memory leaks
         previewUrls.forEach((url) => URL.revokeObjectURL(url));
         previewUrls = [];
+        orderValue = 0;
     }
 
     function handleFileChange(event: Event) {
@@ -87,7 +137,8 @@
             url: previewUrls[index],
             alt: 'Image description',
             categoryId: categoryId || '1', // Default to first category if not specified
-            file: file
+            file: file,
+            order: orderValue // Use the same order value for all images (admin can reorder after upload)
         }));
 
         dispatch('addImages', newImages);
@@ -107,6 +158,9 @@
         <Dialog.Content class="sm:max-w-md">
             <Dialog.Header>
                 <Dialog.Title>Add New Images</Dialog.Title>
+                <Dialog.Description>
+                    Upload images to this gallery. All images will be displayed based on their order value.
+                </Dialog.Description>
             </Dialog.Header>
 
             <form on:submit|preventDefault={handleSubmit} class="space-y-4">
@@ -176,6 +230,27 @@
                             <p class="text-gray-500 text-sm mt-1">or click to browse</p>
                         {/if}
                     </button>
+                </div>
+
+                <!-- Order input field -->
+                <div class="space-y-2">
+                    <Label for="orderValue" class="text-left">Order</Label>
+                    <div class="flex items-center space-x-2">
+                        <Input
+                            type="number"
+                            id="orderValue"
+                            bind:value={orderValue}
+                            min="0"
+                            class="w-32"
+                            disabled={isLoadingImages}
+                        />
+                        {#if isLoadingImages}
+                            <span class="text-xs text-gray-500 animate-pulse">Loading...</span>
+                        {:else}
+                            <span class="text-xs text-gray-500">Suggested value: {orderValue}</span>
+                        {/if}
+                    </div>
+                    <p class="text-xs text-gray-500">Lower values appear first. Leave as is to add at the end.</p>
                 </div>
 
                 <Dialog.Footer class="flex flex-row justify-end space-x-3">

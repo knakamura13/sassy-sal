@@ -577,6 +577,7 @@ export const addImage = async (imageData) => {
             data: {
                 title: imageData.title,
                 description: imageData.description || '',
+                order: typeof imageData.order === 'number' ? parseInt(imageData.order, 10) : 0,
                 // Handle image relation according to Strapi v4 format
                 // For media fields in Strapi v4, the format is different from relations
                 // See: https://docs.strapi.io/dev-docs/api/rest/populate-select
@@ -662,6 +663,44 @@ export const deleteImage = async (id) => {
         return true;
     } catch (error) {
         console.error(`Error deleting image ${id}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Update an image
+ * @param {string|number} id - The image ID
+ * @param {Object} data - The image data to update
+ * @returns {Promise<Object>} The updated image data
+ */
+export const updateImage = async (id, data) => {
+    try {
+        // Convert any numeric order to integers (Strapi sometimes has issues with float values)
+        if (data.data && data.data.order !== undefined) {
+            data.data.order = parseInt(data.data.order, 10);
+        }
+        
+        // Try to determine the correct endpoint format for this Strapi instance
+        let endpoint = `/images/${id}`;
+        
+        let response;
+        try {
+            // Send update request
+            response = await fetchAPI(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            return response.data;
+        } catch (error) {
+            console.error(`Error updating image with endpoint ${endpoint}:`, error);
+            throw error;
+        }
+    } catch (error) {
+        console.error(`Error updating image ${id}:`, error);
         throw error;
     }
 };
