@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import { uploadFile } from '$lib/services/strapi';
+    import { createEventDispatcher, onMount } from 'svelte';
+    import { uploadFile, getCategories } from '$lib/services/strapi';
     import * as Dialog from '$lib/components/ui/dialog';
     import { Label } from '$lib/components/ui/label';
     import { Input } from '$lib/components/ui/input';
@@ -36,11 +36,44 @@
     let dropZone: HTMLElement;
     let fileInput: HTMLInputElement;
     let isDragging = false;
-    let orderValue = 0; // Default order value is 0
+    let orderValue = 0; // Default order value
+    let isLoadingCategories = false;
 
     // Reset form data when the dialog is closed
     $: if (!open) {
         resetForm();
+    }
+
+    // When dialog opens, fetch the latest order value
+    $: if (open) {
+        fetchLatestOrderValue();
+    }
+
+    // Fetch the highest order value from existing categories and add 1
+    async function fetchLatestOrderValue() {
+        isLoadingCategories = true;
+        try {
+            const categories = await getCategories();
+            if (categories && categories.length > 0) {
+                // Find the highest order value
+                const highestOrder = categories.reduce((max: number, category: any) => {
+                    const currentOrder = category.attributes?.order || 0;
+                    return currentOrder > max ? currentOrder : max;
+                }, 0);
+
+                // Set the order value to highest + 1
+                orderValue = highestOrder + 1;
+            } else {
+                // If no categories exist, default to 0
+                orderValue = 0;
+            }
+        } catch (error) {
+            console.error('Error fetching categories for order value:', error);
+            // Default to 0 if there's an error
+            orderValue = 0;
+        } finally {
+            isLoadingCategories = false;
+        }
     }
 
     function resetForm() {
@@ -180,11 +213,15 @@
                         placeholder="0"
                         class="font-garamond"
                         min="0"
-                        disabled={isUploading}
+                        disabled={isUploading || isLoadingCategories}
                     />
-                    <p class="text-xs text-gray-500">
-                        Categories are displayed in ascending order (lower numbers first)
-                    </p>
+                    {#if isLoadingCategories}
+                        <p class="text-xs text-gray-500">Loading suggested order value...</p>
+                    {:else}
+                        <p class="text-xs text-gray-500">
+                            Categories are displayed in ascending order (lower numbers first)
+                        </p>
+                    {/if}
                 </div>
 
                 <div class="space-y-2">
