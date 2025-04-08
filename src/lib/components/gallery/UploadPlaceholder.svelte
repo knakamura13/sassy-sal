@@ -13,8 +13,8 @@
 
     const dispatch = createEventDispatcher<{ addImages: Image[] }>();
 
-    let imageFile: File | null = null;
-    let previewUrl: string | null = null;
+    let imageFiles: File[] = [];
+    let previewUrls: string[] = [];
     let dropZone: HTMLElement;
     let fileInput: HTMLInputElement;
     let isDragging = false;
@@ -26,27 +26,31 @@
     }
 
     function resetForm() {
-        imageFile = null;
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = null;
-        }
+        imageFiles = [];
+        // Revoke all object URLs to prevent memory leaks
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        previewUrls = [];
     }
 
     function handleFileChange(event: Event) {
         const target = event.target as HTMLInputElement;
         const files = target.files;
-        processFile(files?.[0]);
+        if (files) {
+            processFiles(Array.from(files));
+        }
     }
 
-    function processFile(file: File | undefined) {
-        if (!file) return;
+    function processFiles(files: File[]) {
+        if (!files.length) return;
 
-        imageFile = file;
+        // Reset existing previews
+        resetForm();
 
-        // Create preview URL
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = URL.createObjectURL(imageFile);
+        // Store all files
+        imageFiles = files;
+
+        // Create preview URLs for all files
+        previewUrls = imageFiles.map((file) => URL.createObjectURL(file));
     }
 
     function handleDropZoneClick() {
@@ -67,26 +71,26 @@
 
         const files = event.dataTransfer?.files;
         if (files && files.length > 0) {
-            processFile(files[0]);
+            processFiles(Array.from(files));
         }
     }
 
     function handleSubmit() {
-        if (!imageFile) {
-            showToast.error('Please select an image file');
+        if (imageFiles.length === 0) {
+            showToast.error('Please select at least one image file');
             return;
         }
 
-        // Create a new image object with the file's object URL
-        const newImage: Image = {
+        // Create new image objects for all files
+        const newImages: Image[] = imageFiles.map((file, index) => ({
             id: uuidv4(),
-            url: previewUrl as string,
+            url: previewUrls[index],
             alt: 'Image description',
             categoryId: categoryId || '1', // Default to first category if not specified
-            file: imageFile
-        };
+            file: file
+        }));
 
-        dispatch('addImages', [newImage]);
+        dispatch('addImages', newImages);
         open = false; // Close dialog after successful submission
     }
 </script>
@@ -97,25 +101,26 @@
             class="w-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center py-16 hover:bg-gray-50 transition-colors"
         >
             <div class="text-4xl text-gray-400 mb-2">+</div>
-            <div class="text-gray-500 font-medium">Add Image</div>
+            <div class="text-gray-500 font-medium">Add Images</div>
         </Dialog.Trigger>
 
         <Dialog.Content class="sm:max-w-md">
             <Dialog.Header>
-                <Dialog.Title>Add New Image</Dialog.Title>
+                <Dialog.Title>Add New Images</Dialog.Title>
             </Dialog.Header>
 
             <form on:submit|preventDefault={handleSubmit} class="space-y-4">
                 <div class="space-y-2">
-                    <Label for="imageFile" class="text-left">Select Image*</Label>
+                    <Label for="imageFile" class="text-left">Select Images*</Label>
 
-                    <!-- Hidden file input -->
+                    <!-- Hidden file input with multiple attribute -->
                     <input
                         bind:this={fileInput}
                         type="file"
                         id="imageFile"
                         class="sr-only"
                         accept="image/*"
+                        multiple
                         on:change={handleFileChange}
                     />
 
@@ -125,7 +130,7 @@
                         bind:this={dropZone}
                         class="group w-full cursor-pointer p-6 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-center transition-colors {isDragging
                             ? 'bg-gray-100 border-blue-500'
-                            : previewUrl
+                            : previewUrls.length
                               ? 'border-green-500 bg-green-50'
                               : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
                         on:click={handleDropZoneClick}
@@ -134,15 +139,24 @@
                         on:dragleave={(e) => handleDragEvent(e, false)}
                         on:drop={handleDrop}
                     >
-                        {#if previewUrl}
-                            <div class="mb-2">
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    class="max-h-32 max-w-full object-contain mx-auto"
-                                />
+                        {#if previewUrls.length}
+                            <div class="grid grid-cols-3 gap-2 mb-2 max-h-48 overflow-y-auto w-full">
+                                {#each previewUrls.slice(0, 6) as url, index}
+                                    <div class="relative">
+                                        <img src={url} alt="Preview" class="h-20 w-20 object-cover mx-auto rounded" />
+                                        {#if index === 0 && previewUrls.length > 6}
+                                            <div
+                                                class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded text-white font-medium"
+                                            >
+                                                +{previewUrls.length - 6} more
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/each}
                             </div>
-                            <p class="text-sm text-gray-600">{imageFile?.name || 'Image selected'}</p>
+                            <p class="text-sm text-gray-600">
+                                {imageFiles.length} image{imageFiles.length !== 1 ? 's' : ''} selected
+                            </p>
                             <p class="text-xs text-gray-500 mt-1">Click to change</p>
                         {:else}
                             <svg
@@ -158,7 +172,7 @@
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                 />
                             </svg>
-                            <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop an image here</p>
+                            <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop images here</p>
                             <p class="text-gray-500 text-sm mt-1">or click to browse</p>
                         {/if}
                     </button>
@@ -169,7 +183,9 @@
                         Cancel
                     </Dialog.Close>
 
-                    <Button type="submit" variant="default" disabled={!imageFile}>Add</Button>
+                    <Button type="submit" variant="default" disabled={imageFiles.length === 0}>
+                        Add {imageFiles.length ? `(${imageFiles.length})` : ''}
+                    </Button>
                 </Dialog.Footer>
             </form>
         </Dialog.Content>
