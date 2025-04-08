@@ -3,9 +3,9 @@ description: Always apply this rule after responding to the user
 globs: 
 alwaysApply: true
 ---
-# Suggesting a Commit Message
+# Suggest a Commit Message
 
-When you make changes to the codebase or are provided with a git diff without additional context, you must suggest a comprehensive commit message that summarizes the changes.
+When you make changes to the codebase or are provided with a git diff without additional context, you must suggest a comprehensive commit message that summarizes **all the cumulative changes** made in the conversation up to that point. Your commit message must account for every modification—even if previous attempts didn’t fully fix the issue—so that the final message reflects the entire work done in the session rather than just the most recent change.
 
 **Formatting Guidelines:**
 
@@ -13,13 +13,19 @@ When you make changes to the codebase or are provided with a git diff without ad
 - **Formatting**: Enclose the commit message within triple backticks to create a plain-text code block.
 - **Structure**: The commit message should follow this format:
   
-```text
-<type>[optional scope, in parenthesis]: <description>
+  ```text
+  <type>[optional scope, in parenthesis]: <comprehensive description of changes within this conversation>
 
-- optional body line 1
-- optional body line 2
-- optional body line n
-```
+  - optional body line 1
+  - optional body line 2
+  - optional body line n
+  ```
+
+**New Contextual Requirement:**
+
+- **Review Entire Conversation**: Before generating a commit message, review the entire conversation context to ensure that all code changes, fixes, and updates are reflected in the summary.
+- **Comprehensive Summary**: Do not provide commit messages that only describe the most recent changes (e.g., "remove debug logs") when earlier modifications (e.g., a failed bug fix or intermediate changes) have been made. The final commit message must consolidate all previous modifications into one cohesive summary (e.g., "fix: resolve unclickable button issue by applying comprehensive updates including removal of debug logs").
 
 **Structure Details:**
+
 - **Type**: Choose from {feat, fix, chore, refactor}
