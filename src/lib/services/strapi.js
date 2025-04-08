@@ -468,8 +468,25 @@ export const addImage = async (imageData) => {
             data: {
                 title: imageData.title,
                 description: imageData.description || '',
-                image: imageData.image,
-                // Handle both the new format (categories.connect) and backward compatibility
+                // Handle image relation according to Strapi v4 format
+                // For media fields in Strapi v4, the format is different from relations
+                // See: https://docs.strapi.io/dev-docs/api/rest/populate-select
+                ...(imageData.image && typeof imageData.image === 'object' && imageData.image.connect
+                    ? { 
+                        // Use connect format for media relations
+                        image: imageData.image.connect[0].id
+                      }
+                    : imageData.image && typeof imageData.image === 'object'
+                      ? { 
+                          // Try direct ID assignment if not using connect format
+                          image: imageData.image 
+                        }
+                      : { 
+                          // Fallback to direct value
+                          image: imageData.image 
+                        }
+                ),
+                // Handle category relations with proper connect format
                 ...(imageData.categories
                     ? { categories: imageData.categories } // Use the categories field directly if provided
                     : imageData.category
@@ -488,13 +505,13 @@ export const addImage = async (imageData) => {
         });
 
         if (!response.data) {
-            console.error('❌ Invalid response from Strapi:', response);
+            console.error('Invalid response from Strapi:', response);
             throw new Error('Failed to create image: Invalid response');
         }
 
         return response.data;
     } catch (error) {
-        console.error('❌ Error adding image:', error);
+        console.error('Error adding image:', error);
         throw error;
     }
 };

@@ -16,8 +16,19 @@
 <div class="image-card-wrapper aspect-square w-full relative !m-auto">
     <div
         class="image-card transition-all duration-200 inset-0 relative overflow-hidden shadow-md w-full h-full hover:transform hover:scale-[1.01] cursor-pointer"
+        data-image-id={image.id}
+        data-has-url={!!image.url}
     >
-        <img src={image.url} alt={image.alt} class="w-full h-full object-cover" />
+        {#if image.url}
+            <img src={image.url} alt={image.alt} class="w-full h-full object-cover" />
+        {:else}
+            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                <p class="text-gray-500 text-sm p-2 text-center">
+                    {image.title || 'Untitled'}<br />
+                    <span class="text-xs">(Image URL missing)</span>
+                </p>
+            </div>
+        {/if}
 
         {#if image.title && !isCategory}
             <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white">

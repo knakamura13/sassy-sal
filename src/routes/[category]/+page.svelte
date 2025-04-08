@@ -217,7 +217,23 @@
             const title = image.attributes?.title || image.title || 'Untitled';
 
             // Get the URL from different possible locations
-            const url = image.url || image.attributes?.image?.data?.attributes?.url || '';
+            let url = '';
+
+            // Try to get URL from all possible locations in the Strapi response structure
+            if (image.url) {
+                url = image.url;
+            } else if (image.attributes?.image?.data?.attributes?.url) {
+                url = image.attributes.image.data.attributes.url;
+            } else if ((image.attributes?.image as any)?.url) {
+                url = (image.attributes?.image as any).url;
+            } else if ((image.attributes?.image?.data as any)?.url) {
+                url = (image.attributes?.image?.data as any).url;
+            }
+
+            // Process relative URLs (prepend STRAPI_API_URL if URL starts with /)
+            if (url && url.startsWith('/')) {
+                url = `${STRAPI_API_URL}${url}`;
+            }
 
             // Get the alt text
             const alt = image.attributes?.image?.data?.attributes?.alternativeText || title;
@@ -226,7 +242,6 @@
             const categoryId = category ? String(category.id) : '0';
 
             // Extract the documentId for Strapi operations
-            // Use type assertion to access documentId property without TypeScript errors
             const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
 
             return {
@@ -239,6 +254,38 @@
                 strapiId: image.id // Keep the original numeric ID as strapiId
             };
         });
+    }
+
+    // Check for additional specific Strapi URL path variations
+    $: {
+        if (galleryImages.length > 0) {
+            const imagesWithoutUrls = galleryImages.filter((img) => !img.url);
+            if (imagesWithoutUrls.length > 0) {
+                // Find the corresponding original images
+                for (const image of imagesWithoutUrls) {
+                    const originalImage = categoryImages.find((img) => String(img.id) === image.id);
+                    if (originalImage) {
+                        // Try different path variations to extract the URL
+                        if (originalImage.attributes?.image && !originalImage.attributes.image.data) {
+                            // Sometimes Strapi returns image without a data wrapper
+                            const potentialUrl = (originalImage.attributes.image as any).url;
+                            if (potentialUrl) {
+                                // Update the URL in both objects
+                                image.url = potentialUrl.startsWith('/')
+                                    ? `${STRAPI_API_URL}${potentialUrl}`
+                                    : potentialUrl;
+
+                                // Also update the images array for next render
+                                const index = galleryImages.findIndex((img) => img.id === image.id);
+                                if (index !== -1) {
+                                    galleryImages[index].url = image.url;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Function to handle image upload success

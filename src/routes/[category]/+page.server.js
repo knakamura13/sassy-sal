@@ -44,8 +44,20 @@ export async function load({ params, url }) {
         if (category.images && Array.isArray(category.images)) {
             // Convert flat images array to the nested data structure expected by frontend
             const processedImages = category.images.map((img) => {
+                // Process the image URL if it exists
+                let imageUrl = img.url || img.image?.url || '';
+                if (imageUrl && imageUrl.startsWith('/')) {
+                    imageUrl = `${STRAPI_API_URL}${imageUrl}`;
+                }
+
                 // If image is already in the right format, return it as is
                 if (img.attributes && img.attributes.image) {
+                    // But still fix the URL if it's relative
+                    if (img.attributes.image.data?.attributes?.url && 
+                        img.attributes.image.data.attributes.url.startsWith('/')) {
+                        img.attributes.image.data.attributes.url = 
+                            `${STRAPI_API_URL}${img.attributes.image.data.attributes.url}`;
+                    }
                     return img;
                 }
 
@@ -58,7 +70,7 @@ export async function load({ params, url }) {
                         image: {
                             data: {
                                 attributes: {
-                                    url: img.url || img.image?.url || '',
+                                    url: imageUrl,
                                     alternativeText: img.alternativeText || img.alt || ''
                                 }
                             }
@@ -69,13 +81,19 @@ export async function load({ params, url }) {
 
             category.attributes.images = { data: processedImages };
         } else if (category.attributes?.images?.data && Array.isArray(category.attributes.images.data)) {
-            // Images data is already in the expected format - do nothing
-        } else if (!category.attributes.images) {
-            // If no images property at all, create empty structure
-            category.attributes.images = { data: [] };
-        } else if (Array.isArray(category.attributes.images)) {
-            // If images is an array but not in data property
-            category.attributes.images = { data: category.attributes.images };
+            // Images data is already in the expected format - process URLs if needed
+            category.attributes.images.data = category.attributes.images.data.map(img => {
+                // Process image URL if it's relative
+                if (img.attributes?.image?.data?.attributes?.url) {
+                    const imageUrl = img.attributes.image.data.attributes.url;
+                    if (imageUrl.startsWith('/')) {
+                        img.attributes.image.data.attributes.url = `${STRAPI_API_URL}${imageUrl}`;
+                    }
+                }
+                return img;
+            });
+        } else {
+            console.log('No valid images array found in category');
         }
 
         // Check for required attributes

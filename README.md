@@ -99,5 +99,16 @@ The integration is built using the native fetch API instead of a Strapi client l
 
 ## TODO Checklist
 
-    - [ ] Fix image upload (error when saving changes)
-    - [ ] Enable batch image upload
+**Bug Fixes**
+- [ ] N/A
+
+**Features**
+- [ ] Enable batch image upload
+- [ ] When creating a new category, set default `order` to prev category order +1
+- [ ] Enable re-arranging categories by drag-and-drop
+- [ ] Add `order` attribute to images
+- [ ] Enable re-arranging images by drag-and-drop
+- [ ] Authentication with username and password
+    - Does Strapi have an authentication feature?
+    - If not, could we use the existing PostgreSQL db for authentication?
+    - If not, which service would require the least maintenance (e.g., hard-coded username and password via .env variables)?

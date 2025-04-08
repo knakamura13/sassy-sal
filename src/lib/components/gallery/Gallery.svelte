@@ -56,7 +56,7 @@
         const processChanges = async () => {
             try {
                 // Import Strapi services
-                const { addImage, deleteImage } = await import('$lib/services/strapi');
+                const { addImage, deleteImage, uploadFile } = await import('$lib/services/strapi');
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
@@ -70,22 +70,51 @@
 
                 // Process additions
                 if (imagesToAdd.length > 0) {
-                    const additionPromises = imagesToAdd.map((image) => {
-                        // Prepare image data for API
-                        const imageData = {
-                            title: image.title || '',
-                            description: '',
-                            image: image.url,
-                            // Handle numeric or string IDs for category
-                            categories: {
-                                connect: [{ id: parseInt(categoryId) || categoryId }]
+                    // Process one image at a time to better handle potential errors
+                    for (const image of imagesToAdd) {
+                        if (!image.file) {
+                            console.error('Image missing file property:', image);
+                            continue;
+                        }
+
+                        try {
+                            // First upload the image file to Strapi's media library
+                            const uploadedFile = await uploadFile(image.file);
+
+                            if (!uploadedFile || !(uploadedFile as any).id) {
+                                console.error('Invalid response from upload:', uploadedFile);
+                                throw new Error('Failed to upload image file');
                             }
-                        };
 
-                        return addImage(imageData);
-                    });
+                            // Prepare image data for API using the uploaded file ID
+                            const imageData = {
+                                title: image.title || '',
+                                description: '',
+                                // Use the uploadedFile.id for the image relation - Strapi expects a direct ID for media fields
+                                image: (uploadedFile as any).id,
+                                categories: {
+                                    connect: [{ id: parseInt(categoryId) || categoryId }]
+                                }
+                            };
 
-                    await Promise.all(additionPromises);
+                            // Add the image in Strapi
+                            const createdImage = await addImage(imageData);
+
+                            // Process the URL from the uploaded file to ensure it's properly set in our UI
+                            // This makes sure the image has a URL before we refresh the page
+                            if ((uploadedFile as any).url) {
+                                // Strapi sometimes returns relative URLs, make sure they're absolute
+                                let imageUrl = (uploadedFile as any).url;
+                                if (imageUrl.startsWith('/')) {
+                                    const { STRAPI_API_URL } = await import('$lib/services/strapi');
+                                    imageUrl = `${STRAPI_API_URL}${imageUrl}`;
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error processing image:', err);
+                            throw err; // Re-throw to be caught by the outer catch block
+                        }
+                    }
                 }
 
                 isModified = false;
