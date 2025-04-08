@@ -14,6 +14,7 @@
 
     // Local copy of images for editing in admin mode
     let localImages: Image[] = [];
+    let originalImages: Image[] = []; // Store original state for comparison
     let sortedImages: Image[] = [];
     let isModified = false;
     let isSaving = false; // New state for save operation
@@ -31,13 +32,18 @@
 
     // Initialize with provided category images
     onMount(() => {
-        // Use the provided images for category mode
-        localImages = images;
+        // Create deep copies to avoid reference issues
+        originalImages = images.map((img) => ({ ...img }));
+        localImages = images.map((img) => ({ ...img }));
     });
 
     $: {
         // Update local images when category images change
-        localImages = images;
+        // But only if we're not in a modified state to avoid losing edits
+        if (!isModified) {
+            originalImages = images.map((img) => ({ ...img }));
+            localImages = images.map((img) => ({ ...img }));
+        }
     }
 
     // Sort images by order and then by title as a fallback
@@ -61,10 +67,6 @@
         if (isSaving) return; // Prevent multiple save operations
         isSaving = true;
 
-        // Get the original images to compare with local images
-        // If in category mode, use the provided images
-        const originalImages = images;
-
         // Find images to add, update, or remove
         const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
         const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
@@ -72,7 +74,13 @@
         // Find images with changed order
         const imagesToUpdate = localImages.filter((local) => {
             const orig = originalImages.find((o) => o.id === local.id);
-            return orig && local.order !== orig.order;
+            if (!orig) return false;
+
+            // Convert both to numbers for proper comparison
+            const localOrder = typeof local.order === 'number' ? local.order : Number(local.order || 0);
+            const origOrder = typeof orig.order === 'number' ? orig.order : Number(orig.order || 0);
+
+            return localOrder !== origOrder;
         });
 
         // Process changes
@@ -83,11 +91,9 @@
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
-                    const deletionPromises = imagesToRemove.map((image) => {
-                        // Use documentId first if available, otherwise fall back to strapiId, then regular id
-                        const idToDelete = image.documentId || image.strapiId || image.id;
-                        return deleteImage(idToDelete);
-                    });
+                    const deletionPromises = imagesToRemove.map((image) =>
+                        deleteImage(image.documentId || image.strapiId || image.id)
+                    );
                     await Promise.all(deletionPromises);
                 }
 
@@ -122,7 +128,7 @@
                             };
 
                             // Add the image in Strapi
-                            const createdImage = await addImage(imageData);
+                            const _ = await addImage(imageData);
 
                             // Process the URL from the uploaded file to ensure it's properly set in our UI
                             // This makes sure the image has a URL before we refresh the page
@@ -243,6 +249,45 @@
     // Function to handle image removal
     function handleRemoveImage(id: string) {
         localImages = localImages.filter((img) => img.id !== id);
+        isModified = true;
+    }
+
+    // Function to handle image update
+    function handleUpdateImage(event: CustomEvent) {
+        const { id, data } = event.detail;
+
+        // Find the image to update
+        const imageIndex = localImages.findIndex((img) => img.id === id);
+        if (imageIndex === -1) {
+            console.error('Image not found for update:', id);
+            return;
+        }
+
+        // Extract the actual update fields from the nested structure
+        const updateFields = data.data || {};
+
+        // Convert order to number and ensure it's properly updated
+        const newOrder = updateFields.order !== undefined ? Number(updateFields.order) : localImages[imageIndex].order;
+        const oldOrder = localImages[imageIndex].order;
+
+        // Find corresponding original image for comparison
+        const originalImage = originalImages.find((img) => img.id === id);
+        const originalOrder = originalImage ? originalImage.order : null;
+
+        // Create a new image object to ensure reactivity
+        const updatedImage = {
+            ...localImages[imageIndex],
+            ...updateFields,
+            order: newOrder
+        };
+
+        // Update the image in the array
+        localImages[imageIndex] = updatedImage;
+
+        // Force reactive update by reassigning the array
+        localImages = [...localImages];
+
+        // Mark gallery as modified
         isModified = true;
     }
 
@@ -402,6 +447,7 @@
                         isCategory={true}
                         isAdmin={$adminMode}
                         on:remove={() => handleRemoveImage(image.id)}
+                        on:update={handleUpdateImage}
                     />
                 </button>
             </div>

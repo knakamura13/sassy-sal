@@ -247,7 +247,7 @@
             const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
 
             // Extract the order attribute if available, default to 0
-            const order = image.attributes?.order !== undefined ? image.attributes.order : 0;
+            const order = image.order !== undefined ? image.order : 0;
 
             return {
                 id: String(image.id),
@@ -359,9 +359,7 @@
             {/if}
 
             {#if loadingImageUrls}
-                <div class="col-span-full text-center py-4">
-                    <p class="text-gray-600">Loading images...</p>
-                </div>
+                <!-- TODO: add a loading spinner here, but ensure it does not add content shift to the page -->
             {/if}
 
             {#if !galleryImages.length}

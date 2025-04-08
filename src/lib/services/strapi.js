@@ -174,36 +174,38 @@ export const getCategories = async () => {
  */
 export const getCategoryWithImages = async (nameOrId) => {
     try {
+        const endpoint = '/categories';
+
         // Check if it looks like a documentId (alphanumeric string)
         const isDocumentId = typeof nameOrId === 'string' && /^[a-z0-9]+$/i.test(nameOrId) && nameOrId.length > 10;
 
         // Check if it's a numeric ID
         const isNumericId = !isNaN(parseInt(nameOrId, 10));
 
-        let endpoint;
-        let queryParams;
-
-        if (isDocumentId) {
-            endpoint = '/categories';
-            queryParams = new URLSearchParams({
-                'filters[documentId][$eq]': nameOrId,
-                populate: '*'
-            }).toString();
-        } else if (isNumericId) {
-            endpoint = `/categories/${nameOrId}`;
-            queryParams = new URLSearchParams({
-                populate: '*'
-            }).toString();
-        } else {
-            // Otherwise, normalize the name and use name-based filtering
-            const normalizedName = nameOrId.trim().toLowerCase();
-
-            endpoint = '/categories';
-            queryParams = new URLSearchParams({
-                'filters[name][$eq]': normalizedName,
-                populate: '*'
-            }).toString();
-        }
+        // Define the common image fields to populate for all query types
+        const imageFields = [
+            'id', 'documentId', 'order', 'createdAt', 'updatedAt', 'publishedAt'
+        ];
+        
+        // Build the populate parameters for images with specific fields
+        const imageFieldParams = {};
+        imageFields.forEach((field, index) => {
+            imageFieldParams[`populate[images][fields][${index}]`] = field;
+        });
+        
+        // Build the filter parameter based on the identifier type
+        const filterParam = isDocumentId || isNumericId
+            ? { [`filters[${isDocumentId ? 'documentId' : 'id'}][$eq]`]: nameOrId }
+            : { 'filters[name][$eq]': nameOrId.trim().toLowerCase() };
+            
+        // Combine filter with image field parameters
+        const params = {
+            ...filterParam,
+            ...imageFieldParams
+        };
+        
+        // Convert parameters to query string
+        const queryParams = new URLSearchParams(params).toString();
 
         const response = await fetchAPI(`${endpoint}?${queryParams}`);
 
