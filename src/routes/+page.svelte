@@ -505,10 +505,11 @@
 
                     // Get documentId or fall back to id
                     const documentId = categoryToUpdate.documentId || id;
-                    console.log(`Updating category: id=${id}, documentId=${documentId}`, data);
+                    console.log(`[DEBUG] Updating category: id=${id}, documentId=${documentId}, with data:`, data);
 
                     // Send update to Strapi
-                    await updateCategory(documentId, data);
+                    const response = await updateCategory(documentId, data);
+                    console.log(`[DEBUG] Category update response:`, response);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat: Category) => {
@@ -530,6 +531,22 @@
                     try {
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
+                            console.log(
+                                '[DEBUG] Refreshed categories after update:',
+                                JSON.stringify(refreshedCategories)
+                            );
+
+                            // Find the updated category to check its thumbnail
+                            const updatedCategory = refreshedCategories.find(
+                                (cat: Category) => String(cat.id) === String(id)
+                            );
+                            if (updatedCategory) {
+                                console.log(
+                                    '[DEBUG] Updated category thumbnail:',
+                                    JSON.stringify(updatedCategory.attributes.thumbnail)
+                                );
+                            }
+
                             updateCategoriesAndRender(refreshedCategories);
                         }
                     } catch (refreshError) {

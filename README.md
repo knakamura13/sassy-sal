@@ -69,6 +69,9 @@ The integration is built using the native fetch API instead of a Strapi client l
 ## TODO Checklist
 
 **Bug Fixes**
+- [ ] Fix editing category thumbnail image files
+- [ ] Fix rearranging via drag-and-drop causing category `order` attributes to become out of sync with the `order` fields in Strapi. 
+    - E.g., all the categories in Strapi have `order` set to 2, 4, 6, 8..., then the admin drag-and-drops a category to a different location, and then the UI shows that the `order` attributes are 0, 1, 2, 3..., while the categories in Strapi remain unchanged.
 - [ ] Fix editing image files
     - After editing an image file and closing the edit dialog ("Update" button), the image in the gallery gets replaced with a non-existent image URL (404 error).
     - After saving the changes and reloading the page, the broken image returns to its original state before the edit was made, indicating that no changes were actually made in the Strapi backend.
@@ -83,5 +86,7 @@ The integration is built using the native fetch API instead of a Strapi client l
 **Chores**
 - [ ] Remove deprecated Category properties
     - Delete the `description` field from Strapi and all references to `category.description`
+    - Optional: delete the `id` field to reduce confusion with `documentId`, since only the `documentId` should ever be used in REST queries
 - [ ] Remove deprecated Image properties
     - Delete the `title` and `description` fields from Strapi and all references to `image.title` and `image.description`
+    - Optional: delete the `id` field to reduce confusion with `documentId`, since only the `documentId` should ever be used in REST queries

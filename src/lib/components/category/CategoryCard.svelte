@@ -77,19 +77,24 @@
     // Function to load image from thumbnail or show placeholder background
     async function loadImage() {
         isLoading = true;
+        console.log('[DEBUG] Loading image for category:', category.id);
 
         // Check if the category has a thumbnail property
         if (category.attributes.thumbnail) {
+            console.log('[DEBUG] Thumbnail data:', JSON.stringify(category.attributes.thumbnail));
+
             // Handle different possible structures for thumbnail data from Strapi
             let thumbnailUrl = null;
 
             // Structure 1: Modern Strapi v4 with data.attributes.url
             if (category.attributes.thumbnail.data && category.attributes.thumbnail.data.attributes?.url) {
                 thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
+                console.log('[DEBUG] Found URL in data.attributes.url:', thumbnailUrl);
             }
             // Structure 2: Object with direct URL property
             else if (category.attributes.thumbnail.url) {
                 thumbnailUrl = category.attributes.thumbnail.url;
+                console.log('[DEBUG] Found direct URL property:', thumbnailUrl);
             }
             // Structure 3: Nested data array format
             else if (
@@ -99,7 +104,13 @@
                 const firstItem = category.attributes.thumbnail.data[0];
                 if (firstItem && 'attributes' in firstItem && firstItem.attributes && 'url' in firstItem.attributes) {
                     thumbnailUrl = firstItem.attributes.url;
+                    console.log('[DEBUG] Found URL in array format:', thumbnailUrl);
                 }
+            }
+            // Structure 4: Direct string URL (some versions of Strapi)
+            else if (typeof category.attributes.thumbnail === 'string') {
+                thumbnailUrl = category.attributes.thumbnail;
+                console.log('[DEBUG] Found direct string URL:', thumbnailUrl);
             }
 
             // If we found a URL, process it
@@ -112,6 +123,8 @@
                 } else {
                     imageUrl = `${STRAPI_API_URL}/${thumbnailUrl}`;
                 }
+
+                console.log('[DEBUG] Final formatted image URL:', imageUrl);
 
                 // Verify the image loads correctly with a timeout
                 try {
@@ -240,13 +253,23 @@
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
+                    console.log('[DEBUG] Uploading new thumbnail file:', selectedFile.name);
                     const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
+                    console.log('[DEBUG] Upload response:', uploadedFile);
 
                     if (uploadedFile && uploadedFile.id) {
                         // Add the thumbnail ID to the category data using Strapi v4 relationship format
-                        updateData.data.thumbnail = {
-                            connect: [{ id: uploadedFile.id }]
-                        };
+                        console.log('[DEBUG] Upload success. File ID:', uploadedFile.id);
+
+                        // Instead of using connect syntax, use direct ID assignment for media fields
+                        // This follows the pattern seen in addImage function in the strapi.js service
+                        updateData.data.thumbnail = uploadedFile.id;
+
+                        // Also try an alternate format if the above doesn't work
+                        // Uncomment this and comment the line above to test
+                        // updateData.data.thumbnail = { set: [uploadedFile.id] };
+
+                        console.log('[DEBUG] Setting thumbnail relation:', updateData.data.thumbnail);
                     } else {
                         errorMessage = 'Invalid response from server during thumbnail upload.';
                     }
@@ -259,10 +282,17 @@
 
             try {
                 // Dispatch the update event
+                console.log('[DEBUG] Sending category update for ID:', category.id, 'with data:', updateData);
                 dispatch('update', {
                     id: category.id,
                     data: updateData
                 });
+
+                // Add a delay to ensure the file processing has time to complete on the server
+                if (selectedFile) {
+                    console.log('[DEBUG] Adding delay to ensure file processing completes...');
+                    await new Promise((resolve) => setTimeout(resolve, 1500));
+                }
 
                 // Update local state to reflect changes
                 category.attributes.name = editName.trim();
@@ -271,9 +301,15 @@
                 // Force a reload of the image when a new one is uploaded
                 if (selectedFile) {
                     // Small delay to ensure the upload completes
+                    console.log('[DEBUG] Triggering image reload after update...');
                     setTimeout(async () => {
-                        await loadImage();
-                    }, 1000);
+                        try {
+                            await loadImage();
+                            console.log('[DEBUG] Image reloaded successfully after update');
+                        } catch (reloadError) {
+                            console.error('[DEBUG] Error reloading image after update:', reloadError);
+                        }
+                    }, 1500);
                 }
 
                 // Close dialog after successful submission
