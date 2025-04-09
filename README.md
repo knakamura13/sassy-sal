@@ -73,8 +73,10 @@ The integration is built using the native fetch API instead of a Strapi client l
 - [ ] Fix rearranging via drag-and-drop causing category `order` attributes to become out of sync with the `order` fields in Strapi. 
     - E.g., all the categories in Strapi have `order` set to 2, 4, 6, 8..., then the admin drag-and-drops a category to a different location, and then the UI shows that the `order` attributes are 0, 1, 2, 3..., while the categories in Strapi remain unchanged.
 - [ ] Fix editing image files
-    - After editing an image file and closing the edit dialog ("Update" button), the image in the gallery gets replaced with a non-existent image URL (404 error).
+    - After editing an image file and closing the edit dialog ("Update" button"), the image in the gallery gets replaced with a non-existent image URL (404 error).
     - After saving the changes and reloading the page, the broken image returns to its original state before the edit was made, indicating that no changes were actually made in the Strapi backend.
+    - Likely related to the recently fixed category thumbnail issue - check if image updates use the correct format for Strapi media fields (direct ID assignment `image: fileId` instead of relationship format `{ connect: [{ id: fileId }] }`).
+    - See the fix for category thumbnails in CategoryCard.svelte as a reference implementation.
 
 **Features**
 - [ ] Enable re-arranging images by drag-and-drop
