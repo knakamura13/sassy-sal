@@ -62,7 +62,6 @@
             if (savedOrder) {
                 try {
                     const orderMap = JSON.parse(savedOrder);
-                    console.log('[DEBUG] Found saved category order in localStorage:', orderMap);
 
                     // Apply saved order to our categories
                     if (categories && categories.length > 0) {
@@ -82,10 +81,8 @@
 
                         // Force re-render
                         updateCounter++;
-                        console.log('[DEBUG] Applied saved order to categories');
                     }
                 } catch (e) {
-                    console.error('[DEBUG] Error parsing saved order:', e);
                 }
             }
 
@@ -95,16 +92,13 @@
                 try {
                     const parsedCategories = JSON.parse(savedCategories);
                     if (Array.isArray(parsedCategories) && parsedCategories.length > 0) {
-                        console.log('[DEBUG] Using cached categories from localStorage');
                         categories = parsedCategories;
                         updateCounter++;
                     }
                 } catch (e) {
-                    console.error('[DEBUG] Error parsing saved categories:', e);
                 }
             }
         } catch (e) {
-            console.error('[DEBUG] Error accessing localStorage:', e);
         }
     });
 
@@ -126,9 +120,7 @@
                 orderMap[String(cat.id)] = cat.attributes.order;
             });
             localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
-            console.log('[DEBUG] Saved categories to localStorage');
         } catch (e) {
-            console.error('[DEBUG] Error saving to localStorage:', e);
         }
     }
 
@@ -199,27 +191,22 @@
             // Important: Update the local state immediately to prevent snapping back
             // This also saves to localStorage through updateCategoriesAndRender
             updateCategoriesAndRender(updatedCategories);
-            console.log('[DEBUG] Local category order updated and saved to localStorage');
 
             // Update orders in the backend
             if ($adminMode) {
-                console.log('[DEBUG] Starting category reordering updates to server...');
 
                 // First, try to get the latest categories from server, but fallback to local if server issues
                 let serverCategories = [];
                 let useLocalCategoriesAsBackup = false;
                 try {
                     serverCategories = await getCategories();
-                    console.log('[DEBUG] Fetched server categories for update:', serverCategories);
 
                     // If we get an empty array when we expect categories, something went wrong
                     if (serverCategories.length === 0 && categories.length > 0) {
-                        console.warn('[DEBUG] Server returned empty categories, falling back to local data');
                         serverCategories = categories;
                         useLocalCategoriesAsBackup = true;
                     }
                 } catch (error) {
-                    console.error('[DEBUG] Failed to fetch server categories:', error);
                     showToast.info('Could not connect to server. Changes have been saved locally.');
                     serverCategories = categories;
                     useLocalCategoriesAsBackup = true;
@@ -236,7 +223,6 @@
                     // Find the corresponding category in the server data
                     // Clean any string conversion issues with the ID
                     const categoryId = String(category.id).replace(/"/g, '');
-                    console.log(`[DEBUG] Looking for category with ID "${categoryId}" in server data`);
 
                     // Find the matching server category
                     let serverCategory: Category | undefined;
@@ -254,7 +240,6 @@
                         // Only update if the order has changed
                         if (originalOrder !== newOrder) {
                             console.log(
-                                `[DEBUG] Updating category ID ${categoryId} order from ${originalOrder} to ${newOrder}`
                             );
 
                             try {
@@ -266,12 +251,10 @@
                                 })
                                     .then((result) => {
                                         console.log(
-                                            `[DEBUG] Successfully updated category ID ${categoryId} order to ${newOrder}`
                                         );
                                         return result;
                                     })
                                     .catch((error) => {
-                                        console.error(`[DEBUG] Error updating category ID ${categoryId}:`, error);
                                         // Don't throw, just log the error - we've already updated locally
                                         return null;
                                     });
@@ -279,42 +262,34 @@
                                 updatePromises.push(updatePromise);
                             } catch (error) {
                                 console.error(
-                                    `[DEBUG] Error creating update promise for category ${categoryId}:`,
                                     error
                                 );
                             }
                         } else {
                             console.log(
-                                `[DEBUG] Category ID ${categoryId} order unchanged (${newOrder}), skipping update`
                             );
                         }
                     } else {
-                        console.warn(`[DEBUG] Category ID ${categoryId} not found in server data, skipping update`);
                     }
                 }
 
                 if (updatePromises.length === 0) {
-                    console.log('[DEBUG] No categories need server order updates');
                     showToast.info('Categories reordered and saved locally');
                 } else {
-                    console.log(`[DEBUG] Sending ${updatePromises.length} category updates to server...`);
 
                     // Wait for all updates to complete
                     try {
                         await Promise.all(updatePromises);
                         showToast.success('Categories reordered and saved');
                     } catch (error) {
-                        console.error('[DEBUG] Error during server updates:', error);
                         showToast.info('Categories reordered locally, but some server updates failed');
                     }
 
                     // Refresh categories from server after updates
                     try {
-                        console.log('[DEBUG] Refreshing categories from server after updates...');
                         const refreshedCategories = await getCategories();
 
                         if (refreshedCategories && refreshedCategories.length > 0) {
-                            console.log('[DEBUG] Received refreshed categories:', refreshedCategories);
 
                             // Combine server data with our local order
                             const combinedCategories = refreshedCategories.map((serverCat: Category) => {
@@ -338,13 +313,11 @@
                             updateCategoriesAndRender(combinedCategories);
                         }
                     } catch (error) {
-                        console.error('[DEBUG] Error refreshing categories:', error);
                         // No need to show an error - we're still displaying the correct order locally
                     }
                 }
             }
         } catch (error) {
-            console.error('[DEBUG] Error reordering categories:', error);
             showToast.error('An error occurred during reordering, but changes were saved locally');
         } finally {
             isReordering = false;
@@ -379,13 +352,11 @@
                     });
 
                     if (!categoryToDelete) {
-                        console.error(`[DEBUG] Category not found: id=${id}`);
                         throw new Error('Category not found');
                     }
 
                     // Get documentId or fall back to id
                     const documentId = categoryToDelete.documentId || id;
-                    console.log(`[DEBUG] Deleting category: id=${id}, documentId=${documentId}`);
 
                     // Delete from Strapi backend in admin mode
                     await deleteCategory(documentId);
@@ -487,29 +458,24 @@
     async function handleUpdateCategory(event: CustomEvent<any>) {
         try {
             const { id, data } = event.detail;
-            console.log(`[DEBUG] Updating category: id=${id}, data=${JSON.stringify(data)}`);
 
             if ($adminMode) {
                 try {
                     // Fetch latest categories to find the correct documentId
                     const allCategories = await getCategories();
-                    console.log(`[DEBUG] All categories: ${JSON.stringify(allCategories)}`);
                     const categoryToUpdate = allCategories.find((cat: Category) => {
                         return `${cat.id}` === `${id}`;
                     });
 
                     if (!categoryToUpdate) {
-                        console.error(`[DEBUG] Category not found: id=${id}`);
                         throw new Error('Category not found');
                     }
 
                     // Get documentId or fall back to id
                     const documentId = categoryToUpdate.documentId || id;
-                    console.log(`[DEBUG] Updating category: id=${id}, documentId=${documentId}, with data:`, data);
 
                     // Send update to Strapi
                     const response = await updateCategory(documentId, data);
-                    console.log(`[DEBUG] Category update response:`, response);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat: Category) => {
@@ -532,7 +498,6 @@
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
                             console.log(
-                                '[DEBUG] Refreshed categories after update:',
                                 JSON.stringify(refreshedCategories)
                             );
 
@@ -542,7 +507,6 @@
                             );
                             if (updatedCategory) {
                                 console.log(
-                                    '[DEBUG] Updated category thumbnail:',
                                     JSON.stringify(updatedCategory.attributes.thumbnail)
                                 );
                             }
@@ -585,10 +549,8 @@
     // Handles refreshing categories
     async function refreshCategories() {
         try {
-            console.log('[DEBUG] Refreshing categories...');
             const refreshedCategories = await getCategories();
 
-            console.log('[DEBUG] Refresh result:', refreshedCategories);
 
             if (refreshedCategories && refreshedCategories.length > 0) {
                 // Get current order from localStorage if available
@@ -597,10 +559,8 @@
                     const savedOrder = localStorage.getItem(CATEGORIES_ORDER_KEY);
                     if (savedOrder) {
                         orderMap = JSON.parse(savedOrder);
-                        console.log('[DEBUG] Using saved order from localStorage:', orderMap);
                     }
                 } catch (e) {
-                    console.error('[DEBUG] Error reading saved order:', e);
                 }
 
                 // Apply order from localStorage or current state to refreshed data
@@ -646,7 +606,6 @@
             }
         } catch (error: any) {
             // Type assertion to any to access .message
-            console.error('[DEBUG] Error refreshing categories:', error);
 
             // Check for connection errors
             if (error.message && (error.message.includes('CORS') || error.message.includes('Failed to fetch'))) {

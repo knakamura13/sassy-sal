@@ -92,3 +92,6 @@ The integration is built using the native fetch API instead of a Strapi client l
 - [ ] Remove deprecated Image properties
     - Delete the `title` and `description` fields from Strapi and all references to `image.title` and `image.description`
     - Optional: delete the `id` field to reduce confusion with `documentId`, since only the `documentId` should ever be used in REST queries
+
+**Future Work**
+- Replace Strapi with a less memory-intensive alternative. Consider using a basic relational DB since CMS features are not necessary.
