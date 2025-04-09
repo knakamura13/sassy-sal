@@ -12,13 +12,14 @@
 </div>
 
 <style lang="scss">
+    @use 'sass:color';
     @import '$lib/styles/variables.scss';
 
     a {
         color: $secondary-color;
 
         &:hover {
-            color: darken($secondary-color, 10%);
+            color: color.adjust($secondary-color, $lightness: -10%);
         }
     }
 </style>

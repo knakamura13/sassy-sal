@@ -485,6 +485,7 @@
 </Dialog.Root>
 
 <style lang="scss">
+    @use 'sass:color';
     @import '$lib/styles/variables.scss';
 
     .image-filter {
@@ -497,7 +498,7 @@
 
     /* Styling for the category placeholder when no thumbnail is available */
     .category-placeholder {
-        background-color: lighten($secondary-color, 10%);
+        background-color: color.adjust($secondary-color, $lightness: 10%);
     }
 
     .category-card:hover {
