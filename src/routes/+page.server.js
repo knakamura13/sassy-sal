@@ -1,4 +1,4 @@
-import { getCategories } from '$lib/services/strapi';
+import { getCategories } from '$lib/services/sanity';
 import { error } from '@sveltejs/kit';
 
 export async function load({ url }) { 
@@ -12,6 +12,7 @@ export async function load({ url }) {
             admin
         };
     } catch (err) {
+        console.error('Error loading categories:', err);
         throw error(500, 'Failed to load categories');
     }
 }
