@@ -398,6 +398,7 @@ export const deleteCategory = async (id) => {
     try {
         // Ensure the ID is in the right format
         const categoryId = String(id);
+        console.log(`[DEBUG] Deleting category: id=${categoryId}`);
         
         // Properly format the request according to Strapi v4 docs
         const deleteResponse = await fetchAPI(`/categories/${categoryId}`, {

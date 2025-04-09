@@ -353,6 +353,7 @@
 
     // Handles category deletion with confirmation
     async function handleRemoveCategory(event: CustomEvent<string | number>) {
+        // Get category ID from the event
         const id = event.detail;
         $categoryToDelete = id;
 
@@ -370,25 +371,67 @@
 
         try {
             if ($adminMode) {
-                // Delete from Strapi backend in admin mode
-                await deleteCategory(id);
-
-                // Refresh category list from server after deletion
                 try {
-                    const updatedCategories = await getCategories();
+                    // Fetch latest categories to find the correct documentId
+                    const allCategories = await getCategories();
+                    const categoryToDelete = allCategories.find((cat: Category) => {
+                        return `${cat.id}` === `${id}`;
+                    });
 
-                    // If category still exists in response, track it as deleted locally
-                    const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
-                    if (categoryStillExists) {
-                        addDeletedCategory(id);
+                    if (!categoryToDelete) {
+                        console.error(`[DEBUG] Category not found: id=${id}`);
+                        throw new Error('Category not found');
                     }
-                    updateCategoriesAndRender(updatedCategories);
-                } catch (fetchError) {
-                    // If server refresh fails, update local state and mark as deleted
-                    addDeletedCategory(id);
-                    const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
-                    updateCategoriesAndRender(filteredCategories);
-                    showToast.info('Category deleted, but there was an error refreshing the category list.');
+
+                    // Get documentId or fall back to id
+                    const documentId = categoryToDelete.documentId || id;
+                    console.log(`[DEBUG] Deleting category: id=${id}, documentId=${documentId}`);
+
+                    // Delete from Strapi backend in admin mode
+                    await deleteCategory(documentId);
+
+                    // Refresh category list from server after deletion
+                    try {
+                        const updatedCategories = await getCategories();
+
+                        // If category still exists in response, track it as deleted locally
+                        const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
+                        if (categoryStillExists) {
+                            addDeletedCategory(id);
+                        }
+                        updateCategoriesAndRender(updatedCategories);
+                    } catch (fetchError) {
+                        // If server refresh fails, update local state and mark as deleted
+                        addDeletedCategory(id);
+                        const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
+                        updateCategoriesAndRender(filteredCategories);
+                        showToast.info('Category deleted, but there was an error refreshing the category list.');
+                    }
+                } catch (deleteError: any) {
+                    // Special handling for 404 errors (category not found)
+                    if (
+                        deleteError.status === 404 ||
+                        (typeof deleteError.message === 'string' && deleteError.message.includes('404'))
+                    ) {
+                        showToast.error('Category not found. It may have been deleted from the server.');
+
+                        // Try to refresh categories from server
+                        try {
+                            const updatedCategories = await getCategories();
+                            if (updatedCategories && updatedCategories.length > 0) {
+                                updateCategoriesAndRender(updatedCategories);
+                            }
+                        } catch (refreshError) {
+                            // If refresh fails, remove the category from local state
+                            const filteredCategories = categories.filter((cat) => cat.id !== id);
+                            updateCategoriesAndRender(filteredCategories);
+                        }
+                    } else {
+                        // Handle other errors
+                        console.error('Error removing category:', deleteError);
+                        showToast.error(`Failed to delete category: ${deleteError.message || 'Unknown error'}`);
+                        throw deleteError; // Re-throw for the outer catch
+                    }
                 }
             }
         } catch (error) {
@@ -444,14 +487,19 @@
     async function handleUpdateCategory(event: CustomEvent<any>) {
         try {
             const { id, data } = event.detail;
+            console.log(`[DEBUG] Updating category: id=${id}, data=${JSON.stringify(data)}`);
 
             if ($adminMode) {
                 try {
                     // Fetch latest categories to find the correct documentId
                     const allCategories = await getCategories();
-                    const categoryToUpdate = allCategories.find((cat: Category) => cat.id === id);
+                    console.log(`[DEBUG] All categories: ${JSON.stringify(allCategories)}`);
+                    const categoryToUpdate = allCategories.find((cat: Category) => {
+                        return `${cat.id}` === `${id}`;
+                    });
 
                     if (!categoryToUpdate) {
+                        console.error(`[DEBUG] Category not found: id=${id}`);
                         throw new Error('Category not found');
                     }
 
