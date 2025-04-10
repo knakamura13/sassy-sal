@@ -164,8 +164,17 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 
 2. **Frontend Updates**
    - [ ] Update API calls to use Sanity client
-   - [ ] Implement GROQ queries for data fetching
-   - [ ] Update image URL handling to use Sanity's image URL builder
+     - [ ] Categories
+       - [x] `getCategories`: Load categories with thumbnails
+       - [ ] `addCategory`: Create a new category (depends on `uploadFile`)
+       - [ ] `deleteCategory`: Delete a category
+       - [ ] `updateCategory`: Update an existing category's properties (name, order, thumbnail image file)
+     - [ ] Gallery (category slug route)
+       - [ ] `getCategoryWithImages`: Load a specific category with all its images
+       - [ ] `addImage`: Add an image to a category (depends on `uploadFile`)
+       - [ ] `deleteImage`: Delete an image from a category
+       - [ ] `updateImage`: Update an existing image's properties (order, image file)
+   - [ ] Implement GROQ queries
 
 3. **Admin Panel Updates**
    - [ ] Integrate with Sanity Studio or update custom admin panel
@@ -200,7 +209,7 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 - [x] Install Sanity client in SvelteKit project
 - [x] Create data migration scripts
 - [x] Export Strapi data and import to Sanity
-- [ ] Update frontend API calls to use Sanity client
+- [ ] Update API calls to use Sanity client
 - [ ] Implement GROQ queries
 - [ ] Update image URL handling
 - [ ] Configure authentication
