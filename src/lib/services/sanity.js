@@ -242,14 +242,17 @@ export const deleteCategory = async (id) => {
  */
 export const updateCategory = async (id, data) => {
   try {
+    // Handle the nested data structure from CategoryCard
+    const categoryData = data.data || data;
+    
     const updates = {
-      name: data.name,
-      order: data.order !== undefined ? data.order : undefined
+      name: categoryData.name,
+      order: categoryData.order !== undefined ? categoryData.order : undefined
     };
     
     // If there's a new thumbnail file, upload it
-    if (data.thumbnail && data.thumbnail instanceof File) {
-      const thumbnailAsset = await uploadFile(data.thumbnail);
+    if (categoryData.thumbnail && categoryData.thumbnail instanceof File) {
+      const thumbnailAsset = await uploadFile(categoryData.thumbnail);
       updates.thumbnail = {
         _type: 'image',
         asset: {

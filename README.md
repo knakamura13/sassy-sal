@@ -164,13 +164,13 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 
 2. **Frontend Updates**
    - [ ] Update API calls to use Sanity client
-     - [ ] Categories
+     - [x] Categories
        - [x] `getCategories`: Load categories with thumbnails
        - [x] `addCategory`: Create a new category (depends on `uploadFile`)
-       - [ ] `deleteCategory`: Delete a category
-       - [ ] `updateCategory`: Update an existing category's properties (name, order, thumbnail image file)
+       - [x] `deleteCategory`: Delete a category
+       - [x] `updateCategory`: Update an existing category's properties (name, order, thumbnail image file)
      - [ ] Gallery (category slug route)
-       - [ ] `getCategoryWithImages`: Load a specific category with all its images
+       - [x] `getCategoryWithImages`: Load a specific category with all its images
        - [ ] `addImage`: Add an image to a category (depends on `uploadFile`)
        - [ ] `deleteImage`: Delete an image from a category
        - [ ] `updateImage`: Update an existing image's properties (order, image file)

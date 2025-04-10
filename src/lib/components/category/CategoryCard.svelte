@@ -1,32 +1,24 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { STRAPI_API_URL } from '$lib/services/strapi';
-    import { uploadFile } from '$lib/services/strapi';
-    import * as Dialog from '$lib/components/ui/dialog';
-    import { Label } from '$lib/components/ui/label';
-    import { Input } from '$lib/components/ui/input';
-    import { Button } from '$lib/components/ui/button';
-    import { showToast } from '$lib/utils';
 
-    // Define Strapi Category type locally
-    interface StrapiCategory {
+    import { Button } from '$lib/components/ui/button';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
+    import { showToast } from '$lib/utils';
+    import * as Dialog from '$lib/components/ui/dialog';
+
+    // Define Sanity Category type locally
+    interface SanityCategory {
         id: string | number;
+        documentId?: string;
         attributes: {
             name: string;
             order: number;
-            description?: string;
-            thumbnail?: any; // Using any type to handle various Strapi response structures
+            thumbnail?: any; // Using any type to handle various response structures
         };
     }
 
-    // Define interface for Strapi uploaded file
-    interface StrapiUploadedFile {
-        id: number;
-        name: string;
-        url: string;
-    }
-
-    export let category: StrapiCategory;
+    export let category: SanityCategory;
     export let isAdmin: boolean = false;
 
     const dispatch = createEventDispatcher<{
@@ -80,42 +72,21 @@
 
         // Check if the category has a thumbnail property
         if (category.attributes.thumbnail) {
-            // Handle different possible structures for thumbnail data from Strapi
+            // Handle different possible structures for thumbnail data
             let thumbnailUrl = null;
 
-            // Structure 1: Modern Strapi v4 with data.attributes.url
+            // Structure: Sanity with data.attributes.url
             if (category.attributes.thumbnail.data && category.attributes.thumbnail.data.attributes?.url) {
                 thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
             }
-            // Structure 2: Object with direct URL property
+            // Structure: Object with direct URL property
             else if (category.attributes.thumbnail.url) {
                 thumbnailUrl = category.attributes.thumbnail.url;
             }
-            // Structure 3: Nested data array format
-            else if (
-                Array.isArray(category.attributes.thumbnail.data) &&
-                category.attributes.thumbnail.data.length > 0
-            ) {
-                const firstItem = category.attributes.thumbnail.data[0];
-                if (firstItem && 'attributes' in firstItem && firstItem.attributes && 'url' in firstItem.attributes) {
-                    thumbnailUrl = firstItem.attributes.url;
-                }
-            }
-            // Structure 4: Direct string URL (some versions of Strapi)
-            else if (typeof category.attributes.thumbnail === 'string') {
-                thumbnailUrl = category.attributes.thumbnail;
-            }
 
-            // If we found a URL, process it
+            // If we found a URL, use it
             if (thumbnailUrl) {
-                // Format the URL properly
-                if (thumbnailUrl.startsWith('http')) {
-                    imageUrl = thumbnailUrl;
-                } else if (thumbnailUrl.startsWith('/')) {
-                    imageUrl = `${STRAPI_API_URL}${thumbnailUrl}`;
-                } else {
-                    imageUrl = `${STRAPI_API_URL}/${thumbnailUrl}`;
-                }
+                imageUrl = thumbnailUrl;
 
                 // Verify the image loads correctly with a timeout
                 try {
@@ -241,42 +212,21 @@
                 }
             };
 
-            // If there's a selected file, upload it first
+            // For Sanity, we'll pass the file directly
+            // The uploadFile function is called within the updateCategory function
             if (selectedFile) {
-                try {
-                    const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
-
-                    if (uploadedFile && uploadedFile.id) {
-                        // Add the thumbnail ID to the category data using Strapi v4 relationship format
-
-                        // Instead of using connect syntax, use direct ID assignment for media fields
-                        // This follows the pattern seen in addImage function in the strapi.js service
-                        updateData.data.thumbnail = uploadedFile.id;
-
-                        // Also try an alternate format if the above doesn't work
-                        // Uncomment this and comment the line above to test
-                        // updateData.data.thumbnail = { set: [uploadedFile.id] };
-                    } else {
-                        errorMessage = 'Invalid response from server during thumbnail upload.';
-                    }
-                } catch (uploadError) {
-                    console.error('Error uploading thumbnail:', uploadError);
-                    // Continue without the thumbnail if upload fails
-                    errorMessage = 'Failed to upload thumbnail, but category will be updated without it.';
-                }
+                updateData.data.thumbnail = selectedFile;
             }
 
             try {
+                // Store old name to check if name changed
+                const oldName = category.attributes.name;
+
                 // Dispatch the update event
                 dispatch('update', {
                     id: category.id,
                     data: updateData
                 });
-
-                // Add a delay to ensure the file processing has time to complete on the server
-                if (selectedFile) {
-                    await new Promise((resolve) => setTimeout(resolve, 1500));
-                }
 
                 // Update local state to reflect changes
                 category.attributes.name = editName.trim();
@@ -294,6 +244,16 @@
 
                 // Close dialog after successful submission
                 editDialogOpen = false;
+
+                // Prevent the default link navigation if name changed
+                // This gives Sanity time to update the category
+                if (oldName !== editName.trim()) {
+                    showToast.success('Category updated. Refreshing page in 2 seconds...');
+                    // Prevent immediate navigation by adding a slight delay
+                    setTimeout(() => {
+                        window.location.href = window.location.href;
+                    }, 2000);
+                }
             } catch (updateError: any) {
                 // Check for 404 errors specifically
                 if (

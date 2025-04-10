@@ -462,11 +462,11 @@
                         throw new Error('Category not found');
                     }
 
-                    // Get documentId or fall back to id
-                    const documentId = categoryToUpdate.documentId || id;
+                    // Get documentId or fall back to id (ensure it's a string for Sanity)
+                    const documentId = categoryToUpdate.documentId || String(id);
 
-                    // Send update to Strapi
-                    const response = await updateCategory(documentId, data);
+                    // Send update to Sanity
+                    const _ = await updateCategory(documentId, data);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat: Category) => {
@@ -475,7 +475,7 @@
                                 ...cat,
                                 attributes: {
                                     ...cat.attributes,
-                                    ...data.data
+                                    ...(data.data || {})
                                 }
                             };
                         }
@@ -488,15 +488,10 @@
                     try {
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
-                            console.log(JSON.stringify(refreshedCategories));
-
                             // Find the updated category to check its thumbnail
                             const updatedCategory = refreshedCategories.find(
                                 (cat: Category) => String(cat.id) === String(id)
                             );
-                            if (updatedCategory) {
-                                console.log(JSON.stringify(updatedCategory.attributes.thumbnail));
-                            }
 
                             updateCategoriesAndRender(refreshedCategories);
                         }

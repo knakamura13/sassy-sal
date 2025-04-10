@@ -1,4 +1,4 @@
-import { getCategoryWithImages, getCategories } from '$lib/services/strapi';
+import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
 import { error } from '@sveltejs/kit';
 
 export async function load({ params, url }) {
@@ -22,112 +22,23 @@ export async function load({ params, url }) {
         const categoryId = matchingCategory.documentId || matchingCategory.id;
 
         // Now fetch the specific category with images using the documentId
-        const category = await getCategoryWithImages(categoryId);
-
+        const categoryResponse = await getCategoryWithImages(categoryId);
+        
         // If no category found with this parameter
-        if (!category) {
+        if (!categoryResponse || !categoryResponse.data) {
             throw error(404, 'Category not found');
         }
-
-        // Convert flat structure to attributes format
-        if (!category.attributes) {
-            category = {
-                id: category.id,
-                attributes: {
-                    name: category.name,
-                    description: category.description
-                }
-            };
-        }
-
-        // Process images properly
-        if (category.images && Array.isArray(category.images)) {
-            // Convert flat images array to the nested data structure expected by frontend
-            const processedImages = category.images.map((img) => {
-                // Process the image URL if it exists
-                let imageUrl = img.url || img.image?.url || '';
-                if (imageUrl && imageUrl.startsWith('/')) {
-                    imageUrl = `${STRAPI_API_URL}${imageUrl}`;
-                }
-
-                // If image is already in the right format, return it as is
-                if (img.attributes && img.attributes.image) {
-                    // But still fix the URL if it's relative
-                    if (img.attributes.image.data?.attributes?.url && 
-                        img.attributes.image.data.attributes.url.startsWith('/')) {
-                        img.attributes.image.data.attributes.url = 
-                            `${STRAPI_API_URL}${img.attributes.image.data.attributes.url}`;
-                    }
-                    return img;
-                }
-
-                // Otherwise, convert from flat to nested structure
-                return {
-                    id: img.id,
-                    attributes: {
-                        title: img.title || img.name || 'Image',
-                        description: img.description || '',
-                        image: {
-                            data: {
-                                attributes: {
-                                    url: imageUrl,
-                                    alternativeText: img.alternativeText || img.alt || ''
-                                }
-                            }
-                        }
-                    }
-                };
-            });
-
-            category.attributes.images = { data: processedImages };
-        } else if (category.attributes?.images?.data && Array.isArray(category.attributes.images.data)) {
-            // Images data is already in the expected format - process URLs if needed
-            category.attributes.images.data = category.attributes.images.data.map(img => {
-                // Process image URL if it's relative
-                if (img.attributes?.image?.data?.attributes?.url) {
-                    const imageUrl = img.attributes.image.data.attributes.url;
-                    if (imageUrl.startsWith('/')) {
-                        img.attributes.image.data.attributes.url = `${STRAPI_API_URL}${imageUrl}`;
-                    }
-                }
-                return img;
-            });
-        } else {
-            console.log('No valid images array found in category');
-        }
-
-        // Check for required attributes
-        if (!category.attributes) {
-            category.attributes = {}; // Add an empty attributes object as a fallback
-        }
-
-        // Add name if missing (fallback to capitalized category parameter)
-        if (!category.attributes.name) {
-            category.attributes.name = categoryParam
-                .split('-')
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-        }
+        
+        const category = categoryResponse.data;
 
         // Ensure images data is properly structured, even if empty
         if (!category.attributes.images) {
             category.attributes.images = { data: [] };
-        } else if (!category.attributes.images.data) {
-            // If images exists but doesn't have data property
-            if (Array.isArray(category.attributes.images)) {
-                category.attributes.images = { data: category.attributes.images };
-            } else {
-                category.attributes.images = { data: [] };
-            }
-        } else if (!Array.isArray(category.attributes.images.data)) {
-            // If data exists but is not an array
-            category.attributes.images.data = [];
         }
 
-        const result = { category, admin };
-        return result;
+        return { category, admin };
     } catch (err) {
-        // Specific Strapi error handling
+        // Handle errors
         if (err.status === 404) {
             throw error(404, 'Category not found');
         }
@@ -142,31 +53,8 @@ export async function load({ params, url }) {
             throw error(503, 'Cannot connect to content API');
         }
 
-        // Create a fallback category with the ID properly set to handle the case where
-        // we received partial data or malformed data from the API
-        try {
-            // Try to get an ID from the error response if available
-            const fallbackId = err.category?.id || -1;
-
-            const fallbackCategory = {
-                id: fallbackId,
-                attributes: {
-                    name: categoryParam
-                        .split('-')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' '),
-                    description: 'We encountered an issue while loading all details for this category.',
-                    images: { data: [] }
-                }
-            };
-
-            return {
-                category: fallbackCategory,
-                admin,
-                isFallback: true
-            };
-        } catch (fallbackErr) {
-            throw error(500, 'Failed to load category');
-        }
+        // Log the error for debugging
+        console.error('Error loading category:', err);
+        throw error(500, 'Failed to load category');
     }
 }
