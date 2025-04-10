@@ -21,6 +21,7 @@
     let isDragging = false;
     let open = false;
     let orderValue = 0; // Default order value
+    let suggestedOrderValue = 0; // Keep track of the suggested value separately
     let isLoadingImages = false; // Loading state for fetching latest order
 
     // Fetch latest order value when dialog opens
@@ -84,16 +85,18 @@
                     return imageOrder > max ? imageOrder : max;
                 }, 0);
 
-                // Set the order value to highest + 1 as a suggestion
-                // The admin can adjust this in the order input field
-                orderValue = highestOrder + 1;
+                // Set the order value to highest + 2 as a suggestion
+                suggestedOrderValue = highestOrder + 2;
+                orderValue = suggestedOrderValue;
             } else {
                 // If no images exist, default to 0
+                suggestedOrderValue = 0;
                 orderValue = 0;
             }
         } catch (error) {
             console.error('Error fetching images for order value:', error);
             // Default to 0 if there's an error
+            suggestedOrderValue = 0;
             orderValue = 0;
         } finally {
             isLoadingImages = false;
@@ -106,6 +109,7 @@
         previewUrls.forEach((url) => URL.revokeObjectURL(url));
         previewUrls = [];
         orderValue = 0;
+        suggestedOrderValue = 0;
     }
 
     function handleFileChange(event: Event) {
@@ -272,7 +276,7 @@
                     {#if isLoadingImages}
                         <span class="text-xs text-gray-500 animate-pulse">Loading...</span>
                     {:else}
-                        <span class="text-xs text-gray-500">Suggested value: {orderValue}</span>
+                        <span class="text-xs text-gray-500">Suggested value: {suggestedOrderValue}</span>
                     {/if}
                 </div>
                 <p class="text-xs text-gray-500">Lower values appear first. Leave as is to add at the end.</p>
