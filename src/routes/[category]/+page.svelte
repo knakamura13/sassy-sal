@@ -17,7 +17,6 @@
     interface SanityImage {
         id: string;
         _id?: string;
-        documentId?: string; // TODO: remove documentId type and all instances of it
         attributes?: {
             title?: string;
             description?: string;
@@ -123,8 +122,8 @@
                     continue;
                 }
 
-                // If image has documentId but no URL, fetch it
-                const imageId = image.documentId || image._id || image.id;
+                // If image has _id but no URL, fetch it
+                const imageId = image._id || image.id;
                 if (imageId && !image.url && !image.attributes?.image?.data?.attributes?.url) {
                     try {
                         // Use Sanity client to fetch the image data
@@ -198,9 +197,6 @@
             // Fix the type error by ensuring categoryId is always a string
             const categoryId = category ? String(category.id) : '0';
 
-            // Extract the documentId for Sanity operations
-            const documentId = image.documentId || image._id || null;
-
             // Extract the order attribute if available, default to 0
             const order =
                 image.order !== undefined
@@ -217,7 +213,6 @@
                 url,
                 alt,
                 categoryId,
-                documentId, // Add documentId for Sanity operations
                 order // Include the order attribute for sorting
             };
         });
