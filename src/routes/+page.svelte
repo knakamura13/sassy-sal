@@ -11,7 +11,7 @@
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
 
-    // Interface for category data from Strapi
+    // Interface for category data
     interface Category {
         id: string | number;
         attributes: {

@@ -121,101 +121,7 @@ This project uses Sanity's Content API to fetch and manage content:
 
 The integration will use the Sanity JavaScript client for optimized queries and type safety.
 
-## Migration Plan: Strapi CMS to Sanity CMS
-
-### Phase 1: Sanity Setup
-
-1. **Set up Sanity Project**
-   - [x] Create new Sanity project
-   - [x] Configure project settings and access control
-   - [x] Install Sanity CLI and initialize local studio
-
-2. **Define Content Schema**
-   - [x] Create schemas for categories and images
-   - [x] Set up appropriate validation rules
-   - [x] Configure relationships between content types
-
-3. **Configure Sanity Studio**
-   - [x] Customize Sanity Studio UI
-   - [x] Set up desk structure for content management
-   - [x] Configure image upload settings
-
-### Phase 2: Data Migration
-
-1. **Export Data from Strapi**
-   - [x] Export categories and relationships
-   - [x] Download all media files
-
-2. **Migration Scripts**
-   - [x] Create scripts to transform and load data into Sanity
-   - [x] Map Strapi IDs to new Sanity document IDs
-   - [x] Upload media files to Sanity asset store
-
-3. **Validation**
-   - [x] Verify data integrity after migration
-   - [x] Test all relationships and image references
-
-### Phase 3: Frontend Integration
-
-1. **Install Sanity Client**
-   - [x] Add Sanity JavaScript client to the project
-   - [x] Configure API connectivity
-   - [x] Create helper functions for common queries
-
-2. **Frontend Updates**
-   - [ ] Update API calls to use Sanity client
-     - [x] Categories
-       - [x] `getCategories`: Load categories with thumbnails
-       - [x] `addCategory`: Create a new category (depends on `uploadFile`)
-       - [x] `deleteCategory`: Delete a category
-       - [x] `updateCategory`: Update an existing category's properties (name, order, thumbnail image file)
-     - [ ] Gallery (category slug route)
-       - [x] `getCategoryWithImages`: Load a specific category with all its images
-       - [x] `addImage`: Add an image to a category (depends on `uploadFile`)
-       - [x] `deleteImage`: Delete an image from a category
-       - [x] `updateImage`: Update an existing image's properties (order, image file)
-   - [ ] Implement GROQ queries
-
-3. **Admin Panel Updates**
-   - [ ] Integrate with Sanity Studio or update custom admin panel
-   - [ ] Implement authentication with Sanity
-
-### Phase 4: Testing & Deployment
-
-1. **Parallel Testing**
-   - [ ] Run both systems side by side
-   - [ ] Compare responses and performance
-
-2. **End-to-End Testing**
-   - [ ] Test full user journeys
-   - [ ] Verify all admin functionality
-
-3. **Deployment**
-   - [x] Deploy Sanity Studio (automatic with Sanity)
-   - [ ] Update environment variables in production
-   - [ ] Complete switch after validation
-
-4. **Cleanup**
-   - [ ] Remove Strapi dependencies and code
-   - [ ] Update documentation
-   - [ ] Remove unused environment variables
-
 ## TODO Checklist
-
-**Migration Tasks**
-- [x] Set up Sanity project and account
-- [x] Create Sanity content schemas
-- [x] Configure Sanity Studio
-- [x] Install Sanity client in SvelteKit project
-- [x] Create data migration scripts
-- [x] Export Strapi data and import to Sanity
-- [x] Update API calls to use Sanity client
-- [ ] Implement GROQ queries
-- [ ] Update image URL handling
-- [ ] Configure authentication
-- [ ] Test all functionality end-to-end
-- [ ] Deploy and validate
-- [ ] Remove Strapi dependencies
 
 **Bug Fixes**
 - [ ] Fix editing category thumbnail image files
@@ -224,6 +130,7 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 
 **Features**
 - [ ] Enable re-arranging images by drag-and-drop
+- [ ] Implement authentication with Sanity
 - [ ] Implement authentication with Sanity
 
 **Chores**

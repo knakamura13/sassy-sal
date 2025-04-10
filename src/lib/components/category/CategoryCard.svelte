@@ -10,7 +10,7 @@
     // Define Sanity Category type locally
     interface SanityCategory {
         id: string | number;
-        documentId?: string;
+        documentId?: string; // TODO: remove documentId type and all instances of it
         attributes: {
             name: string;
             order: number;

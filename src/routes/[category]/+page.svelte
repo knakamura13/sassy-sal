@@ -17,7 +17,7 @@
     interface SanityImage {
         id: string;
         _id?: string;
-        documentId?: string;
+        documentId?: string; // TODO: remove documentId type and all instances of it
         attributes?: {
             title?: string;
             description?: string;
@@ -218,7 +218,6 @@
                 alt,
                 categoryId,
                 documentId, // Add documentId for Sanity operations
-                strapiId: image.id, // Keep the original ID as strapiId for backwards compatibility
                 order // Include the order attribute for sorting
             };
         });

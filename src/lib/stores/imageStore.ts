@@ -7,8 +7,7 @@ export interface Image {
     alt: string;
     title?: string;
     categoryId: string; // Associate images with a category
-    documentId?: string | null; // Strapi documentId for API operations
-    strapiId?: number | string; // Original Strapi numeric ID
+    documentId?: string | null; // TODO: remove documentId type and all instances of it
     file?: File; // Optional file property for file uploads
     order?: number; // Order attribute for manual arrangement
 }

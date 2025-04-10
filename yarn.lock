@@ -5422,7 +5422,6 @@ __metadata:
     uuid: "npm:^11.1.0"
     vite: "npm:^5.4.6"
     vite-plugin-tailwind-purgecss: "npm:0.3.3"
-    zod: "npm:^3.24.2"
   languageName: unknown
   linkType: soft
 
