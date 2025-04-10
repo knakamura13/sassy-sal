@@ -72,9 +72,6 @@
         const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
         const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
 
-        console.log('[DEBUG] Images to add:', imagesToAdd.length);
-        console.log('[DEBUG] Images to remove:', imagesToRemove.length);
-
         // Find images with changes (order or file)
         const imagesToUpdate = localImages.filter((local) => {
             const orig = originalImages.find((o) => o.id === local.id);
@@ -90,56 +87,27 @@
             // Check if file changed
             const fileChanged = !!local.file;
 
-            console.log(
-                '[DEBUG] Comparing image',
-                local.id,
-                '- order changed:',
-                orderChanged,
-                'file changed:',
-                fileChanged
-            );
-
             // Return true if either order or file changed
             return orderChanged || fileChanged;
         });
-
-        console.log('[DEBUG] Images to update:', imagesToUpdate.length);
-        console.log(
-            '[DEBUG] Update details:',
-            JSON.stringify(
-                imagesToUpdate.map((img) => ({
-                    id: img.id,
-                    documentId: img.documentId,
-                    order: img.order,
-                    hasFile: !!img.file
-                })),
-                null,
-                2
-            )
-        );
 
         // Process changes
         const processChanges = async () => {
             try {
                 // Import Sanity services
                 const { addImage, deleteImage, updateImage } = await import('$lib/services/sanity');
-                console.log('[DEBUG] Imported Sanity services');
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
-                    console.log('[DEBUG] Processing', imagesToRemove.length, 'image deletions');
                     const deletionPromises = imagesToRemove.map((image) => deleteImage(image.documentId || image.id));
                     await Promise.all(deletionPromises);
-                    console.log('[DEBUG] Image deletions complete');
                 }
 
                 // Process additions
                 if (imagesToAdd.length > 0) {
-                    console.log('[DEBUG] Processing', imagesToAdd.length, 'image additions');
                     // Process one image at a time to better handle potential errors
                     for (const image of imagesToAdd) {
                         if (!image.file) {
-                            console.error('[DEBUG] Image missing file property:', image);
                             continue;
                         }
 
@@ -151,24 +119,9 @@
                                 category: categoryId
                             };
 
-                            console.log(
-                                '[DEBUG] Adding image with data:',
-                                JSON.stringify(
-                                    {
-                                        order: imageData.order,
-                                        category: imageData.category,
-                                        hasFile: !!imageData.image
-                                    },
-                                    null,
-                                    2
-                                )
-                            );
-
                             // Add the image in Sanity
                             const _ = await addImage(imageData);
-                            console.log('[DEBUG] Image added successfully');
                         } catch (err) {
-                            console.error('[DEBUG] Error processing image:', err);
                             throw err; // Re-throw to be caught by the outer catch block
                         }
                     }
@@ -176,8 +129,6 @@
 
                 // Process updates (order changes)
                 if (imagesToUpdate.length > 0) {
-                    console.log('[DEBUG] Processing', imagesToUpdate.length, 'image updates');
-
                     // Process updates one at a time to better handle potential errors
                     for (const image of imagesToUpdate) {
                         try {
@@ -192,26 +143,14 @@
                             // If there's a file to update, include it
                             if (image.file) {
                                 updateData.image = image.file;
-                                console.log('[DEBUG] Including file in update for image ID:', idToUpdate);
                             }
-
-                            console.log(
-                                '[DEBUG] Updating image ID:',
-                                idToUpdate,
-                                'with data:',
-                                JSON.stringify(updateData, null, 2)
-                            );
 
                             // Call updateImage with the appropriate data
                             await updateImage(idToUpdate, updateData);
-                            console.log('[DEBUG] Successfully updated image ID:', idToUpdate);
                         } catch (error) {
-                            console.error('[DEBUG] Error updating image:', error);
                             throw error; // Re-throw to be caught by the outer catch block
                         }
                     }
-
-                    console.log('[DEBUG] Image updates complete');
                 }
 
                 isModified = false;
@@ -308,24 +247,19 @@
     // Function to handle image update
     function handleUpdateImage(event: CustomEvent) {
         const { id, data } = event.detail;
-        console.log('[DEBUG] handleUpdateImage received event:', JSON.stringify({ id, data }, null, 2));
 
         // Find the image to update
         const imageIndex = localImages.findIndex((img) => img.id === id);
         if (imageIndex === -1) {
-            console.error('[DEBUG] Image not found for update:', id);
             return;
         }
 
         // Extract the actual update fields from the nested structure
         const updateFields = data.data || {};
-        console.log('[DEBUG] Extracted update fields:', JSON.stringify(updateFields, null, 2));
 
         // Convert order to number and ensure it's properly updated
         const newOrder = updateFields.order !== undefined ? Number(updateFields.order) : localImages[imageIndex].order;
         const oldOrder = localImages[imageIndex].order;
-
-        console.log('[DEBUG] Order update:', { newOrder, oldOrder });
 
         // Find corresponding original image for comparison
         const originalImage = originalImages.find((img) => img.id === id);
@@ -335,7 +269,6 @@
         let imageFile = null;
         if (updateFields.image && updateFields.image instanceof File) {
             imageFile = updateFields.image;
-            console.log('[DEBUG] Image file update detected:', imageFile.name);
         }
 
         // Create a new image object to ensure reactivity
@@ -344,19 +277,6 @@
             order: newOrder,
             file: imageFile // Store file for later processing
         };
-
-        console.log(
-            '[DEBUG] Updated image object:',
-            JSON.stringify(
-                {
-                    id: updatedImage.id,
-                    order: updatedImage.order,
-                    hasFile: !!updatedImage.file
-                },
-                null,
-                2
-            )
-        );
 
         // Update the image in the array
         localImages[imageIndex] = updatedImage;
