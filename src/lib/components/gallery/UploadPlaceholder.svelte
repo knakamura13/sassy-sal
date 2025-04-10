@@ -177,13 +177,14 @@
 </script>
 
 <div class="upload-placeholder w-full">
-    <div
+    <button
+        type="button"
         class="w-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center py-16 hover:bg-gray-50 transition-colors cursor-pointer"
         on:click={() => (open = true)}
     >
         <div class="text-4xl text-gray-400 mb-2">+</div>
         <div class="text-gray-500 font-medium">Add Images</div>
-    </div>
+    </button>
 
     <Dialog bind:open>
         <svelte:fragment slot="title">Add New Images</svelte:fragment>
