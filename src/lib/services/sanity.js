@@ -14,9 +14,9 @@ const SANITY_API_VERSION = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-0
 export const client = createClient({
   projectId: SANITY_PROJECT_ID,
   dataset: SANITY_DATASET,
-  apiVersion: SANITY_API_VERSION, // Use a UTC date string
+  apiVersion: SANITY_API_VERSION,
   token: SANITY_API_TOKEN,
-  useCdn: false, // Set to `true` for production
+  useCdn: true, // Using CDN for production
 });
 
 /**
