@@ -108,8 +108,6 @@
         errorMessage = '';
 
         try {
-            console.log('[DEBUG] ImageCard handleSubmit starting for image ID:', image.id);
-
             // Prepare the update data
             const updateData: any = {
                 data: {
@@ -118,46 +116,32 @@
                 }
             };
 
-            console.log('[DEBUG] Initial update data:', JSON.stringify(updateData, null, 2));
-            console.log('[DEBUG] Selected file:', selectedFile ? selectedFile.name : 'none');
-
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
-                    console.log('[DEBUG] Uploading file:', selectedFile.name);
-
                     // Now using Sanity's uploadFile function
                     const uploadedAsset = (await uploadFile(selectedFile)) as SanityUploadedAsset;
-                    console.log('[DEBUG] Upload response:', JSON.stringify(uploadedAsset, null, 2));
 
                     if (uploadedAsset && uploadedAsset._id) {
                         // Add the image to the update data in Sanity format
                         updateData.data.image = selectedFile;
-
-                        console.log('[DEBUG] Added file to update data with Sanity format');
                     } else {
                         errorMessage = 'Invalid response from server during image upload.';
-                        console.error('[DEBUG] Invalid upload response:', uploadedAsset);
                     }
                 } catch (uploadError) {
-                    console.error('[DEBUG] Error uploading image:', uploadError);
                     errorMessage = 'Failed to upload image, but other fields will be updated.';
                 }
             }
-
-            console.log('[DEBUG] Final update data:', JSON.stringify(updateData, null, 2));
 
             // Dispatch the update event
             dispatch('update', {
                 id: image.id,
                 data: updateData
             });
-            console.log('[DEBUG] Dispatched update event');
 
             // Close dialog after successful submission
             editDialogOpen = false;
         } catch (error) {
-            console.error('[DEBUG] Error in image update process:', error);
             errorMessage = 'Failed to update image. Please try again.';
         } finally {
             isUploading = false;
