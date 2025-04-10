@@ -1,26 +1,31 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+
     import { adminMode } from '$lib/stores/adminStore';
+    import { client, urlFor } from '$lib/services/sanity';
     import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { goto } from '$app/navigation';
-    import { onMount } from 'svelte';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
-    import { STRAPI_API_URL } from '$lib/services/strapi';
     import type { Image } from '$lib/stores/imageStore';
-    import { showToast } from '$lib/utils';
 
-    // Define Strapi types
-    interface StrapiImage {
-        id: number;
+    // Define the type for Sanity image URL builder
+    type SanityImageUrl = {
+        url: () => string;
+    };
+
+    // Define Sanity types
+    interface SanityImage {
+        id: string;
+        _id?: string;
+        documentId?: string;
         attributes?: {
-            title: string;
+            title?: string;
             description?: string;
             order?: number;
             image?: {
                 data?: {
                     attributes?: {
                         url: string;
-                        width?: number;
-                        height?: number;
                         alternativeText?: string;
                         fullSizeUrl?: string;
                         order?: number;
@@ -29,31 +34,30 @@
             };
         };
         // Support for flat structure
-        documentId?: string;
         title?: string;
         description?: string;
         url?: string;
         fullSizeUrl?: string;
         order?: number;
-        createdAt?: string;
-        updatedAt?: string;
-        publishedAt?: string;
+        image?: any; // Sanity image reference
     }
 
-    interface StrapiCategory {
-        id: number;
+    interface SanityCategory {
+        id: string;
+        _id?: string;
         attributes: {
             name: string;
             description?: string;
+            order?: number;
             images?: {
-                data: StrapiImage[];
+                data: SanityImage[];
             };
         };
     }
 
     // Get data from server load function
     export let data: {
-        category?: StrapiCategory;
+        category?: SanityCategory;
         admin?: boolean;
         isFallback?: boolean;
     };
@@ -65,7 +69,7 @@
 
     // Get the category from the server data - ensure it exists
     let category = data?.category;
-    let categoryImages: StrapiImage[] = [];
+    let categoryImages: SanityImage[] = [];
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
@@ -91,7 +95,7 @@
             if (category.attributes.images.data && Array.isArray(category.attributes.images.data)) {
                 categoryImages = category.attributes.images.data;
             } else if (Array.isArray(category.attributes.images)) {
-                categoryImages = category.attributes.images as StrapiImage[];
+                categoryImages = category.attributes.images as SanityImage[];
             } else {
                 categoryImages = [];
             }
@@ -120,79 +124,35 @@
                 }
 
                 // If image has documentId but no URL, fetch it
-                const imageId = image.documentId || image.id;
+                const imageId = image.documentId || image._id || image.id;
                 if (imageId && !image.url && !image.attributes?.image?.data?.attributes?.url) {
                     try {
-                        const apiUrl = `${STRAPI_API_URL}/api/images/${imageId}?populate=*`;
+                        // Use Sanity client to fetch the image data
+                        const imageData = await client.fetch(`*[_type == "galleryImage" && _id == $id][0]`, {
+                            id: imageId
+                        });
 
-                        const response = await fetch(apiUrl);
+                        if (imageData && imageData.image) {
+                            // Generate URLs using Sanity's urlFor helper
+                            const imageUrl = (urlFor(imageData.image) as SanityImageUrl).url();
 
-                        if (response.ok) {
-                            let data;
-                            try {
-                                data = await response.json();
-                            } catch (jsonError) {
-                                console.error(`❌ Error parsing JSON:`, jsonError);
-                                return;
-                            }
-
-                            // Fix: properly extract the URLs from the correct paths in the response
-                            if (data.data?.image) {
-                                // Extract URLs for thumbnail and full-size image
-                                const fullUrl = data.data.image.url;
-                                const thumbnailUrl = data.data.image.formats?.medium?.url || fullUrl;
-
-                                // Process URLs (handle relative paths)
-                                let processedFullUrl;
-                                let processedThumbnailUrl;
-
-                                try {
-                                    // Process the full image URL
-                                    processedFullUrl = fullUrl.startsWith('/')
-                                        ? `${STRAPI_API_URL}${fullUrl}`
-                                        : fullUrl;
-
-                                    // Process the thumbnail URL
-                                    processedThumbnailUrl = thumbnailUrl.startsWith('/')
-                                        ? `${STRAPI_API_URL}${thumbnailUrl}`
-                                        : thumbnailUrl;
-                                } catch (urlError) {
-                                    console.error(`❌ Error processing URLs:`, urlError);
-                                    processedFullUrl = fullUrl || '';
-                                    processedThumbnailUrl = thumbnailUrl || processedFullUrl;
-                                }
-
-                                // Test image preloading to verify URL works
-                                if (processedThumbnailUrl) {
-                                    const testImg = new Image();
-                                    testImg.onload = () => {
-                                        // Update categoryImages array to ensure the UI updates
-                                        const index = categoryImages.findIndex((img) => img.id === image.id);
-                                        if (index !== -1) {
-                                            // Store both URLs in the image object
-                                            categoryImages[index].url = processedThumbnailUrl;
-                                            categoryImages[index].fullSizeUrl = processedFullUrl;
-                                            // Force UI refresh by creating a new array
-                                            categoryImages = [...categoryImages];
-                                        }
-                                    };
-                                    testImg.onerror = (e) =>
-                                        console.error(`❌ Failed to preload image: ${processedThumbnailUrl}`, e);
-                                    testImg.src = processedThumbnailUrl;
-                                }
-
-                                // Store URLs in the image object
-                                image.url = processedThumbnailUrl;
-                                image.fullSizeUrl = processedFullUrl;
+                            // Update categoryImages array to ensure the UI updates
+                            const index = categoryImages.findIndex((img) => img.id === image.id);
+                            if (index !== -1) {
+                                categoryImages[index].url = imageUrl;
+                                categoryImages[index].fullSizeUrl = imageUrl;
 
                                 // If nested structure exists, update it too
-                                if (image.attributes?.image?.data?.attributes) {
-                                    image.attributes.image.data.attributes.url = processedThumbnailUrl;
-                                    image.attributes.image.data.attributes.fullSizeUrl = processedFullUrl;
+                                if (categoryImages[index].attributes?.image?.data?.attributes) {
+                                    categoryImages[index].attributes.image.data.attributes.url = imageUrl;
+                                    categoryImages[index].attributes.image.data.attributes.fullSizeUrl = imageUrl;
                                 }
-                            } else {
-                                console.warn(`⚠️ No image data found for image ${imageId} in API response`);
+
+                                // Force UI refresh by creating a new array
+                                categoryImages = [...categoryImages];
                             }
+                        } else {
+                            console.warn(`⚠️ No image data found for image ${imageId} in API response`);
                         }
                     } catch (error) {
                         console.error(`❌ Error fetching image ${imageId}:`, error);
@@ -222,20 +182,14 @@
             // Get the URL from different possible locations
             let url = '';
 
-            // Try to get URL from all possible locations in the Strapi response structure
+            // Try to get URL from all possible locations in the response structure
             if (image.url) {
                 url = image.url;
             } else if (image.attributes?.image?.data?.attributes?.url) {
                 url = image.attributes.image.data.attributes.url;
-            } else if ((image.attributes?.image as any)?.url) {
-                url = (image.attributes?.image as any).url;
-            } else if ((image.attributes?.image?.data as any)?.url) {
-                url = (image.attributes?.image?.data as any).url;
-            }
-
-            // Process relative URLs (prepend STRAPI_API_URL if URL starts with /)
-            if (url && url.startsWith('/')) {
-                url = `${STRAPI_API_URL}${url}`;
+            } else if (image.image) {
+                // Handle Sanity image object
+                url = (urlFor(image.image) as SanityImageUrl).url();
             }
 
             // Get the alt text
@@ -244,8 +198,8 @@
             // Fix the type error by ensuring categoryId is always a string
             const categoryId = category ? String(category.id) : '0';
 
-            // Extract the documentId for Strapi operations
-            const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
+            // Extract the documentId for Sanity operations
+            const documentId = image.documentId || image._id || null;
 
             // Extract the order attribute if available, default to 0
             const order =
@@ -263,14 +217,14 @@
                 url,
                 alt,
                 categoryId,
-                documentId, // Add documentId for Strapi operations
-                strapiId: image.id, // Keep the original numeric ID as strapiId
+                documentId, // Add documentId for Sanity operations
+                strapiId: image.id, // Keep the original ID as strapiId for backwards compatibility
                 order // Include the order attribute for sorting
             };
         });
     }
 
-    // Check for additional specific Strapi URL path variations
+    // Check for additional specific URL path variations
     $: {
         if (galleryImages.length > 0) {
             const imagesWithoutUrls = galleryImages.filter((img) => !img.url);
@@ -279,40 +233,23 @@
                 for (const image of imagesWithoutUrls) {
                     const originalImage = categoryImages.find((img) => String(img.id) === image.id);
                     if (originalImage) {
-                        // Try different path variations to extract the URL
-                        if (originalImage.attributes?.image && !originalImage.attributes.image.data) {
-                            // Sometimes Strapi returns image without a data wrapper
-                            const potentialUrl = (originalImage.attributes.image as any).url;
-                            if (potentialUrl) {
-                                // Update the URL in both objects
-                                image.url = potentialUrl.startsWith('/')
-                                    ? `${STRAPI_API_URL}${potentialUrl}`
-                                    : potentialUrl;
+                        // Try to generate URL using Sanity's urlFor if image property exists
+                        if (originalImage.image) {
+                            const imageUrl = (urlFor(originalImage.image) as SanityImageUrl).url();
 
-                                // Also update the images array for next render
-                                const index = galleryImages.findIndex((img) => img.id === image.id);
-                                if (index !== -1) {
-                                    galleryImages[index].url = image.url;
-                                }
+                            // Update the URL in the gallery image
+                            image.url = imageUrl;
+
+                            // Also update the images array for next render
+                            const index = galleryImages.findIndex((img) => img.id === image.id);
+                            if (index !== -1) {
+                                galleryImages[index].url = imageUrl;
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    // Function to handle image upload success
-    function handleImageAdded(_: CustomEvent<any>) {
-        // Show a success message
-        showToast.success('Image uploaded successfully! Refreshing the page to show the new image.');
-
-        // Refresh the page to show the newly added image
-        // Use a small timeout to ensure the toast is shown before refresh
-        setTimeout(() => {
-            // Force a complete reload to ensure we get fresh data from the server
-            window.location.href = window.location.href;
-        }, 1000); // Increased timeout to allow toast to be visible
     }
 
     // Retry loading the page
