@@ -371,13 +371,20 @@ export const deleteImage = async (id) => {
  */
 export const updateImage = async (id, data) => {
   try {
+    console.log('[DEBUG] updateImage called with id:', id);
+    console.log('[DEBUG] updateImage data:', JSON.stringify(data, null, 2));
+    
     const updates = {
       order: data.order !== undefined ? data.order : undefined
     };
     
+    console.log('[DEBUG] Prepared updates:', JSON.stringify(updates, null, 2));
+    
     // If there's a new image file, upload it
     if (data.image && data.image instanceof File) {
+      console.log('[DEBUG] New image file detected, uploading...');
       const imageAsset = await uploadFile(data.image);
+      console.log('[DEBUG] Image upload complete, asset:', imageAsset._id);
       updates.image = {
         _type: 'image',
         asset: {
@@ -392,11 +399,15 @@ export const updateImage = async (id, data) => {
       Object.entries(updates).filter(([_, value]) => value !== undefined)
     );
     
+    console.log('[DEBUG] Clean updates to apply:', JSON.stringify(cleanUpdates, null, 2));
+    
     // Update the document
     const updatedImage = await client
       .patch(id)
       .set(cleanUpdates)
       .commit();
+    
+    console.log('[DEBUG] Update successful, updatedImage:', JSON.stringify(updatedImage, null, 2));
     
     // Transform the response to match expected format
     const transformedImage = {
@@ -414,9 +425,11 @@ export const updateImage = async (id, data) => {
       }
     };
     
+    console.log('[DEBUG] Transformed response:', JSON.stringify(transformedImage, null, 2));
+    
     return { data: transformedImage };
   } catch (error) {
-    console.error('Error updating image in Sanity:', error);
+    console.error('[DEBUG] Error updating image in Sanity:', error);
     throw error;
   }
 };

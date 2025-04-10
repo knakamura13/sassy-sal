@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { imageStore, type Image } from '$lib/stores/imageStore';
+    import { onMount, tick } from 'svelte';
+
     import { adminMode } from '$lib/stores/adminStore';
+    import { Button } from '$lib/components/ui/button';
+    import { imageStore, type Image } from '$lib/stores/imageStore';
+    import { showToast } from '$lib/utils';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
     import ImageCard from './ImageCard.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';
-    import { onMount, tick } from 'svelte';
-    import { showToast } from '$lib/utils';
-    import { Button } from '$lib/components/ui/button';
-    import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
     // New props for category support
     export let images: Image[] = [];
@@ -71,7 +72,10 @@
         const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
         const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
 
-        // Find images with changed order
+        console.log('[DEBUG] Images to add:', imagesToAdd.length);
+        console.log('[DEBUG] Images to remove:', imagesToRemove.length);
+
+        // Find images with changes (order or file)
         const imagesToUpdate = localImages.filter((local) => {
             const orig = originalImages.find((o) => o.id === local.id);
             if (!orig) return false;
@@ -80,68 +84,91 @@
             const localOrder = typeof local.order === 'number' ? local.order : Number(local.order || 0);
             const origOrder = typeof orig.order === 'number' ? orig.order : Number(orig.order || 0);
 
-            return localOrder !== origOrder;
+            // Check if order changed
+            const orderChanged = localOrder !== origOrder;
+
+            // Check if file changed
+            const fileChanged = !!local.file;
+
+            console.log(
+                '[DEBUG] Comparing image',
+                local.id,
+                '- order changed:',
+                orderChanged,
+                'file changed:',
+                fileChanged
+            );
+
+            // Return true if either order or file changed
+            return orderChanged || fileChanged;
         });
+
+        console.log('[DEBUG] Images to update:', imagesToUpdate.length);
+        console.log(
+            '[DEBUG] Update details:',
+            JSON.stringify(
+                imagesToUpdate.map((img) => ({
+                    id: img.id,
+                    documentId: img.documentId,
+                    order: img.order,
+                    hasFile: !!img.file
+                })),
+                null,
+                2
+            )
+        );
 
         // Process changes
         const processChanges = async () => {
             try {
-                // Import Strapi services
-                const { addImage, deleteImage, uploadFile, updateImage } = await import('$lib/services/strapi');
+                // Import Sanity services
+                const { addImage, deleteImage, updateImage } = await import('$lib/services/sanity');
+                console.log('[DEBUG] Imported Sanity services');
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
-                    const deletionPromises = imagesToRemove.map((image) =>
-                        deleteImage(image.documentId || image.strapiId || image.id)
-                    );
+                    console.log('[DEBUG] Processing', imagesToRemove.length, 'image deletions');
+                    const deletionPromises = imagesToRemove.map((image) => deleteImage(image.documentId || image.id));
                     await Promise.all(deletionPromises);
+                    console.log('[DEBUG] Image deletions complete');
                 }
 
                 // Process additions
                 if (imagesToAdd.length > 0) {
+                    console.log('[DEBUG] Processing', imagesToAdd.length, 'image additions');
                     // Process one image at a time to better handle potential errors
                     for (const image of imagesToAdd) {
                         if (!image.file) {
-                            console.error('Image missing file property:', image);
+                            console.error('[DEBUG] Image missing file property:', image);
                             continue;
                         }
 
                         try {
-                            // First upload the image file to Strapi's media library
-                            const uploadedFile = await uploadFile(image.file);
-
-                            if (!uploadedFile || !(uploadedFile as any).id) {
-                                console.error('Invalid response from upload:', uploadedFile);
-                                throw new Error('Failed to upload image file');
-                            }
-
-                            // Prepare image data for API using the uploaded file ID
+                            // Prepare image data for API
                             const imageData = {
-                                title: image.title || '',
-                                description: '',
                                 order: typeof image.order === 'number' ? image.order : 0,
-                                // Use the uploadedFile.id for the image relation - Strapi expects a direct ID for media fields
-                                image: (uploadedFile as any).id,
-                                categories: {
-                                    connect: [{ id: parseInt(categoryId) || categoryId }]
-                                }
+                                image: image.file,
+                                category: categoryId
                             };
 
-                            // Add the image in Strapi
-                            const _ = await addImage(imageData);
+                            console.log(
+                                '[DEBUG] Adding image with data:',
+                                JSON.stringify(
+                                    {
+                                        order: imageData.order,
+                                        category: imageData.category,
+                                        hasFile: !!imageData.image
+                                    },
+                                    null,
+                                    2
+                                )
+                            );
 
-                            // Process the URL from the uploaded file to ensure it's properly set in our UI
-                            // This makes sure the image has a URL before we refresh the page
-                            if ((uploadedFile as any).url) {
-                                // Strapi sometimes returns relative URLs, make sure they're absolute
-                                let imageUrl = (uploadedFile as any).url;
-                                if (imageUrl.startsWith('/')) {
-                                    const { STRAPI_API_URL } = await import('$lib/services/strapi');
-                                    imageUrl = `${STRAPI_API_URL}${imageUrl}`;
-                                }
-                            }
+                            // Add the image in Sanity
+                            const _ = await addImage(imageData);
+                            console.log('[DEBUG] Image added successfully');
                         } catch (err) {
-                            console.error('Error processing image:', err);
+                            console.error('[DEBUG] Error processing image:', err);
                             throw err; // Re-throw to be caught by the outer catch block
                         }
                     }
@@ -149,16 +176,42 @@
 
                 // Process updates (order changes)
                 if (imagesToUpdate.length > 0) {
-                    const updatePromises = imagesToUpdate.map((image) => {
-                        // Use documentId or strapiId for updates
-                        const idToUpdate = image.documentId || image.strapiId || image.id;
-                        return updateImage(idToUpdate, {
-                            data: {
+                    console.log('[DEBUG] Processing', imagesToUpdate.length, 'image updates');
+
+                    // Process updates one at a time to better handle potential errors
+                    for (const image of imagesToUpdate) {
+                        try {
+                            // Use documentId for updates
+                            const idToUpdate = image.documentId || image.id;
+
+                            // Prepare update data
+                            const updateData: any = {
                                 order: typeof image.order === 'number' ? image.order : 0
+                            };
+
+                            // If there's a file to update, include it
+                            if (image.file) {
+                                updateData.image = image.file;
+                                console.log('[DEBUG] Including file in update for image ID:', idToUpdate);
                             }
-                        });
-                    });
-                    await Promise.all(updatePromises);
+
+                            console.log(
+                                '[DEBUG] Updating image ID:',
+                                idToUpdate,
+                                'with data:',
+                                JSON.stringify(updateData, null, 2)
+                            );
+
+                            // Call updateImage with the appropriate data
+                            await updateImage(idToUpdate, updateData);
+                            console.log('[DEBUG] Successfully updated image ID:', idToUpdate);
+                        } catch (error) {
+                            console.error('[DEBUG] Error updating image:', error);
+                            throw error; // Re-throw to be caught by the outer catch block
+                        }
+                    }
+
+                    console.log('[DEBUG] Image updates complete');
                 }
 
                 isModified = false;
@@ -255,31 +308,55 @@
     // Function to handle image update
     function handleUpdateImage(event: CustomEvent) {
         const { id, data } = event.detail;
+        console.log('[DEBUG] handleUpdateImage received event:', JSON.stringify({ id, data }, null, 2));
 
         // Find the image to update
         const imageIndex = localImages.findIndex((img) => img.id === id);
         if (imageIndex === -1) {
-            console.error('Image not found for update:', id);
+            console.error('[DEBUG] Image not found for update:', id);
             return;
         }
 
         // Extract the actual update fields from the nested structure
         const updateFields = data.data || {};
+        console.log('[DEBUG] Extracted update fields:', JSON.stringify(updateFields, null, 2));
 
         // Convert order to number and ensure it's properly updated
         const newOrder = updateFields.order !== undefined ? Number(updateFields.order) : localImages[imageIndex].order;
         const oldOrder = localImages[imageIndex].order;
 
+        console.log('[DEBUG] Order update:', { newOrder, oldOrder });
+
         // Find corresponding original image for comparison
         const originalImage = originalImages.find((img) => img.id === id);
         const originalOrder = originalImage ? originalImage.order : null;
 
+        // Handle image file update if present
+        let imageFile = null;
+        if (updateFields.image && updateFields.image instanceof File) {
+            imageFile = updateFields.image;
+            console.log('[DEBUG] Image file update detected:', imageFile.name);
+        }
+
         // Create a new image object to ensure reactivity
         const updatedImage = {
             ...localImages[imageIndex],
-            ...updateFields,
-            order: newOrder
+            order: newOrder,
+            file: imageFile // Store file for later processing
         };
+
+        console.log(
+            '[DEBUG] Updated image object:',
+            JSON.stringify(
+                {
+                    id: updatedImage.id,
+                    order: updatedImage.order,
+                    hasFile: !!updatedImage.file
+                },
+                null,
+                2
+            )
+        );
 
         // Update the image in the array
         localImages[imageIndex] = updatedImage;

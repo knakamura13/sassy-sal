@@ -1,5 +1,6 @@
-import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
 import { error } from '@sveltejs/kit';
+
+import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
 
 export async function load({ params, url }) {
     const admin = url.searchParams.get('admin') === 'true';

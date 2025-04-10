@@ -1,6 +1,3 @@
-<script lang="ts">
-</script>
-
 <div class="flex flex-col justify-center items-center container m-auto px-4 py-12 max-w-2xl min-h-[50vh]">
     <h1 class="text-3xl font-didot mb-8 text-center">Contact</h1>
 

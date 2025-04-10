@@ -1,12 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
     import { v4 as uuidv4 } from 'uuid';
-    import type { Image } from '$lib/stores/imageStore';
-    import * as Dialog from '$lib/components/ui/dialog';
-    import { Label } from '$lib/components/ui/label';
-    import { Input } from '$lib/components/ui/input';
+
     import { Button } from '$lib/components/ui/button';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
     import { showToast } from '$lib/utils';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import type { Image } from '$lib/stores/imageStore';
 
     // Add categoryId as a prop to support category galleries
     export let categoryId: string = '';
@@ -44,9 +45,26 @@
         isLoadingImages = true;
         try {
             // Dynamic import to avoid SSR issues
-            const { getCategoryWithImages } = await import('$lib/services/strapi');
+            const { getCategoryWithImages } = await import('$lib/services/sanity');
 
-            const categoryData = await getCategoryWithImages(categoryId);
+            // Add proper typing
+            interface CategoryResponse {
+                data?: {
+                    attributes?: {
+                        images?: {
+                            data?: Array<{
+                                attributes?: {
+                                    order?: number;
+                                };
+                            }>;
+                        };
+                    };
+                };
+            }
+
+            const categoryResponse = (await getCategoryWithImages(categoryId)) as CategoryResponse;
+            const categoryData = categoryResponse?.data;
+
             if (
                 categoryData &&
                 categoryData.attributes?.images?.data &&

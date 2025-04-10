@@ -1,17 +1,17 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import type { Image } from '$lib/stores/imageStore';
-    import * as Dialog from '$lib/components/ui/dialog';
-    import { Label } from '$lib/components/ui/label';
-    import { Input } from '$lib/components/ui/input';
-    import { Button } from '$lib/components/ui/button';
-    import { uploadFile } from '$lib/services/strapi';
 
-    // Define interface for Strapi uploaded file
-    interface StrapiUploadedFile {
-        id: number;
-        name: string;
-        url: string;
+    import { Button } from '$lib/components/ui/button';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
+    import { uploadFile } from '$lib/services/sanity';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import type { Image } from '$lib/stores/imageStore';
+
+    // Define interface for Sanity uploaded asset (new)
+    interface SanityUploadedAsset {
+        _id: string;
+        url?: string;
     }
 
     export let image: Image;
@@ -108,6 +108,8 @@
         errorMessage = '';
 
         try {
+            console.log('[DEBUG] ImageCard handleSubmit starting for image ID:', image.id);
+
             // Prepare the update data
             const updateData: any = {
                 data: {
@@ -116,37 +118,46 @@
                 }
             };
 
+            console.log('[DEBUG] Initial update data:', JSON.stringify(updateData, null, 2));
+            console.log('[DEBUG] Selected file:', selectedFile ? selectedFile.name : 'none');
+
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
-                    const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
+                    console.log('[DEBUG] Uploading file:', selectedFile.name);
 
-                    if (uploadedFile && uploadedFile.id) {
-                        // Add the image ID to the update data
-                        updateData.data.file = {
-                            connect: [{ id: uploadedFile.id }]
-                        };
-                        // Update the URL in the update data
-                        updateData.data.url = uploadedFile.url;
+                    // Now using Sanity's uploadFile function
+                    const uploadedAsset = (await uploadFile(selectedFile)) as SanityUploadedAsset;
+                    console.log('[DEBUG] Upload response:', JSON.stringify(uploadedAsset, null, 2));
+
+                    if (uploadedAsset && uploadedAsset._id) {
+                        // Add the image to the update data in Sanity format
+                        updateData.data.image = selectedFile;
+
+                        console.log('[DEBUG] Added file to update data with Sanity format');
                     } else {
                         errorMessage = 'Invalid response from server during image upload.';
+                        console.error('[DEBUG] Invalid upload response:', uploadedAsset);
                     }
                 } catch (uploadError) {
-                    console.error('Error uploading image:', uploadError);
+                    console.error('[DEBUG] Error uploading image:', uploadError);
                     errorMessage = 'Failed to upload image, but other fields will be updated.';
                 }
             }
+
+            console.log('[DEBUG] Final update data:', JSON.stringify(updateData, null, 2));
 
             // Dispatch the update event
             dispatch('update', {
                 id: image.id,
                 data: updateData
             });
+            console.log('[DEBUG] Dispatched update event');
 
             // Close dialog after successful submission
             editDialogOpen = false;
         } catch (error) {
-            console.error('Error in image update process:', error);
+            console.error('[DEBUG] Error in image update process:', error);
             errorMessage = 'Failed to update image. Please try again.';
         } finally {
             isUploading = false;
