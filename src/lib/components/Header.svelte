@@ -21,9 +21,9 @@
 </header>
 
 <style lang="scss">
-    @import '$lib/styles/variables.scss';
+    @use '$lib/styles/variables' as vars;
 
     a:hover {
-        color: $secondary-color !important;
+        color: vars.$secondary-color !important;
     }
 </style>

@@ -443,7 +443,7 @@
 
 <style lang="scss">
     @use 'sass:color';
-    @import '$lib/styles/variables.scss';
+    @use '$lib/styles/variables' as vars;
 
     .image-filter {
         filter: sepia(0.2) brightness(0.92) saturate(0.85);
@@ -455,7 +455,7 @@
 
     /* Styling for the category placeholder when no thumbnail is available */
     .category-placeholder {
-        background-color: color.adjust($secondary-color, $lightness: 10%);
+        background-color: color.adjust(vars.$secondary-color, $lightness: 10%);
     }
 
     .category-card:hover {

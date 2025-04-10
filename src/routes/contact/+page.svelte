@@ -9,14 +9,14 @@
 </div>
 
 <style lang="scss">
+    @use '$lib/styles/variables' as vars;
     @use 'sass:color';
-    @import '$lib/styles/variables.scss';
 
     a {
-        color: $secondary-color;
+        color: vars.$secondary-color;
 
         &:hover {
-            color: color.adjust($secondary-color, $lightness: -10%);
+            color: color.adjust(vars.$secondary-color, $lightness: -10%);
         }
     }
 </style>
