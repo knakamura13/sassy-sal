@@ -23,6 +23,7 @@
                         height?: number;
                         alternativeText?: string;
                         fullSizeUrl?: string;
+                        order?: number;
                     };
                 };
             };
@@ -247,7 +248,14 @@
             const documentId = (image as any).documentId || (image.attributes as any)?.documentId || null;
 
             // Extract the order attribute if available, default to 0
-            const order = image.order !== undefined ? image.order : 0;
+            const order =
+                image.order !== undefined
+                    ? image.order
+                    : image.attributes?.order !== undefined
+                      ? image.attributes.order
+                      : image.attributes?.image?.data?.attributes?.order !== undefined
+                        ? image.attributes.image.data.attributes.order
+                        : 0;
 
             return {
                 id: String(image.id),

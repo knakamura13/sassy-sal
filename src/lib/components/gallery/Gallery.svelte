@@ -33,9 +33,17 @@
 
     // Initialize with provided category images
     onMount(() => {
+        // Ensure all images have order values - assign sequential order if missing
+        const processedImages = images.map((img, index) => {
+            if (img.order === undefined || img.order === null) {
+                return { ...img, order: index };
+            }
+            return { ...img };
+        });
+
         // Create deep copies to avoid reference issues
-        originalImages = images.map((img) => ({ ...img }));
-        localImages = images.map((img) => ({ ...img }));
+        originalImages = processedImages.map((img) => ({ ...img }));
+        localImages = processedImages.map((img) => ({ ...img }));
     });
 
     $: {
@@ -114,7 +122,7 @@
                         try {
                             // Prepare image data for API
                             const imageData = {
-                                order: typeof image.order === 'number' ? image.order : 0,
+                                order: Number(typeof image.order === 'number' ? image.order : image.order || 0),
                                 image: image.file,
                                 category: categoryId
                             };
@@ -137,7 +145,7 @@
 
                             // Prepare update data
                             const updateData: any = {
-                                order: typeof image.order === 'number' ? image.order : 0
+                                order: Number(typeof image.order === 'number' ? image.order : image.order || 0)
                             };
 
                             // If there's a file to update, include it
@@ -191,10 +199,13 @@
                 return;
             }
 
+            // Make sure newOrder is a number
+            const orderValue = typeof newOrder === 'number' ? newOrder : Number(newOrder || 0);
+
             // Update the order of the specific image
             localImages[imageIndex] = {
                 ...localImages[imageIndex],
-                order: newOrder
+                order: orderValue
             };
 
             // Mark as modified
@@ -258,7 +269,12 @@
         const updateFields = data.data || {};
 
         // Convert order to number and ensure it's properly updated
-        const newOrder = updateFields.order !== undefined ? Number(updateFields.order) : localImages[imageIndex].order;
+        const newOrder =
+            updateFields.order !== undefined
+                ? Number(updateFields.order)
+                : localImages[imageIndex].order !== undefined
+                  ? Number(localImages[imageIndex].order)
+                  : 0;
         const oldOrder = localImages[imageIndex].order;
 
         // Find corresponding original image for comparison

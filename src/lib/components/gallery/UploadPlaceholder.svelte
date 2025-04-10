@@ -56,6 +56,7 @@
                                 attributes?: {
                                     order?: number;
                                 };
+                                order?: number;
                             }>;
                         };
                     };
@@ -72,8 +73,15 @@
             ) {
                 // Find the highest order value among images
                 const highestOrder = categoryData.attributes.images.data.reduce((max: number, image: any) => {
-                    const currentOrder = image.attributes?.order || 0;
-                    return currentOrder > max ? currentOrder : max;
+                    // Check order in various possible locations in the object
+                    const imageOrder =
+                        typeof image.order === 'number'
+                            ? image.order
+                            : typeof image.attributes?.order === 'number'
+                              ? image.attributes.order
+                              : 0;
+
+                    return imageOrder > max ? imageOrder : max;
                 }, 0);
 
                 // Set the order value to highest + 1 as a suggestion

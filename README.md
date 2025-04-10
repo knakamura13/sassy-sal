@@ -173,7 +173,7 @@ The integration will use the Sanity JavaScript client for optimized queries and 
        - [x] `getCategoryWithImages`: Load a specific category with all its images
        - [x] `addImage`: Add an image to a category (depends on `uploadFile`)
        - [x] `deleteImage`: Delete an image from a category
-       - [ ] `updateImage`: Update an existing image's properties (order, image file)
+       - [x] `updateImage`: Update an existing image's properties (order, image file)
    - [ ] Implement GROQ queries
 
 3. **Admin Panel Updates**
