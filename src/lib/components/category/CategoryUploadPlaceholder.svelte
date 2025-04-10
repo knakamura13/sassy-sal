@@ -152,13 +152,14 @@
 <div
     class="block transition-all duration-300 h-full border-dashed border-2 border-gray-300 category-card aspect-[3/4] min-w-[240px] max-w-[320px] w-full !m-auto"
 >
-    <div
+    <button
+        type="button"
         class="w-full h-full flex flex-col items-center justify-center p-4 transition-colors hover:bg-gray-100 cursor-pointer"
         on:click={() => (open = true)}
     >
         <div class="text-3xl text-gray-400 mb-2">+</div>
         <div class="font-didot text-gray-500 font-medium">Add Category</div>
-    </div>
+    </button>
 
     <Dialog bind:open>
         <svelte:fragment slot="title">Add New Category</svelte:fragment>
