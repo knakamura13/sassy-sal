@@ -1,14 +1,15 @@
 <script lang="ts">
-    import { adminMode } from '$lib/stores/adminStore';
-    import CategoryCard from '$lib/components/category/CategoryCard.svelte';
-    import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
-    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/strapi';
-    import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
-    import * as AlertDialog from '$lib/components/ui/alert-dialog';
-    import { writable } from 'svelte/store';
-    import { showToast } from '$lib/utils';
     import { dndzone } from 'svelte-dnd-action';
     import { onMount } from 'svelte';
+    import { writable } from 'svelte/store';
+
+    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/sanity';
+    import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
+    import { adminMode } from '$lib/stores/adminStore';
+    import { showToast } from '$lib/utils';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
+    import CategoryCard from '$lib/components/category/CategoryCard.svelte';
+    import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
 
     // Interface for category data from Strapi
     interface Category {
@@ -82,8 +83,7 @@
                         // Force re-render
                         updateCounter++;
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
             }
 
             // Check for full category data
@@ -95,11 +95,9 @@
                         categories = parsedCategories;
                         updateCounter++;
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
             }
-        } catch (e) {
-        }
+        } catch (e) {}
     });
 
     // Updates the categories state and forces component re-render
@@ -120,8 +118,7 @@
                 orderMap[String(cat.id)] = cat.attributes.order;
             });
             localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     // Reactive statement: filter deleted categories and sort by order, then by name
@@ -194,7 +191,6 @@
 
             // Update orders in the backend
             if ($adminMode) {
-
                 // First, try to get the latest categories from server, but fallback to local if server issues
                 let serverCategories = [];
                 let useLocalCategoriesAsBackup = false;
@@ -239,19 +235,17 @@
 
                         // Only update if the order has changed
                         if (originalOrder !== newOrder) {
-                            console.log(
-                            );
+                            console.log();
 
                             try {
                                 // Create a promise for this update
-                                const updatePromise = updateCategory(serverCategory.id, {
+                                const updatePromise = updateCategory(String(serverCategory.id), {
                                     data: {
                                         order: newOrder
                                     }
                                 })
                                     .then((result) => {
-                                        console.log(
-                                        );
+                                        console.log();
                                         return result;
                                     })
                                     .catch((error) => {
@@ -261,13 +255,10 @@
 
                                 updatePromises.push(updatePromise);
                             } catch (error) {
-                                console.error(
-                                    error
-                                );
+                                console.error(error);
                             }
                         } else {
-                            console.log(
-                            );
+                            console.log();
                         }
                     } else {
                     }
@@ -276,7 +267,6 @@
                 if (updatePromises.length === 0) {
                     showToast.info('Categories reordered and saved locally');
                 } else {
-
                     // Wait for all updates to complete
                     try {
                         await Promise.all(updatePromises);
@@ -290,7 +280,6 @@
                         const refreshedCategories = await getCategories();
 
                         if (refreshedCategories && refreshedCategories.length > 0) {
-
                             // Combine server data with our local order
                             const combinedCategories = refreshedCategories.map((serverCat: Category) => {
                                 // Find matching local category to get its order
@@ -355,10 +344,10 @@
                         throw new Error('Category not found');
                     }
 
-                    // Get documentId or fall back to id
-                    const documentId = categoryToDelete.documentId || id;
+                    // Get documentId or fall back to id (ensure it's a string for Sanity)
+                    const documentId = categoryToDelete.documentId || String(id);
 
-                    // Delete from Strapi backend in admin mode
+                    // Delete from Sanity backend in admin mode
                     await deleteCategory(documentId);
 
                     // Refresh category list from server after deletion
@@ -429,8 +418,10 @@
             const newCategory = event.detail;
 
             if ($adminMode) {
-                // Save new category to Strapi
-                const savedCategory = await addCategory(newCategory);
+                // Save new category to Sanity
+                const response = await addCategory(newCategory);
+                // Cast response to the expected structure with type assertion
+                const savedCategory = (response as any)?.data ? (response as any).data : response;
 
                 // Refresh categories from server to get complete data with associations
                 try {
@@ -497,18 +488,14 @@
                     try {
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
-                            console.log(
-                                JSON.stringify(refreshedCategories)
-                            );
+                            console.log(JSON.stringify(refreshedCategories));
 
                             // Find the updated category to check its thumbnail
                             const updatedCategory = refreshedCategories.find(
                                 (cat: Category) => String(cat.id) === String(id)
                             );
                             if (updatedCategory) {
-                                console.log(
-                                    JSON.stringify(updatedCategory.attributes.thumbnail)
-                                );
+                                console.log(JSON.stringify(updatedCategory.attributes.thumbnail));
                             }
 
                             updateCategoriesAndRender(refreshedCategories);
@@ -551,7 +538,6 @@
         try {
             const refreshedCategories = await getCategories();
 
-
             if (refreshedCategories && refreshedCategories.length > 0) {
                 // Get current order from localStorage if available
                 let orderMap: Record<string, number> = {};
@@ -560,8 +546,7 @@
                     if (savedOrder) {
                         orderMap = JSON.parse(savedOrder);
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
 
                 // Apply order from localStorage or current state to refreshed data
                 const orderedCategories = refreshedCategories.map((cat: Category) => {

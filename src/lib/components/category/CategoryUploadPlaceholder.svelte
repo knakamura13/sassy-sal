@@ -1,28 +1,18 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
-    import { uploadFile, getCategories } from '$lib/services/strapi';
-    import * as Dialog from '$lib/components/ui/dialog';
-    import { Label } from '$lib/components/ui/label';
-    import { Input } from '$lib/components/ui/input';
+    import { createEventDispatcher } from 'svelte';
+
     import { Button } from '$lib/components/ui/button';
+    import { getCategories } from '$lib/services/sanity';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
     import { showToast } from '$lib/utils';
+    import * as Dialog from '$lib/components/ui/dialog';
 
-    // Define interface for Strapi uploaded file
-    interface StrapiUploadedFile {
-        id: number;
-        name: string;
-        url: string;
-    }
-
-    // Define the data structure that will be sent to Strapi
+    // Define the data structure that will be sent to Sanity
     interface CategoryData {
-        data: {
-            name: string;
-            order: number;
-            thumbnail?: {
-                connect: [{ id: number }];
-            };
-        };
+        name: string;
+        order: number;
+        thumbnail?: File;
     }
 
     const dispatch = createEventDispatcher<{ addCategory: CategoryData }>();
@@ -136,31 +126,16 @@
         errorMessage = '';
 
         try {
-            // Prepare the data for Strapi
+            // Prepare the data for Sanity
             const categoryData: CategoryData = {
-                data: {
-                    name: categoryName.trim(),
-                    order: Number(orderValue) || 0 // Convert to number with fallback to 0
-                }
+                name: categoryName.trim(),
+                order: Number(orderValue) || 0 // Convert to number with fallback to 0
             };
 
-            // If there's a selected file, upload it first
+            // If there's a selected file, add it directly to the category data
+            // Sanity service will handle the upload
             if (selectedFile) {
-                try {
-                    const uploadedFile = (await uploadFile(selectedFile)) as StrapiUploadedFile;
-
-                    if (uploadedFile && uploadedFile.id) {
-                        // Add the thumbnail ID to the category data using Strapi v4 relationship format
-                        categoryData.data.thumbnail = {
-                            connect: [{ id: uploadedFile.id }]
-                        };
-                    } else {
-                        errorMessage = 'Invalid response from server during thumbnail upload.';
-                    }
-                } catch (uploadError) {
-                    // Continue without the thumbnail if upload fails
-                    errorMessage = 'Failed to upload thumbnail, but category will be created without it.';
-                }
+                categoryData.thumbnail = selectedFile;
             }
 
             // Dispatch the event to create the category
