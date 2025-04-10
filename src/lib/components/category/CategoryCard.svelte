@@ -5,7 +5,7 @@
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
     import { showToast } from '$lib/utils';
-    import * as Dialog from '$lib/components/ui/dialog';
+    import { Dialog } from 'bits-ui';
 
     // Define Sanity Category type locally
     interface SanityCategory {
@@ -329,119 +329,140 @@
 
 <!-- Edit Category Dialog -->
 <Dialog.Root bind:open={editDialogOpen}>
-    <Dialog.Content class="sm:max-w-md">
-        <Dialog.Header>
-            <Dialog.Title>Edit Category</Dialog.Title>
-        </Dialog.Header>
-
-        <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-            <div class="space-y-2">
-                <Label for="editCategoryName" class="font-garamond">Category Name*</Label>
-                <Input
-                    type="text"
-                    id="editCategoryName"
-                    bind:value={editName}
-                    placeholder="e.g. Weddings"
-                    class="font-garamond"
-                    required
-                    disabled={isUploading}
-                />
-            </div>
-
-            <div class="space-y-2">
-                <Label for="editCategoryOrder" class="font-garamond">Display Order*</Label>
-                <Input
-                    type="number"
-                    id="editCategoryOrder"
-                    bind:value={editOrder}
-                    placeholder="0"
-                    class="font-garamond"
-                    min="0"
-                    disabled={isUploading}
-                />
-                <p class="text-xs text-gray-500">Categories are displayed in ascending order (lower numbers first)</p>
-            </div>
-
-            <div class="space-y-2">
-                <Label for="editCategoryImage" class="font-garamond">Thumbnail Image</Label>
-
-                <!-- Hidden file input -->
-                <input
-                    bind:this={fileInput}
-                    type="file"
-                    id="editCategoryImage"
-                    class="sr-only"
-                    accept="image/*"
-                    on:change={handleFileChange}
-                    disabled={isUploading}
-                />
-
-                <!-- Custom Drop Zone -->
-                <button
-                    type="button"
-                    class="group w-full cursor-pointer p-6 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-center transition-colors font-garamond {isDragging
-                        ? 'bg-gray-100 border-blue-500'
-                        : imagePreview
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
-                    on:click={handleDropZoneClick}
-                    on:dragenter={(e) => handleDragEvent(e, true)}
-                    on:dragover={(e) => handleDragEvent(e, true)}
-                    on:dragleave={(e) => handleDragEvent(e, false)}
-                    on:drop={handleDrop}
-                    disabled={isUploading}
-                >
-                    {#if imagePreview}
-                        <div class="mb-2">
-                            <img src={imagePreview} alt="Preview" class="max-h-32 max-w-full object-contain mx-auto" />
-                        </div>
-                        <p class="text-sm text-gray-600">{selectedFile?.name || 'Current image'}</p>
-                        <p class="text-xs text-gray-500 mt-1">Click to change</p>
-                    {:else}
-                        <svg
-                            class="w-10 h-10 text-gray-400 mb-2 group-hover:text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop a thumbnail here</p>
-                        <p class="text-gray-500 text-sm mt-1">or click to browse</p>
-                    {/if}
-                </button>
-            </div>
-
-            {#if errorMessage}
-                <div class="p-2 bg-red-100 text-red-800 rounded text-sm">
-                    {errorMessage}
-                </div>
-            {/if}
-
-            <Dialog.Footer class="flex flex-row justify-end space-x-3">
+    <Dialog.Portal>
+        <Dialog.Overlay
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+        />
+        <Dialog.Content
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] rounded-md bg-white p-6 shadow-lg border outline-none"
+        >
+            <div class="mb-4 flex justify-between items-center">
+                <Dialog.Title class="text-lg font-semibold text-gray-900">Edit Category</Dialog.Title>
                 <Dialog.Close
-                    class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
+                    class="rounded-full h-6 w-6 inline-flex items-center justify-center text-gray-500 hover:text-gray-800 focus:outline-none"
                 >
-                    Cancel
+                    <span class="sr-only">Close</span>
+                    ×
                 </Dialog.Close>
+            </div>
 
-                <Button type="submit" variant="default" class="font-didot" disabled={!editName || isUploading}>
-                    {#if isUploading}
-                        <span class="mr-2">Updating...</span>
-                        <!-- Simple loading spinner -->
-                        <div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    {:else}
-                        Update
-                    {/if}
-                </Button>
-            </Dialog.Footer>
-        </form>
-    </Dialog.Content>
+            <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+                <div class="space-y-2">
+                    <Label for="editCategoryName" class="font-garamond">Category Name*</Label>
+                    <Input
+                        type="text"
+                        id="editCategoryName"
+                        bind:value={editName}
+                        placeholder="e.g. Weddings"
+                        class="font-garamond"
+                        required
+                        disabled={isUploading}
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="editCategoryOrder" class="font-garamond">Display Order*</Label>
+                    <Input
+                        type="number"
+                        id="editCategoryOrder"
+                        bind:value={editOrder}
+                        placeholder="0"
+                        class="font-garamond"
+                        min="0"
+                        disabled={isUploading}
+                    />
+                    <p class="text-xs text-gray-500">
+                        Categories are displayed in ascending order (lower numbers first)
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="editCategoryImage" class="font-garamond">Thumbnail Image</Label>
+
+                    <!-- Hidden file input -->
+                    <input
+                        bind:this={fileInput}
+                        type="file"
+                        id="editCategoryImage"
+                        class="sr-only"
+                        accept="image/*"
+                        on:change={handleFileChange}
+                        disabled={isUploading}
+                    />
+
+                    <!-- Custom Drop Zone -->
+                    <button
+                        type="button"
+                        class="group w-full cursor-pointer p-6 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-center transition-colors font-garamond {isDragging
+                            ? 'bg-gray-100 border-blue-500'
+                            : imagePreview
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
+                        on:click={handleDropZoneClick}
+                        on:dragenter={(e) => handleDragEvent(e, true)}
+                        on:dragover={(e) => handleDragEvent(e, true)}
+                        on:dragleave={(e) => handleDragEvent(e, false)}
+                        on:drop={handleDrop}
+                        disabled={isUploading}
+                    >
+                        {#if imagePreview}
+                            <div class="mb-2">
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    class="max-h-32 max-w-full object-contain mx-auto"
+                                />
+                            </div>
+                            <p class="text-sm text-gray-600">{selectedFile?.name || 'Current image'}</p>
+                            <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                        {:else}
+                            <svg
+                                class="w-10 h-10 text-gray-400 mb-2 group-hover:text-blue-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                            <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop a thumbnail here</p>
+                            <p class="text-gray-500 text-sm mt-1">or click to browse</p>
+                        {/if}
+                    </button>
+                </div>
+
+                {#if errorMessage}
+                    <div class="p-2 bg-red-100 text-red-800 rounded text-sm">
+                        {errorMessage}
+                    </div>
+                {/if}
+
+                <div class="flex flex-row justify-end space-x-3 pt-4">
+                    <Dialog.Close
+                        class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
+                    >
+                        Cancel
+                    </Dialog.Close>
+
+                    <Button type="submit" variant="default" class="font-didot" disabled={!editName || isUploading}>
+                        {#if isUploading}
+                            <span class="mr-2">Updating...</span>
+                            <!-- Simple loading spinner -->
+                            <div
+                                class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+                            ></div>
+                        {:else}
+                            Update
+                        {/if}
+                    </Button>
+                </div>
+            </form>
+        </Dialog.Content>
+    </Dialog.Portal>
 </Dialog.Root>
 
 <style lang="scss">
@@ -480,5 +501,75 @@
         .image-filter {
             filter: sepia(0) brightness(1) saturate(1.1);
         }
+    }
+
+    /* Animation keyframes for dialog */
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fade-out {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes zoom-in-95 {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -48%) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    @keyframes zoom-out-95 {
+        from {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translate(-50%, -48%) scale(0.95);
+        }
+    }
+
+    /* Animation utilities for dialog */
+    :global(.data-[state='open']:animate-in) {
+        animation-duration: 300ms;
+        animation-timing-function: ease-out;
+        animation-fill-mode: forwards;
+    }
+
+    :global(.data-[state='closed']:animate-out) {
+        animation-duration: 200ms;
+        animation-timing-function: ease-in;
+        animation-fill-mode: forwards;
+    }
+
+    :global(.data-[state='open']:fade-in-0) {
+        animation-name: fade-in;
+    }
+
+    :global(.data-[state='closed']:fade-out-0) {
+        animation-name: fade-out;
+    }
+
+    :global(.data-[state='open']:zoom-in-95) {
+        animation-name: zoom-in-95;
+    }
+
+    :global(.data-[state='closed']:zoom-out-95) {
+        animation-name: zoom-out-95;
     }
 </style>
