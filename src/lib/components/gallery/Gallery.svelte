@@ -404,18 +404,20 @@
             <div class="image-container relative">
                 {#if $adminMode}
                     <div
-                        class="order-controls absolute -left-12 top-1/2 transform -translate-y-1/2 flex flex-col space-y-1"
+                        class="order-controls absolute -left-12 top-1/2 transform -translate-y-1/2 flex flex-col space-y-2"
                     >
                         <button
                             type="button"
-                            class="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                            class="p-2 bg-gray-200 rounded-full {sortedImages.indexOf(image) === 0
+                                ? 'opacity-40 pointer-events-none'
+                                : 'hover:bg-gray-300'}"
                             on:click|preventDefault|stopPropagation={() => moveImageUp(image.id)}
                             disabled={sortedImages.indexOf(image) === 0}
                             title="Move up"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4"
+                                class="h-5 w-5"
                                 viewBox="0 0 20 20"
                                 fill="currentColor"
                             >
@@ -428,14 +430,16 @@
                         </button>
                         <button
                             type="button"
-                            class="p-1 bg-gray-200 hover:bg-gray-300 rounded-full"
+                            class="p-2 bg-gray-200 rounded-full {sortedImages.indexOf(image) === sortedImages.length - 1
+                                ? 'opacity-40 pointer-events-none'
+                                : 'hover:bg-gray-300'}"
                             on:click|preventDefault|stopPropagation={() => moveImageDown(image.id)}
                             disabled={sortedImages.indexOf(image) === sortedImages.length - 1}
                             title="Move down"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4"
+                                class="h-5 w-5"
                                 viewBox="0 0 20 20"
                                 fill="currentColor"
                             >

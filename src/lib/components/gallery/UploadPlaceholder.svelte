@@ -168,7 +168,7 @@
             alt: 'Image description',
             categoryId: categoryId || '1', // Default to first category if not specified
             file: file,
-            order: orderValue // Use the same order value for all images (admin can reorder after upload)
+            order: orderValue + index * 2 // Increment order for each image with spacing of 2
         }));
 
         dispatch('addImages', newImages);
