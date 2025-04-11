@@ -1,8 +1,9 @@
-import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import { fail } from '@sveltejs/kit';
 import bcrypt from 'bcrypt';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+
+import type { Actions } from './$types';
 
 // Store for password reset tokens (would be a database in production)
 const resetTokens: Record<string, { token: string, expires: Date }> = {};

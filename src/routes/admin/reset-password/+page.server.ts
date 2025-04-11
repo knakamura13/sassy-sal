@@ -1,6 +1,7 @@
-import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import { fail } from '@sveltejs/kit';
 import bcrypt from 'bcrypt';
+
+import type { Actions } from './$types';
 
 // Access the reset tokens storage 
 // Note: In a real app, this would be a database

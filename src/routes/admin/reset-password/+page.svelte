@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
     import { enhance } from '$app/forms';
+    import { goto } from '$app/navigation';
     import { page } from '$app/stores';
     import type { ActionResult } from '@sveltejs/kit';
 

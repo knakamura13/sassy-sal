@@ -166,19 +166,16 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 ## TODO Checklist
 
 **Bug Fixes**
-- [ ] Fix editing category thumbnail image files
-- [ ] Fix rearranging via drag-and-drop causing category `order` attributes to become out of sync
-- [ ] Fix editing image files
+- [ ] N/A
 
 **Features**
+- [ ] Nav link at bottom-right of each Gallery to send user to the next category's gallery, with right-caret icon (query all categories and search for the next category based on their `order` fields)
 - [ ] Enable re-arranging images by drag-and-drop
-- [ ] Implement authentication with Sanity
-- [x] Implement secure admin authentication
+- [x] Implement secure admin authentication (done?)
+  - [ ] Alternatively, implement authentication with Sanity, if possible
 
 **Chores**
 - [ ] Remove deprecated Category properties
     - Delete the `description` field and all references to `category.description`
-    - Ensure clean ID handling with Sanity document IDs
 - [ ] Remove deprecated Image properties
     - Delete the `title` and `description` fields and all references
-    - Ensure clean ID handling with Sanity document IDs
