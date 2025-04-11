@@ -307,7 +307,11 @@
                 </div>
             {/if}
 
-            <Gallery images={galleryImages} categoryId={String(category.id)} />
+            <Gallery
+                images={galleryImages}
+                categoryId={String(category.id)}
+                categoryOrder={category.attributes.order}
+            />
         {:else}
             <div class="text-center py-12">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>

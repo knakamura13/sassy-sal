@@ -12,6 +12,7 @@
     // New props for category support
     export let images: Image[] = [];
     export let categoryId: string = '';
+    export let categoryOrder: number | undefined = undefined; // Added for next category navigation
 
     // Local copy of images for editing in admin mode
     let localImages: Image[] = [];
@@ -20,6 +21,10 @@
     let isModified = false;
     let isSaving = false; // New state for save operation
     let isReorderingImages = false; // State for tracking image reordering
+
+    // Next category navigation state
+    let nextCategory: { id: string; name: string } | null = null;
+    let isLoadingNextCategory = false;
 
     // Alert dialog state
     let showDiscardDialog = false;
@@ -44,7 +49,60 @@
         // Create deep copies to avoid reference issues
         originalImages = processedImages.map((img) => ({ ...img }));
         localImages = processedImages.map((img) => ({ ...img }));
+
+        // Fetch next category if we have a valid category ID and order
+        if (categoryId && categoryOrder !== undefined) {
+            fetchNextCategory();
+        }
     });
+
+    // Fetch the next category based on current category order
+    async function fetchNextCategory() {
+        if (!categoryId || categoryOrder === undefined || isLoadingNextCategory) return;
+
+        isLoadingNextCategory = true;
+        try {
+            // Import Sanity helper to get all categories
+            const { getAllCategories } = await import('$lib/services/sanityHelpers');
+            const categories = await getAllCategories();
+
+            if (categories.length <= 1) {
+                return; // No next category if there's only 1 or 0 categories
+            }
+
+            // Sort categories by order to ensure correct sequence
+            const sortedCategories = [...categories].sort(
+                (a, b) => (a.attributes.order || 0) - (b.attributes.order || 0)
+            );
+
+            // Find the category with the next highest order
+            const nextCat = sortedCategories.find(
+                (cat) => (cat.attributes.order || 0) > (categoryOrder || 0) && cat.id !== categoryId
+            );
+
+            // If we've found a next category, use it
+            if (nextCat) {
+                nextCategory = {
+                    id: nextCat.id,
+                    name: nextCat.attributes.name
+                };
+            } else {
+                // If there's no next category (we're at the last one),
+                // get the first category (lowest order)
+                const firstCategory = sortedCategories[0];
+                if (firstCategory && firstCategory.id !== categoryId) {
+                    nextCategory = {
+                        id: firstCategory.id,
+                        name: firstCategory.attributes.name
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching next category:', error);
+        } finally {
+            isLoadingNextCategory = false;
+        }
+    }
 
     $: {
         // Update local images when category images change
@@ -398,7 +456,7 @@
     </div>
 {/if}
 
-<div class="gallery-container py-6">
+<div class="gallery-container py-6 pb-24">
     <div class="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl m-auto md:px-4">
         {#each sortedImages as image (image.id)}
             <div class="image-container relative">
@@ -474,6 +532,28 @@
             <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} {categoryId} />
         {/if}
     </div>
+
+    <!-- Next Category Navigation Button -->
+    {#if nextCategory}
+        <div class="next-category-nav mt-12 flex justify-end max-w-3xl m-auto md:px-4">
+            <a
+                href="/{nextCategory.name.toLowerCase().replace(/\s+/g, '-')}"
+                class="link link--zoomies flex flex-row gap-1 items-center !text-[#d19177] !text-2xl"
+                data-sveltekit-reload
+            >
+                {nextCategory.name}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+    {/if}
 
     {#if showPreview && previewImage}
         <!-- Image Preview Modal -->
