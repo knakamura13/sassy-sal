@@ -335,7 +335,7 @@
         try {
             if ($adminMode) {
                 try {
-                    // Fetch latest categories to find the correct documentId
+                    // Fetch latest categories to find the correct id
                     const allCategories = await getCategories();
                     const categoryToDelete = allCategories.find((cat: Category) => {
                         return `${cat.id}` === `${id}`;
@@ -345,11 +345,11 @@
                         throw new Error('Category not found');
                     }
 
-                    // Get documentId or fall back to id (ensure it's a string for Sanity)
-                    const documentId = categoryToDelete.documentId || String(id);
+                    // Use the category id (ensure it's a string for Sanity)
+                    const categoryId = String(id);
 
                     // Delete from Sanity backend in admin mode
-                    await deleteCategory(documentId);
+                    await deleteCategory(categoryId);
 
                     // Refresh category list from server after deletion
                     try {
@@ -453,7 +453,7 @@
 
             if ($adminMode) {
                 try {
-                    // Fetch latest categories to find the correct documentId
+                    // Fetch latest categories to find the category
                     const allCategories = await getCategories();
                     const categoryToUpdate = allCategories.find((cat: Category) => {
                         return `${cat.id}` === `${id}`;
@@ -463,11 +463,11 @@
                         throw new Error('Category not found');
                     }
 
-                    // Get documentId or fall back to id (ensure it's a string for Sanity)
-                    const documentId = categoryToUpdate.documentId || String(id);
+                    // Use the category id (ensure it's a string for Sanity)
+                    const categoryId = String(id);
 
                     // Send update to Sanity
-                    const _ = await updateCategory(documentId, data);
+                    const _ = await updateCategory(categoryId, data);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat: Category) => {

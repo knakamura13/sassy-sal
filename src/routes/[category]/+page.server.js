@@ -19,10 +19,10 @@ export async function load({ params, url }) {
             throw error(404, 'Category not found');
         }
 
-        // Try to use documentId if available, otherwise fall back to the numeric id
-        const categoryId = matchingCategory.documentId || matchingCategory.id;
+        // Use the category id
+        const categoryId = matchingCategory.id;
 
-        // Now fetch the specific category with images using the documentId
+        // Now fetch the specific category with images using the id
         const categoryResponse = await getCategoryWithImages(categoryId);
         
         // If no category found with this parameter

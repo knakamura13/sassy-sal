@@ -185,7 +185,6 @@ export const addCategory = async (categoryData) => {
     // Transform the response to match expected format
     const transformedCategory = {
       id: createdCategory._id,
-      documentId: createdCategory._id,
       attributes: {
         name: createdCategory.name,
         order: createdCategory.order || 0,
@@ -276,7 +275,6 @@ export const updateCategory = async (id, data) => {
     // Transform the response to match expected format
     const transformedCategory = {
       id: updatedCategory._id,
-      documentId: updatedCategory._id,
       attributes: {
         name: updatedCategory.name,
         order: updatedCategory.order || 0,
@@ -328,7 +326,6 @@ export const addImage = async (imageData) => {
     // Transform the response to match expected format
     const transformedImage = {
       id: createdImage._id,
-      documentId: createdImage._id,
       attributes: {
         order: createdImage.order || 0,
         image: {
@@ -401,7 +398,6 @@ export const updateImage = async (id, data) => {
     // Transform the response to match expected format
     const transformedImage = {
       id: updatedImage._id,
-      documentId: updatedImage._id,
       attributes: {
         order: updatedImage.order || 0,
         image: {

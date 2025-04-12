@@ -165,7 +165,7 @@
 
                 // Process deletions first
                 if (imagesToRemove.length > 0) {
-                    const deletionPromises = imagesToRemove.map((image) => deleteImage(image.documentId || image.id));
+                    const deletionPromises = imagesToRemove.map((image) => deleteImage(image.id));
                     await Promise.all(deletionPromises);
                 }
 
@@ -198,8 +198,8 @@
                     // Process updates one at a time to better handle potential errors
                     for (const image of imagesToUpdate) {
                         try {
-                            // Use documentId for updates
-                            const idToUpdate = image.documentId || image.id;
+                            // Use id for updates
+                            const idToUpdate = image.id;
 
                             // Prepare update data
                             const updateData: any = {

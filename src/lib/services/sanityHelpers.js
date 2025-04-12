@@ -173,7 +173,6 @@ export const formatCategory = (category) => {
   
   return {
     id: category._id,
-    documentId: category._id,
     attributes: {
       name: category.name,
       order: category.order || 0,
@@ -219,7 +218,6 @@ export const formatImage = (image) => {
   
   return {
     id: image._id,
-    documentId: image._id,
     attributes: {
       order: image.order || 0,
       image: {
