@@ -149,17 +149,17 @@
     }
 </script>
 
-<div class="image-card-wrapper aspect-square w-full relative !m-auto">
+<div class="image-card-wrapper relative !m-auto aspect-square w-full">
     <div
-        class="image-card transition-all duration-200 inset-0 relative overflow-hidden shadow-md w-full h-full hover:transform hover:scale-[1.01] cursor-pointer"
+        class="image-card relative inset-0 h-full w-full cursor-pointer overflow-hidden shadow-md transition-all duration-200 hover:scale-[1.01] hover:transform"
         data-image-id={image.id}
         data-has-url={!!image.url}
     >
         {#if image.url}
-            <img src={image.url} alt={image.alt} class="w-full h-full object-cover" />
+            <img src={image.url} alt={image.alt} class="h-full w-full object-cover" />
         {:else}
-            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                <p class="text-gray-500 text-sm p-2 text-center">
+            <div class="flex h-full w-full items-center justify-center bg-gray-200">
+                <p class="p-2 text-center text-sm text-gray-500">
                     {image.title || 'Untitled'}<br />
                     <span class="text-xs">(Image URL missing)</span>
                 </p>
@@ -168,21 +168,21 @@
 
         {#if image.title && !isCategory}
             <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white">
-                <h3 class="text-sm md:text-base font-medium">{image.title}</h3>
+                <h3 class="text-sm font-medium md:text-base">{image.title}</h3>
             </div>
         {/if}
 
         {#if isAdmin}
-            <div class="absolute top-2 right-2 flex gap-2">
+            <div class="absolute right-2 top-2 flex gap-2">
                 <button
-                    class="!m-0 bg-gray-800 bg-opacity-0 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700 shadow-md hover:shadow-lg focus:outline-none transition-all duration-200"
+                    class="!m-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-0 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation={handleEdit}
                     aria-label="Edit image"
                 >
                     ✎
                 </button>
                 <button
-                    class="!m-0 bg-gray-800 bg-opacity-0 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 shadow-md hover:shadow-lg focus:outline-none transition-all duration-200"
+                    class="!m-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-0 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation={handleRemove}
                     aria-label="Remove image"
                 >
@@ -229,8 +229,8 @@
             <!-- Custom Drop Zone -->
             <button
                 type="button"
-                class="group w-full cursor-pointer p-6 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-center transition-colors font-garamond {isDragging
-                    ? 'bg-gray-100 border-blue-500'
+                class="font-garamond group flex w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 text-center transition-colors {isDragging
+                    ? 'border-blue-500 bg-gray-100'
                     : imagePreview
                       ? 'border-green-500 bg-green-50'
                       : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
@@ -243,13 +243,13 @@
             >
                 {#if imagePreview}
                     <div class="mb-2">
-                        <img src={imagePreview} alt="Preview" class="max-h-32 max-w-full object-contain mx-auto" />
+                        <img src={imagePreview} alt="Preview" class="mx-auto max-h-32 max-w-full object-contain" />
                     </div>
                     <p class="text-sm text-gray-600">{selectedFile?.name || 'Current image'}</p>
-                    <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                    <p class="mt-1 text-xs text-gray-500">Click to change</p>
                 {:else}
                     <svg
-                        class="w-10 h-10 text-gray-400 mb-2 group-hover:text-blue-500"
+                        class="mb-2 h-10 w-10 text-gray-400 group-hover:text-blue-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -261,14 +261,14 @@
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
                     </svg>
-                    <p class="text-gray-600 group-hover:text-blue-600 font-medium">Drop an image here</p>
-                    <p class="text-gray-500 text-sm mt-1">or click to browse</p>
+                    <p class="font-medium text-gray-600 group-hover:text-blue-600">Drop an image here</p>
+                    <p class="mt-1 text-sm text-gray-500">or click to browse</p>
                 {/if}
             </button>
         </div>
 
         {#if errorMessage}
-            <div class="p-2 bg-red-100 text-red-800 rounded text-sm">
+            <div class="rounded bg-red-100 p-2 text-sm text-red-800">
                 {errorMessage}
             </div>
         {/if}
@@ -276,7 +276,7 @@
         <div class="flex flex-row justify-end space-x-3 pt-4">
             <button
                 type="button"
-                class="font-didot px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded cursor-pointer"
+                class="font-didot cursor-pointer rounded bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300"
                 on:click={() => (editDialogOpen = false)}
             >
                 Cancel
@@ -286,7 +286,7 @@
                 {#if isUploading}
                     <span class="mr-2">Updating...</span>
                     <!-- Simple loading spinner -->
-                    <div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 {:else}
                     Update
                 {/if}

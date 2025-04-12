@@ -530,18 +530,18 @@
     }
 </script>
 
-<div class="page min-h-[100vh] !pt-[60px] !pb-[240px] !px-[6vw]" id="home">
+<div class="page min-h-[100vh] !px-[6vw] !pb-[240px] !pt-[60px]" id="home">
     {#if $adminMode}
         <!-- Draggable category grid for admin mode -->
         <div
-            class="grid grid-cols-2 gap-x-20 gap-y-[75px] auto-rows-min"
+            class="grid auto-rows-min grid-cols-2 gap-x-20 gap-y-[75px]"
             use:dndzone={{ items: dndCategories, flipDurationMs: 300, type: 'categories' }}
             on:consider={handleDndConsider}
             on:finalize={handleDndFinalize}
         >
             {#each dndCategories as category (category.id)}
                 <div class="category-item">
-                    <AspectRatio ratio={556 / 771} class="!aspect-[556/771] max-h-[771px] !m-auto bg-muted">
+                    <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
                         <CategoryCard
                             {category}
                             isAdmin={$adminMode}
@@ -556,9 +556,9 @@
         </div>
     {:else}
         <!-- Regular non-draggable grid for non-admin mode -->
-        <div class="grid grid-cols-2 gap-x-20 gap-y-[75px] auto-rows-min">
+        <div class="grid auto-rows-min grid-cols-2 gap-x-20 gap-y-[75px]">
             {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
-                <AspectRatio ratio={556 / 771} class="!aspect-[556/771] max-h-[771px] !m-auto bg-muted">
+                <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
                     <CategoryCard
                         {category}
                         isAdmin={$adminMode}

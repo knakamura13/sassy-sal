@@ -58,75 +58,75 @@
     <title>Admin Login | Photography Portfolio</title>
 </svelte:head>
 
-<div class="admin-login h-full min-h-[80vh] flex items-center justify-center">
-    <div class="max-w-md w-full p-6 bg-white shadow-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+<div class="admin-login flex h-full min-h-[80vh] items-center justify-center">
+    <div class="w-full max-w-md bg-white p-6 shadow-md">
+        <h1 class="mb-6 text-center text-2xl font-bold">Admin Login</h1>
 
         {#if !showPasswordReset}
             <form method="POST" action="?/login" use:enhance={handleFormSubmit}>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="password">Password</label>
+                    <label class="mb-2 block text-gray-700" for="password">Password</label>
                     <input
                         type="password"
                         id="password"
                         name="password"
                         bind:value={password}
-                        class="w-full p-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter password"
                         required
                     />
                     {#if errorMessage}
-                        <p class="text-red-500 text-sm mt-1">{errorMessage}</p>
+                        <p class="mt-1 text-sm text-red-500">{errorMessage}</p>
                     {/if}
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    class="w-full rounded-md bg-blue-600 py-2 text-white transition-colors hover:bg-blue-700"
                     disabled={loading}
                 >
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
 
                 <p class="mt-4 text-center">
-                    <button type="button" class="text-blue-600 text-sm underline" on:click={togglePasswordReset}>
+                    <button type="button" class="text-sm text-blue-600 underline" on:click={togglePasswordReset}>
                         Forgot password?
                     </button>
                 </p>
             </form>
         {:else if resetSent}
-            <div class="text-center p-4">
-                <p class="text-green-600 mb-4">Password reset link sent to your email.</p>
+            <div class="p-4 text-center">
+                <p class="mb-4 text-green-600">Password reset link sent to your email.</p>
                 <button class="text-blue-600 underline" on:click={togglePasswordReset}> Back to login </button>
             </div>
         {:else}
             <form method="POST" action="?/resetPassword" use:enhance={handleResetSubmit}>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="email">Email</label>
+                    <label class="mb-2 block text-gray-700" for="email">Email</label>
                     <input
                         type="email"
                         id="email"
                         name="email"
                         bind:value={email}
-                        class="w-full p-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your email"
                         required
                     />
                     {#if errorMessage}
-                        <p class="text-red-500 text-sm mt-1">{errorMessage}</p>
+                        <p class="mt-1 text-sm text-red-500">{errorMessage}</p>
                     {/if}
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    class="w-full rounded-md bg-blue-600 py-2 text-white transition-colors hover:bg-blue-700"
                     disabled={loading}
                 >
                     {loading ? 'Sending...' : 'Send Reset Link'}
                 </button>
 
                 <p class="mt-4 text-center">
-                    <button type="button" class="text-blue-600 text-sm underline" on:click={togglePasswordReset}>
+                    <button type="button" class="text-sm text-blue-600 underline" on:click={togglePasswordReset}>
                         Back to login
                     </button>
                 </p>

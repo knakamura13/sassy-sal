@@ -10,14 +10,14 @@
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
         />
         <BitsDialog.Content
-            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] rounded-md bg-white p-6 shadow-lg border outline-none"
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] rounded-md border bg-white p-6 shadow-lg outline-none"
         >
-            <div class="mb-4 flex justify-between items-center">
+            <div class="mb-4 flex items-center justify-between">
                 <BitsDialog.Title class="text-lg font-semibold text-gray-900">
                     <slot name="title">Dialog Title</slot>
                 </BitsDialog.Title>
                 <BitsDialog.Close
-                    class="rounded-full h-6 w-6 inline-flex items-center justify-center text-gray-500 hover:text-gray-800 focus:outline-none"
+                    class="inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-500 hover:text-gray-800 focus:outline-none"
                 >
                     <span class="sr-only">Close</span>
                     ×

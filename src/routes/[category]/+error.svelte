@@ -2,9 +2,9 @@
     import { page } from '$app/stores';
 </script>
 
-<div class="error-page flex flex-col items-center justify-center min-h-[70vh] p-6">
-    <div class="max-w-lg w-full bg-white rounded-lg shadow-md p-8 text-center">
-        <h1 class="text-3xl font-bold text-red-600 mb-4">
+<div class="error-page flex min-h-[70vh] flex-col items-center justify-center p-6">
+    <div class="w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-md">
+        <h1 class="mb-4 text-3xl font-bold text-red-600">
             {$page.status}: {$page.error?.message || 'Something went wrong'}
         </h1>
 
@@ -23,7 +23,7 @@
 
         <a
             href="/"
-            class="inline-block mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            class="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
         >
             Return to Home
         </a>

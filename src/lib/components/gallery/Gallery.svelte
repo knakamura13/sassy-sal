@@ -412,7 +412,7 @@
 />
 
 {#if $adminMode && isModified}
-    <div class="admin-actions mt-6 flex justify-end space-x-4 max-w-3xl m-auto md:px-4">
+    <div class="admin-actions m-auto mt-6 flex max-w-3xl justify-end space-x-4 md:px-4">
         <AlertDialog.Root bind:open={showDiscardDialog}>
             <AlertDialog.Trigger asChild let:builder>
                 <Button variant="destructive" size="default" disabled={isSaving} builders={[builder]}>
@@ -436,7 +436,7 @@
         <Button variant="default" size="default" disabled={isSaving} on:click={saveChanges} class="flex items-center">
             {#if isSaving}
                 <svg
-                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -456,18 +456,18 @@
     </div>
 {/if}
 
-<div class="gallery-container py-6 pb-24 max-w-[1000px] m-auto">
-    <div class="grid grid-cols-1 w-full gap-6">
+<div class="gallery-container m-auto max-w-[1000px] py-6 pb-24">
+    <div class="grid w-full grid-cols-1 gap-6">
         {#each sortedImages as image (image.id)}
             <div class="image-container relative">
                 {#if $adminMode}
                     <div
-                        class="order-controls absolute -left-12 top-1/2 transform -translate-y-1/2 flex flex-col space-y-2"
+                        class="order-controls absolute -left-12 top-1/2 flex -translate-y-1/2 transform flex-col space-y-2"
                     >
                         <button
                             type="button"
-                            class="p-2 bg-gray-200 rounded-full {sortedImages.indexOf(image) === 0
-                                ? 'opacity-40 pointer-events-none'
+                            class="rounded-full bg-gray-200 p-2 {sortedImages.indexOf(image) === 0
+                                ? 'pointer-events-none opacity-40'
                                 : 'hover:bg-gray-300'}"
                             on:click|preventDefault|stopPropagation={() => moveImageUp(image.id)}
                             disabled={sortedImages.indexOf(image) === 0}
@@ -488,8 +488,8 @@
                         </button>
                         <button
                             type="button"
-                            class="p-2 bg-gray-200 rounded-full {sortedImages.indexOf(image) === sortedImages.length - 1
-                                ? 'opacity-40 pointer-events-none'
+                            class="rounded-full bg-gray-200 p-2 {sortedImages.indexOf(image) === sortedImages.length - 1
+                                ? 'pointer-events-none opacity-40'
                                 : 'hover:bg-gray-300'}"
                             on:click|preventDefault|stopPropagation={() => moveImageDown(image.id)}
                             disabled={sortedImages.indexOf(image) === sortedImages.length - 1}
@@ -512,7 +512,7 @@
                 {/if}
                 <button
                     type="button"
-                    class="bg-transparent border-0 p-0 w-full text-left cursor-pointer"
+                    class="w-full cursor-pointer border-0 bg-transparent p-0 text-left"
                     on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
                     on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
                     aria-label={image.title || 'View image'}
@@ -535,16 +535,16 @@
 
     <!-- Next Category Navigation Button -->
     {#if nextCategory}
-        <div class="next-category-nav mt-12 flex justify-end w-full">
+        <div class="next-category-nav mt-12 flex w-full justify-end">
             <a
                 href="/{nextCategory.name.toLowerCase().replace(/\s+/g, '-')}"
-                class="link link--zoomies flex flex-row gap-1 items-center !text-[#d19177] !text-2xl"
+                class="link link--zoomies flex flex-row items-center gap-1 !text-2xl !text-[#d19177]"
                 data-sveltekit-reload
             >
                 {nextCategory.name}
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 group-hover:translate-x-1 transition-transform"
+                    class="h-5 w-5 transition-transform group-hover:translate-x-1"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -560,24 +560,24 @@
         <button
             bind:this={modalContainer}
             type="button"
-            class="modal-container fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-opacity duration-300 backdrop-blur-sm {showPreview
+            class="modal-container fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm transition-opacity duration-300 {showPreview
                 ? 'opacity-100'
-                : 'opacity-0 pointer-events-none'}"
+                : 'pointer-events-none opacity-0'}"
             on:click={closePreview}
             aria-label="Close modal overlay"
         >
             <button
-                class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 focus:outline-none transition-all hover:scale-110"
+                class="absolute right-4 top-4 text-2xl text-white transition-all hover:scale-110 hover:text-gray-300 focus:outline-none"
                 on:click={closePreview}
                 aria-label="Close preview"
             >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
             <div
-                class="relative overflow-hidden shadow-md max-w-[90vw] max-h-[90vh] transition-transform duration-300 {showPreview
+                class="relative max-h-[90vh] max-w-[90vw] overflow-hidden shadow-md transition-transform duration-300 {showPreview
                     ? 'scale-100'
                     : 'scale-95'}"
                 role="dialog"
@@ -586,7 +586,7 @@
                 <img
                     src={previewImage.url}
                     alt={previewImage.alt || 'Image preview'}
-                    class="max-w-full max-h-[90vh] object-contain"
+                    class="max-h-[90vh] max-w-full object-contain"
                 />
             </div>
         </button>

@@ -264,14 +264,14 @@
     <div class="container mx-auto px-4 py-8">
         {#if category}
             <div class="category-header mb-4">
-                <h1 class="text-3xl font-medium mt-2 text-center w-full">{category.attributes.name}</h1>
+                <h1 class="mt-2 w-full text-center text-3xl font-medium">{category.attributes.name}</h1>
                 {#if category.attributes.description}
-                    <p class="text-lg text-gray-600 mt-2">{category.attributes.description}</p>
+                    <p class="mt-2 text-lg text-gray-600">{category.attributes.description}</p>
                 {/if}
             </div>
 
             {#if isFallback}
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="mb-6 border-l-4 border-yellow-400 bg-yellow-50 p-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
@@ -287,7 +287,7 @@
                                 We had trouble loading the full category data. You're seeing limited information.
                             </p>
                             <button
-                                class="mt-2 text-sm font-medium text-yellow-700 hover:text-yellow-600 underline"
+                                class="mt-2 text-sm font-medium text-yellow-700 underline hover:text-yellow-600"
                                 on:click={retryLoading}
                             >
                                 Try again
@@ -303,7 +303,7 @@
 
             {#if !galleryImages.length}
                 <div class="col-span-full py-8 text-center">
-                    <p class="text-lg text-gray-600 mb-4">No images in this category yet.</p>
+                    <p class="mb-4 text-lg text-gray-600">No images in this category yet.</p>
                 </div>
             {/if}
 
@@ -313,10 +313,10 @@
                 categoryOrder={category.attributes.order}
             />
         {:else}
-            <div class="text-center py-12">
+            <div class="py-12 text-center">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>
                 <p class="mt-4">The category you're looking for doesn't exist.</p>
-                <a href="/" class="inline-block mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white">
+                <a href="/" class="mt-6 inline-block bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                     Return to Home
                 </a>
             </div>

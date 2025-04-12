@@ -50,18 +50,18 @@
     <title>Reset Password | Photography Portfolio</title>
 </svelte:head>
 
-<div class="admin-reset h-full min-h-[80vh] flex items-center justify-center">
-    <div class="max-w-md w-full p-6 bg-white shadow-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Reset Password</h1>
+<div class="admin-reset flex h-full min-h-[80vh] items-center justify-center">
+    <div class="w-full max-w-md bg-white p-6 shadow-md">
+        <h1 class="mb-6 text-center text-2xl font-bold">Reset Password</h1>
 
         {#if invalidRequest}
-            <div class="text-center p-4">
-                <p class="text-red-600 mb-4">Invalid or expired reset link.</p>
+            <div class="p-4 text-center">
+                <p class="mb-4 text-red-600">Invalid or expired reset link.</p>
                 <a href="/admin" class="text-blue-600 underline">Back to login</a>
             </div>
         {:else if success}
-            <div class="text-center p-4">
-                <p class="text-green-600 mb-4">Password reset successful!</p>
+            <div class="p-4 text-center">
+                <p class="mb-4 text-green-600">Password reset successful!</p>
                 <p>Redirecting to login page...</p>
             </div>
         {:else}
@@ -70,13 +70,13 @@
                 <input type="hidden" name="email" value={email} />
 
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="password">New Password</label>
+                    <label class="mb-2 block text-gray-700" for="password">New Password</label>
                     <input
                         type="password"
                         id="password"
                         name="password"
                         bind:value={password}
-                        class="w-full p-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter new password"
                         required
                         minlength="8"
@@ -84,32 +84,32 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="confirmPassword">Confirm Password</label>
+                    <label class="mb-2 block text-gray-700" for="confirmPassword">Confirm Password</label>
                     <input
                         type="password"
                         id="confirmPassword"
                         bind:value={confirmPassword}
-                        class="w-full p-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Confirm new password"
                         required
                         minlength="8"
                     />
 
                     {#if errorMessage}
-                        <p class="text-red-500 text-sm mt-1">{errorMessage}</p>
+                        <p class="mt-1 text-sm text-red-500">{errorMessage}</p>
                     {/if}
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    class="w-full rounded-md bg-blue-600 py-2 text-white transition-colors hover:bg-blue-700"
                     disabled={loading}
                 >
                     {loading ? 'Resetting...' : 'Reset Password'}
                 </button>
 
                 <p class="mt-4 text-center">
-                    <a href="/admin" class="text-blue-600 text-sm underline">Back to login</a>
+                    <a href="/admin" class="text-sm text-blue-600 underline">Back to login</a>
                 </p>
             </form>
         {/if}

@@ -14,12 +14,12 @@
     ];
 </script>
 
-<header class="flex items-center justify-between md:px-6 w-full m-auto py-12 px-24">
-    <div class="h-11 flex items-center justify-between w-full max-w-[1400px] m-auto">
+<header class="m-auto flex w-full items-center justify-between px-24 py-12 md:px-6">
+    <div class="m-auto flex h-11 w-full max-w-[1400px] items-center justify-between">
         <nav class="flex items-center gap-6">
             <a
                 href={$adminMode ? '/?admin=true' : '/'}
-                class="main-title link link--ascendence font-didot !text-[32px] relative flex gap-4 items-center cursor-pointer transition-all duration-300 !text-[#3f4a49]"
+                class="main-title link link--ascendence font-didot relative flex cursor-pointer items-center gap-4 !text-[32px] !text-[#3f4a49] transition-all duration-300"
                 data-text="sallyjkphoto"
             >
                 sallyjkphoto
