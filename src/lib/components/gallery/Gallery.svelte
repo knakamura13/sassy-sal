@@ -456,8 +456,8 @@
     </div>
 {/if}
 
-<div class="gallery-container py-6 pb-24">
-    <div class="grid grid-cols-1 w-full">
+<div class="gallery-container py-6 pb-24 max-w-[1000px] m-auto">
+    <div class="grid grid-cols-1 w-full gap-6">
         {#each sortedImages as image (image.id)}
             <div class="image-container relative">
                 {#if $adminMode}
@@ -535,7 +535,7 @@
 
     <!-- Next Category Navigation Button -->
     {#if nextCategory}
-        <div class="next-category-nav mt-12 flex justify-end max-w-3xl m-auto md:px-4">
+        <div class="next-category-nav mt-12 flex justify-end w-full">
             <a
                 href="/{nextCategory.name.toLowerCase().replace(/\s+/g, '-')}"
                 class="link link--zoomies flex flex-row gap-1 items-center !text-[#d19177] !text-2xl"
