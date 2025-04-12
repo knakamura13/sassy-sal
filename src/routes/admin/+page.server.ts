@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 import type { Actions } from './$types';
 
 // Store for password reset tokens (would be a database in production)
-const resetTokens: Record<string, { token: string, expires: Date }> = {};
+const resetTokens: Record<string, { token: string; expires: Date }> = {};
 
 // Verify the password against the hashed version in the environment variable
 async function verifyPassword(password: string): Promise<boolean> {
@@ -117,9 +117,11 @@ export const actions: Actions = {
             }
         } else {
             console.log(`[DEV MODE] Reset token for ${email}: ${token}`);
-            console.log(`[DEV MODE] Reset URL: /admin/reset-password?token=${token}&email=${encodeURIComponent(email)}`);
+            console.log(
+                `[DEV MODE] Reset URL: /admin/reset-password?token=${token}&email=${encodeURIComponent(email)}`
+            );
         }
 
         return { success: true };
     }
-}; 
+};

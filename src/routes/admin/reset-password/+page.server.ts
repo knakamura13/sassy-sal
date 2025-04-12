@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt';
 
 import type { Actions } from './$types';
 
-// Access the reset tokens storage 
+// Access the reset tokens storage
 // Note: In a real app, this would be a database
-declare const resetTokens: Record<string, { token: string, expires: Date }>;
+declare const resetTokens: Record<string, { token: string; expires: Date }>;
 
 export const actions: Actions = {
     default: async ({ request }) => {
@@ -60,4 +60,4 @@ export const actions: Actions = {
             });
         }
     }
-}; 
+};

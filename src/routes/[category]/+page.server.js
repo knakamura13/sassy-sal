@@ -24,12 +24,12 @@ export async function load({ params, url }) {
 
         // Now fetch the specific category with images using the id
         const categoryResponse = await getCategoryWithImages(categoryId);
-        
+
         // If no category found with this parameter
         if (!categoryResponse || !categoryResponse.data) {
             throw error(404, 'Category not found');
         }
-        
+
         const category = categoryResponse.data;
 
         // Ensure images data is properly structured, even if empty
