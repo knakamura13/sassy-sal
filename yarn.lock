@@ -2623,16 +2623,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bits-ui@npm:0.21.0":
-  version: 0.21.0
-  resolution: "bits-ui@npm:0.21.0"
+"bits-ui@npm:0.22.0":
+  version: 0.22.0
+  resolution: "bits-ui@npm:0.22.0"
   dependencies:
     "@internationalized/date": "npm:^3.5.1"
     "@melt-ui/svelte": "npm:0.76.2"
     nanoid: "npm:^5.0.5"
   peerDependencies:
-    svelte: ^4.0.0
-  checksum: 10c0/aba3f960f4adbfb659550738fe101d91eaf83ba1d613e4e0f8eb97d287ebdb166a93f7c776fc419cec44c6693f549fdb32c6005c1d9d9f7710bb36fd58a50e18
+    svelte: ^4.0.0 || ^5.0.0
+  checksum: 10c0/c1ca9cd0ecb586e6451cb07a4a9dd43616daa268a820b3e73094aa45ef90e87b554bec0e69ac60920b7ed5cc2c66c07a6c6c40b1f634945a0f485ce2eb414487
   languageName: node
   linkType: hard
 
@@ -5684,7 +5684,7 @@ __metadata:
     "@vitejs/plugin-legacy": "npm:^5.4.1"
     autoprefixer: "npm:10.4.20"
     bcrypt: "npm:^5.1.1"
-    bits-ui: "npm:0.21.0"
+    bits-ui: "npm:0.22.0"
     clsx: "npm:^2.1.1"
     dequal: "npm:^2.0.3"
     dotenv: "npm:^16.4.7"

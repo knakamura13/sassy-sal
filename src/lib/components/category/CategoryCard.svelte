@@ -276,7 +276,7 @@
 
 <a
     href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
-    class="category-card aspect-[3/4] min-w-[240px] max-w-[320px] w-full !m-auto block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative h-full"
+    class="category-card w-full h-full block transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1 relative"
 >
     <div
         class="category-card-border absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
@@ -297,10 +297,11 @@
             {/if}
         {/if}
 
-        <div class="absolute inset-0 flex items-center justify-center">
-            <h3
-                class="flex justify-center items-center card-title font-didot text-2xl transition-all duration-300 text-white text-center px-4 h-24 w-full bg-black bg-opacity-20 shadow-text"
-            >
+        <div
+            class="card-title transition-all duration-300 absolute w-full left-0 bottom-0 right-0 flex items-center justify-end bg-gradient-to-t from-black/40 to-transparent"
+            style="padding: clamp(8px, 2vw, 20px) clamp(12px, 3vw, 24px) clamp(8px, 2vw, 20px) clamp(8px, 2vw, 20px);"
+        >
+            <h3 class="text-white font-didot text-balance" style="font-size: clamp(18px, 4vw, 35px);">
                 {category.attributes.name}
             </h3>
         </div>
@@ -446,11 +447,7 @@
     @use '$lib/styles/variables' as vars;
 
     .image-filter {
-        filter: sepia(0.2) brightness(0.92) saturate(0.85);
-    }
-
-    .shadow-text {
-        text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
+        filter: contrast(0.95) brightness(1.05) saturate(0.95);
     }
 
     /* Styling for the category placeholder when no thumbnail is available */
@@ -459,23 +456,11 @@
     }
 
     .category-card:hover {
-        .card-title {
-            opacity: 1;
-            transform: scale(1.1);
-            background-color: rgba(0, 0, 0, 0.2);
-            --tw-backdrop-blur: blur(2px);
-            -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
-                var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
-                var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-            backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
-                var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
-                var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-        }
         .category-card-border {
             opacity: 1;
         }
         .image-filter {
-            filter: sepia(0) brightness(1) saturate(1.1);
+            filter: contrast(1) brightness(0.98) saturate(1.05);
         }
     }
 </style>

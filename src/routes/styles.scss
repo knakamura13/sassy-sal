@@ -1,5 +1,5 @@
 .page {
-    max-width: 50rem;
+    max-width: 1400px;
     width: 100%;
     margin: auto;
     padding: 2rem 1rem 4rem;
@@ -8,7 +8,13 @@
 /* Title styles */
 .title,
 .heading,
-.section-title {
+.section-title,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Didot', serif;
 }
 
@@ -27,4 +33,12 @@ li,
 ul,
 ol {
     font-family: 'Garamond Libre', serif;
+}
+
+.font-garamond {
+    font-family: 'Garamond Libre', serif;
+}
+
+.font-didot {
+    font-family: 'Didot', serif;
 }

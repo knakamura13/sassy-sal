@@ -457,7 +457,7 @@
 {/if}
 
 <div class="gallery-container py-6 pb-24">
-    <div class="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl m-auto md:px-4">
+    <div class="grid grid-cols-1 w-full">
         {#each sortedImages as image (image.id)}
             <div class="image-container relative">
                 {#if $adminMode}

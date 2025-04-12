@@ -6,6 +6,7 @@
     import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/sanity';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { adminMode } from '$lib/stores/adminStore';
+    import { AspectRatio } from '$lib/components/ui/aspect-ratio';
     import { showToast } from '$lib/utils';
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
@@ -529,63 +530,63 @@
     }
 </script>
 
-<div class="page relative min-h-[100vh]" id="home">
-    <div class="container mx-auto px-4">
-        <div class="category-container py-6">
-            {#if $adminMode}
-                <!-- Draggable category grid for admin mode -->
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 gap-6"
-                    use:dndzone={{ items: dndCategories, flipDurationMs: 300, type: 'categories' }}
-                    on:consider={handleDndConsider}
-                    on:finalize={handleDndFinalize}
-                >
-                    {#each dndCategories as category (category.id)}
-                        <div class="category-item">
-                            <CategoryCard
-                                {category}
-                                isAdmin={$adminMode}
-                                on:remove={handleRemoveCategory}
-                                on:update={handleUpdateCategory}
-                            />
-                        </div>
-                    {/each}
-
-                    <CategoryUploadPlaceholder on:addCategory={handleAddCategory} />
-                </div>
-            {:else}
-                <!-- Regular non-draggable grid for non-admin mode -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
+<div class="page min-h-[100vh] !pt-[60px] !pb-[240px] !px-[6vw]" id="home">
+    {#if $adminMode}
+        <!-- Draggable category grid for admin mode -->
+        <div
+            class="grid grid-cols-2 gap-x-20 gap-y-[75px] auto-rows-min"
+            use:dndzone={{ items: dndCategories, flipDurationMs: 300, type: 'categories' }}
+            on:consider={handleDndConsider}
+            on:finalize={handleDndFinalize}
+        >
+            {#each dndCategories as category (category.id)}
+                <div class="category-item">
+                    <AspectRatio ratio={556 / 771} class="!aspect-[556/771] max-h-[771px] !m-auto bg-muted">
                         <CategoryCard
                             {category}
                             isAdmin={$adminMode}
                             on:remove={handleRemoveCategory}
                             on:update={handleUpdateCategory}
                         />
-                    {/each}
+                    </AspectRatio>
                 </div>
-            {/if}
-        </div>
-    </div>
+            {/each}
 
-    <!-- Delete Confirmation Dialog -->
-    <AlertDialog.Root bind:open={$showDeleteDialog}>
-        <AlertDialog.Content>
-            <AlertDialog.Header>
-                <AlertDialog.Title>Confirm Deletion</AlertDialog.Title>
-                <AlertDialog.Description>
-                    Are you sure you want to delete the category "{$categoryNameToDelete}"? All images belonging to this
-                    category will also be deleted. <strong>This action cannot be undone.</strong>
-                </AlertDialog.Description>
-            </AlertDialog.Header>
-            <AlertDialog.Footer>
-                <AlertDialog.Cancel on:click={cancelDelete}>Cancel</AlertDialog.Cancel>
-                <AlertDialog.Action on:click={confirmDeleteCategory}>Delete</AlertDialog.Action>
-            </AlertDialog.Footer>
-        </AlertDialog.Content>
-    </AlertDialog.Root>
+            <CategoryUploadPlaceholder on:addCategory={handleAddCategory} />
+        </div>
+    {:else}
+        <!-- Regular non-draggable grid for non-admin mode -->
+        <div class="grid grid-cols-2 gap-x-20 gap-y-[75px] auto-rows-min">
+            {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
+                <AspectRatio ratio={556 / 771} class="!aspect-[556/771] max-h-[771px] !m-auto bg-muted">
+                    <CategoryCard
+                        {category}
+                        isAdmin={$adminMode}
+                        on:remove={handleRemoveCategory}
+                        on:update={handleUpdateCategory}
+                    />
+                </AspectRatio>
+            {/each}
+        </div>
+    {/if}
 </div>
+
+<!-- Delete Confirmation Dialog -->
+<AlertDialog.Root bind:open={$showDeleteDialog}>
+    <AlertDialog.Content>
+        <AlertDialog.Header>
+            <AlertDialog.Title>Confirm Deletion</AlertDialog.Title>
+            <AlertDialog.Description>
+                Are you sure you want to delete the category "{$categoryNameToDelete}"? All images belonging to this
+                category will also be deleted. <strong>This action cannot be undone.</strong>
+            </AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+            <AlertDialog.Cancel on:click={cancelDelete}>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Action on:click={confirmDeleteCategory}>Delete</AlertDialog.Action>
+        </AlertDialog.Footer>
+    </AlertDialog.Content>
+</AlertDialog.Root>
 
 <style lang="scss">
     /* Global styles for basic page layout */
