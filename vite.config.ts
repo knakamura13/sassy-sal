@@ -6,5 +6,6 @@ export default defineConfig({
     plugins: [sveltekit(), purgeCss()],
     build: {
         target: 'esnext'
-    }
+    },
+    // All CSS processing handled by Vite's defaults, which should use the modern API
 });

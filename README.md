@@ -175,10 +175,7 @@ The integration will use the Sanity JavaScript client for optimized queries and 
 
 **Features**
 
-- [ ] Add a large nav link at bottom-right of each Gallery to send user to the next category's gallery, with right-caret icon (query all categories and search for the next category based on their `order` fields)
-- [ ] Enable re-arranging images by drag-and-drop
-- [x] Implement secure admin authentication (done?)
-    - [ ] Alternatively, implement authentication with Sanity, if possible
+- [ ] Enable re-arranging images in the Gallery by drag-and-drop
 
 **Chores**
 
