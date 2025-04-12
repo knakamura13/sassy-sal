@@ -13,7 +13,6 @@ A simple website builder for photographers, built with SvelteKit and Sanity CMS.
     - Direct REST API integration using `fetch`
 - Secure admin authentication
     - Server-side password verification
-    - Password reset via email
     - Secure HTTP-only cookie session management
 
 ## Prerequisites

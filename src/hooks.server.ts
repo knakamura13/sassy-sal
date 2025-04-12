@@ -1,13 +1,12 @@
 import { redirect, type Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-    // Check if this is an admin route (except login and reset password)
+    // Check if this is an admin route (except login)
     const isAdminRoute = event.url.pathname.startsWith('/admin');
     const isLoginRoute = event.url.pathname === '/admin';
-    const isResetRoute = event.url.pathname.startsWith('/admin/reset-password');
 
-    // Only protect admin routes that aren't login/reset
-    if (isAdminRoute && !isLoginRoute && !isResetRoute) {
+    // Only protect admin routes that aren't login
+    if (isAdminRoute && !isLoginRoute) {
         // Check for admin session cookie
         const session = event.cookies.get('admin_session');
 
