@@ -32,61 +32,17 @@ Install the dependencies:
 yarn install
 ```
 
-Set up environment variables (.env file):
-
-```
-# Sanity.io Configuration
-SANITY_PROJECT_ID=your-sanity-project-id
-SANITY_DATASET=production
-SANITY_API_TOKEN=your-sanity-api-token
-
-# Admin Authentication
-ADMIN_PASSWORD_HASH=your-bcrypt-password-hash
-ADMIN_RECOVERY_EMAIL=your-recovery-email@example.com
-
-# Email Configuration (for password reset)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-smtp-username
-SMTP_PASS=your-smtp-password
-SMTP_FROM=no-reply@example.com
-PUBLIC_SITE_URL=https://your-site-url.com
-```
-
-Generate a secure password hash:
-
-```
-node scripts/generate-password-hash.js
-```
-
 Run the app in development mode:
 
 ```
 yarn run dev
 ```
 
-Access the admin panel via `/admin` route.
+Build and run the app for production:
 
-## Admin Authentication
-
-The admin authentication system is designed to be simple yet secure for a single-user scenario:
-
-1. **Password Storage**:
-
-    - Passwords are stored as bcrypt hashes in environment variables
-    - Authentication happens server-side for security
-    - Session maintained via HTTP-only cookies
-
-2. **Password Reset**:
-
-    - Recovery email configured in environment variables
-    - Reset tokens sent via email (configured SMTP server)
-    - Reset links valid for 1 hour
-
-3. **Development Mode**:
-    - Default password is "password" if no hash is configured
-    - Reset tokens printed to console in development
+```
+yarn start
+```
 
 ## Sanity Schema
 
