@@ -1,7 +1,7 @@
 <script lang="ts">
     import { adminMode } from '$lib/stores/adminStore';
     import '$lib/styles/links.scss';
-    import { fade } from 'svelte/transition';
+    import Hamburger from './Hamburger.svelte';
     import { onMount } from 'svelte';
 
     const navLinks = [
@@ -23,31 +23,32 @@
         }
     ];
 
-    // Responsive menu state
-    let menuOpen = false;
+    let isMenuOpen = false;
     let isMobile = false;
 
-    function toggleMenu() {
-        menuOpen = !menuOpen;
-        if (menuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    }
+    const toggleMenu = () => {
+        isMenuOpen = !isMenuOpen;
 
-    function handleResize() {
-        isMobile = window.innerWidth < 768;
-        if (!isMobile && menuOpen) {
-            menuOpen = false;
-            document.body.style.overflow = '';
+        // Toggle body scroll
+        if (isMenuOpen) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
         }
-    }
+    };
+
+    const checkMobile = () => {
+        isMobile = window.innerWidth < 768;
+    };
 
     onMount(() => {
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => {
+            window.removeEventListener('resize', checkMobile);
+            // Ensure scroll is re-enabled when component is destroyed
+            document.body.classList.remove('no-scroll');
+        };
     });
 </script>
 
@@ -70,31 +71,25 @@
             {/each}
         </nav>
 
-        <!-- Mobile Hamburger Menu Button -->
-        <button
-            class="z-20 flex flex-col justify-center gap-2 md:hidden"
-            on:click={toggleMenu}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        >
-            <span
-                class={`hamburger-line transition-transform duration-300 ${menuOpen ? 'translate-y-[7px] rotate-45' : ''}`}
-            ></span>
-            <span
-                class={`hamburger-line transition-transform duration-300 ${menuOpen ? '-translate-y-[7px] -rotate-45' : ''}`}
-            ></span>
-        </button>
+        <!-- Mobile Navigation Toggle -->
+        <div class="flex items-center md:hidden">
+            <button class="hamburger-btn" on:click={toggleMenu} aria-label="Toggle menu">
+                <Hamburger isActive={isMenuOpen} />
+            </button>
+        </div>
     </div>
 </header>
 
-<!-- Full-screen Mobile Menu -->
-{#if menuOpen}
-    <div
-        class="fixed inset-0 z-10 flex flex-col items-center justify-center bg-white"
-        transition:fade={{ duration: 300 }}
-    >
-        <nav class="flex flex-col items-center gap-8">
+<!-- Mobile Menu -->
+{#if isMobile && isMenuOpen}
+    <div class="mobile-menu flex flex-col items-center justify-center">
+        <nav class="flex flex-col items-center gap-6 py-6">
             {#each navLinks as link}
-                <a href={link.href} class="link link--zoomies !text-[28px] !text-[#3f4a49]" on:click={toggleMenu}>
+                <a
+                    href={link.href}
+                    class="link link--zoomies !text-[20px] !text-[#3f4a49]"
+                    on:click={() => (isMenuOpen = false)}
+                >
                     {link.label}
                 </a>
             {/each}
@@ -116,14 +111,41 @@
         padding-bottom: 2.8vw;
         padding-left: 6vw;
         padding-right: 6vw;
-        position: relative;
-        z-index: 20;
     }
 
-    .hamburger-line {
-        width: 28px;
-        height: 2px;
-        background-color: #3f4a49;
-        display: block;
+    .hamburger-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+
+    .mobile-menu {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding-bottom: 25vh;
+        background-color: white;
+        z-index: 100;
+        animation: slideDown 0.5s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    :global(body.no-scroll) {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
     }
 </style>
