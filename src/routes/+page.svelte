@@ -534,7 +534,7 @@
     {#if $adminMode}
         <!-- Draggable category grid for admin mode -->
         <div
-            class="grid auto-rows-min grid-cols-2 gap-x-20 gap-y-[75px]"
+            class="grid auto-rows-min grid-cols-1 gap-10 md:grid-cols-2 lg:gap-20"
             use:dndzone={{ items: dndCategories, flipDurationMs: 300, type: 'categories' }}
             on:consider={handleDndConsider}
             on:finalize={handleDndFinalize}
@@ -556,7 +556,7 @@
         </div>
     {:else}
         <!-- Regular non-draggable grid for non-admin mode -->
-        <div class="grid auto-rows-min grid-cols-2 gap-x-20 gap-y-[75px]">
+        <div class="grid auto-rows-min grid-cols-1 gap-10 md:grid-cols-2 lg:gap-20">
             {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
                 <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
                     <CategoryCard
