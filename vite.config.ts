@@ -1,26 +1,36 @@
 import { purgeCss } from 'vite-plugin-tailwind-purgecss';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig, loadEnv } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
-    // Load environment variables from .env files
-    const env = loadEnv(mode, process.cwd(), '');
-
-    return {
-        plugins: [sveltekit(), purgeCss()],
-        build: {
-            target: 'esnext'
-        },
-        resolve: {
-            alias: {
-                '$sanity': resolve('./sanity')
-            }
-        },
-        // Make environment variables available to the app
-        define: {
-            'import.meta.env.STRAPI_API_URL': JSON.stringify(env.STRAPI_API_URL)
+export default defineConfig({
+    plugins: [sveltekit(), purgeCss()],
+    build: {
+        target: 'esnext',
+        rollupOptions: {
+            external: ['buffer', 'stream-browserify', 'util'],
         }
-        // All CSS processing handled by Vite's defaults, which should use the modern API
-    };
+    },
+    resolve: {
+        alias: {
+            buffer: 'buffer/',
+            stream: 'stream-browserify',
+            util: 'util/',
+            events: 'events/'
+        }
+    },
+    optimizeDeps: {
+        include: ['events'],
+        esbuildOptions: {
+            define: {
+                global: 'globalThis',
+                'process.env': '{}',
+                'process.browser': 'true',
+                'process.version': '"0.0.0"',
+                'process.versions': '{}'
+            }
+        }
+    },
+    ssr: {
+        noExternal: ['buffer', 'stream-browserify', 'util', 'events']
+    }
 });

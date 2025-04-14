@@ -2,8 +2,9 @@ import { error } from '@sveltejs/kit';
 
 import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
 
-export async function load({ params, url }) {
-    const admin = url.searchParams.get('admin') === 'true';
+export async function load({ params, url, prerendering }) {
+    // Default to non-admin mode during prerendering
+    const admin = prerendering ? false : url.searchParams.get('admin') === 'true';
     const categoryParam = params.category;
 
     try {

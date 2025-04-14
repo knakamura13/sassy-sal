@@ -8,15 +8,40 @@ const SANITY_DATASET = import.meta.env.VITE_SANITY_DATASET || 'production';
 const SANITY_API_TOKEN = import.meta.env.VITE_SANITY_API_TOKEN;
 const SANITY_API_VERSION = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
 
+// Determine if we're in browser or server environment
+const isBrowser = typeof window !== 'undefined';
+
+// Ensure process is available in browser
+if (isBrowser && !window.process) {
+    window.process = {
+        env: {},
+        browser: true,
+        version: '',
+        versions: {},
+        nextTick: (fn) => setTimeout(fn, 0)
+    };
+}
+
 /**
- * Initialize the Sanity client
+ * Initialize the Sanity client with environment-specific options
  */
 export const client = createClient({
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
-    apiVersion: SANITY_API_VERSION,
+    apiVersion: SANITY_API_VERSION, // Use a UTC date string
     token: SANITY_API_TOKEN,
-    useCdn: true // Using CDN for production
+    useCdn: false, // Set to `true` for production
+    // Add browser-specific options only when in browser context
+    ...(isBrowser
+        ? {
+              // Browser-specific options
+              useProjectHostname: true, // Use the API hostname for the project instead of api.sanity.io
+              perspective: 'published', // Always fetch the published version in browser context
+              ignoreBrowserTokenWarning: true // Silence browser warnings about using token in browser
+          }
+        : {
+              // Server-specific options if needed
+          })
 });
 
 /**
@@ -30,7 +55,17 @@ const builder = imageUrlBuilder(client);
  * @returns {Object} - An image URL builder object
  */
 export function urlFor(source) {
-    return builder.image(source);
+    if (!source) {
+        console.warn('Attempted to generate URL for undefined image source');
+        return { url: () => '' };
+    }
+
+    try {
+        return builder.image(source);
+    } catch (error) {
+        console.error('Error generating image URL:', error);
+        return { url: () => '' };
+    }
 }
 
 /**
@@ -50,23 +85,35 @@ export const getCategories = async () => {
         const categories = await client.fetch(query);
 
         // Transform the data to match the expected structure in the UI components
-        const transformedData = categories.map((category) => ({
-            id: category._id,
-            documentId: category._id,
-            attributes: {
-                name: category.name,
-                order: category.order || 0,
-                thumbnail: category.thumbnail
-                    ? {
-                          data: {
-                              attributes: {
-                                  url: urlFor(category.thumbnail).url()
+        const transformedData = categories.map((category) => {
+            // Generate the thumbnail URL with safer handling
+            let thumbnailUrl = '';
+            try {
+                if (category.thumbnail) {
+                    thumbnailUrl = urlFor(category.thumbnail).url();
+                }
+            } catch (error) {
+                console.error('Error generating thumbnail URL for category:', category.name, error);
+            }
+
+            return {
+                id: category._id,
+                documentId: category._id,
+                attributes: {
+                    name: category.name,
+                    order: category.order || 0,
+                    thumbnail: category.thumbnail
+                        ? {
+                              data: {
+                                  attributes: {
+                                      url: thumbnailUrl
+                                  }
                               }
                           }
-                      }
-                    : null
-            }
-        }));
+                        : null
+                }
+            };
+        });
 
         return transformedData;
     } catch (error) {
@@ -116,6 +163,16 @@ export const getCategoryWithImages = async (nameOrId) => {
             return null;
         }
 
+        // Generate thumbnail URL with safe handling
+        let thumbnailUrl = '';
+        try {
+            if (category.thumbnail) {
+                thumbnailUrl = urlFor(category.thumbnail).url();
+            }
+        } catch (error) {
+            console.error('Error generating category thumbnail URL:', error);
+        }
+
         // Transform the data to match the expected structure in the UI components
         const transformedCategory = {
             id: category._id,
@@ -127,26 +184,38 @@ export const getCategoryWithImages = async (nameOrId) => {
                     ? {
                           data: {
                               attributes: {
-                                  url: urlFor(category.thumbnail).url()
+                                  url: thumbnailUrl
                               }
                           }
                       }
                     : null,
                 images: {
-                    data: category.images.map((image) => ({
-                        id: image._id,
-                        documentId: image._id,
-                        attributes: {
-                            order: image.order || 0,
-                            image: {
-                                data: {
-                                    attributes: {
-                                        url: urlFor(image.image).url()
+                    data: category.images.map((image) => {
+                        // Generate image URL with safe handling
+                        let imageUrl = '';
+                        try {
+                            if (image.image) {
+                                imageUrl = urlFor(image.image).url();
+                            }
+                        } catch (error) {
+                            console.error('Error generating image URL:', error);
+                        }
+
+                        return {
+                            id: image._id,
+                            documentId: image._id,
+                            attributes: {
+                                order: image.order || 0,
+                                image: {
+                                    data: {
+                                        attributes: {
+                                            url: imageUrl
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }))
+                        };
+                    })
                 }
             }
         };
@@ -421,7 +490,19 @@ export const updateImage = async (id, data) => {
  */
 export const uploadFile = async (file) => {
     try {
-        return client.assets.upload('image', file);
+        // Check if we're in a browser environment where File is available
+        if (!isBrowser) {
+            throw new Error('File upload is only available in browser environment');
+        }
+
+        // Use more browser-friendly approach with fewer dependencies
+        return client.assets.upload('image', file, {
+            filename: file.name,
+            // Important: use alternative options without Node.js dependencies
+            contentType: file.type,
+            // Avoid options that might use Node.js-specific APIs like fs or Buffer
+            preserveFilename: true
+        });
     } catch (error) {
         console.error('Error uploading file to Sanity:', error);
         throw error;
