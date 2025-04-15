@@ -301,7 +301,7 @@
             class="card-title absolute bottom-0 left-0 right-0 flex w-full items-center justify-end bg-gradient-to-t from-black/40 to-transparent transition-all duration-300"
             style="padding: clamp(8px, 2vw, 20px) clamp(12px, 3vw, 24px) clamp(8px, 2vw, 20px) clamp(8px, 2vw, 20px);"
         >
-            <h3 class="font-didot text-balance text-white" style="font-size: clamp(18px, 4vw, 35px);">
+            <h3 class="font-didot text-balance text-3xl text-white lg:text-[32px]">
                 {category.attributes.name}
             </h3>
         </div>

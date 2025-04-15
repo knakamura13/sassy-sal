@@ -264,7 +264,9 @@
     <div class="container mx-auto px-4 py-8">
         {#if category}
             <div class="category-header mb-4">
-                <h1 class="mt-2 w-full text-center text-3xl font-medium">{category.attributes.name}</h1>
+                <h1 class="mt-2 w-full text-center text-3xl font-medium text-[#3f4a49]">
+                    {category.attributes.name}
+                </h1>
                 {#if category.attributes.description}
                     <p class="mt-2 text-lg text-gray-600">{category.attributes.description}</p>
                 {/if}
