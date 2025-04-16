@@ -9,6 +9,25 @@
     import Dialog from '$lib/components/Dialog.svelte';
     import type { Image } from '$lib/stores/imageStore';
 
+    // Import from relative path
+    import ImageDropZone from '$lib/components/gallery/ImageDropZone.svelte';
+
+    // Type definition for category response
+    interface CategoryResponse {
+        data?: {
+            attributes?: {
+                images?: {
+                    data?: Array<{
+                        attributes?: {
+                            order?: number;
+                        };
+                        order?: number;
+                    }>;
+                };
+            };
+        };
+    }
+
     // Add categoryId as a prop to support category galleries
     export let categoryId: string = '';
 
@@ -16,9 +35,6 @@
 
     let imageFiles: File[] = [];
     let previewUrls: string[] = [];
-    let dropZone: HTMLElement;
-    let fileInput: HTMLInputElement;
-    let isDragging = false;
     let open = false;
     let orderValue = 0; // Default order value
     let suggestedOrderValue = 0; // Keep track of the suggested value separately
@@ -41,58 +57,22 @@
         resetForm();
     }
 
-    // Function to fetch the latest order value for images
+    /**
+     * Fetches the latest order value for images in the current category
+     */
     async function fetchLatestOrderValue() {
         isLoadingImages = true;
         try {
             // Dynamic import to avoid SSR issues
             const { getCategoryWithImages } = await import('$lib/services/sanity');
-
-            // Add proper typing
-            interface CategoryResponse {
-                data?: {
-                    attributes?: {
-                        images?: {
-                            data?: Array<{
-                                attributes?: {
-                                    order?: number;
-                                };
-                                order?: number;
-                            }>;
-                        };
-                    };
-                };
-            }
-
             const categoryResponse = (await getCategoryWithImages(categoryId)) as CategoryResponse;
-            const categoryData = categoryResponse?.data;
 
-            if (
-                categoryData &&
-                categoryData.attributes?.images?.data &&
-                Array.isArray(categoryData.attributes.images.data)
-            ) {
-                // Find the highest order value among images
-                const highestOrder = categoryData.attributes.images.data.reduce((max: number, image: any) => {
-                    // Check order in various possible locations in the object
-                    const imageOrder =
-                        typeof image.order === 'number'
-                            ? image.order
-                            : typeof image.attributes?.order === 'number'
-                              ? image.attributes.order
-                              : 0;
+            // Calculate the highest order value from images
+            const highestOrder = getHighestOrderValue(categoryResponse);
 
-                    return imageOrder > max ? imageOrder : max;
-                }, 0);
-
-                // Set the order value to highest + 2 as a suggestion
-                suggestedOrderValue = highestOrder + 2;
-                orderValue = suggestedOrderValue;
-            } else {
-                // If no images exist, default to 0
-                suggestedOrderValue = 0;
-                orderValue = 0;
-            }
+            // Set the order value to highest + 2 as a suggestion
+            suggestedOrderValue = highestOrder + 2;
+            orderValue = suggestedOrderValue;
         } catch (error) {
             console.error('Error fetching images for order value:', error);
             // Default to 0 if there's an error
@@ -103,24 +83,44 @@
         }
     }
 
+    /**
+     * Extracts the highest order value from the category response
+     */
+    function getHighestOrderValue(categoryResponse: CategoryResponse): number {
+        const images = categoryResponse?.data?.attributes?.images?.data;
+
+        if (!images || !Array.isArray(images) || images.length === 0) {
+            return 0;
+        }
+
+        return images.reduce((max: number, image: any) => {
+            // Check order in various possible locations in the object
+            const imageOrder =
+                typeof image.order === 'number'
+                    ? image.order
+                    : typeof image.attributes?.order === 'number'
+                      ? image.attributes.order
+                      : 0;
+
+            return imageOrder > max ? imageOrder : max;
+        }, 0);
+    }
+
+    /**
+     * Resets the form state and cleans up resources
+     */
     function resetForm() {
         imageFiles = [];
         // Revoke all object URLs to prevent memory leaks
         previewUrls.forEach((url) => URL.revokeObjectURL(url));
         previewUrls = [];
-        orderValue = 0;
-        suggestedOrderValue = 0;
+        orderValue = suggestedOrderValue || 0;
     }
 
-    function handleFileChange(event: Event) {
-        const target = event.target as HTMLInputElement;
-        const files = target.files;
-        if (files) {
-            processFiles(Array.from(files));
-        }
-    }
-
-    function processFiles(files: File[]) {
+    /**
+     * Processes uploaded files and creates preview URLs
+     */
+    function handleImagesSelected(files: File[]) {
         if (!files.length) return;
 
         // Reset existing previews
@@ -133,28 +133,9 @@
         previewUrls = imageFiles.map((file) => URL.createObjectURL(file));
     }
 
-    function handleDropZoneClick() {
-        fileInput.click();
-    }
-
-    // Common handler for drag events
-    function handleDragEvent(event: DragEvent, entering: boolean) {
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = entering;
-    }
-
-    function handleDrop(event: DragEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = false;
-
-        const files = event.dataTransfer?.files;
-        if (files && files.length > 0) {
-            processFiles(Array.from(files));
-        }
-    }
-
+    /**
+     * Handles form submission and dispatches image data
+     */
     function handleSubmit() {
         if (imageFiles.length === 0) {
             showToast.error('Please select at least one image file');
@@ -197,69 +178,12 @@
             <div class="space-y-2">
                 <Label for="imageFile" class="text-left">Select Images*</Label>
 
-                <!-- Hidden file input with multiple attribute -->
-                <input
-                    bind:this={fileInput}
-                    type="file"
-                    id="imageFile"
-                    class="sr-only"
-                    accept="image/*"
-                    multiple
-                    on:change={handleFileChange}
+                <!-- Image selection component -->
+                <ImageDropZone
+                    selectedFiles={imageFiles}
+                    {previewUrls}
+                    on:filesSelected={(event) => handleImagesSelected(event.detail)}
                 />
-
-                <!-- Custom Drop Zone -->
-                <button
-                    type="button"
-                    bind:this={dropZone}
-                    class="group flex w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 text-center transition-colors {isDragging
-                        ? 'border-blue-500 bg-gray-100'
-                        : previewUrls.length
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
-                    on:click={handleDropZoneClick}
-                    on:dragenter={(e) => handleDragEvent(e, true)}
-                    on:dragover={(e) => handleDragEvent(e, true)}
-                    on:dragleave={(e) => handleDragEvent(e, false)}
-                    on:drop={handleDrop}
-                >
-                    {#if previewUrls.length}
-                        <div class="mb-2 grid max-h-48 w-full grid-cols-3 gap-2 overflow-y-auto">
-                            {#each previewUrls.slice(0, 6) as url, index}
-                                <div class="relative">
-                                    <img src={url} alt="Preview" class="mx-auto h-20 w-20 rounded object-cover" />
-                                    {#if index === 0 && previewUrls.length > 6}
-                                        <div
-                                            class="absolute inset-0 flex items-center justify-center rounded bg-black bg-opacity-50 font-medium text-white"
-                                        >
-                                            +{previewUrls.length - 6} more
-                                        </div>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-                        <p class="text-sm text-gray-600">
-                            {imageFiles.length} image{imageFiles.length !== 1 ? 's' : ''} selected
-                        </p>
-                        <p class="mt-1 text-xs text-gray-500">Click to change</p>
-                    {:else}
-                        <svg
-                            class="mb-2 h-10 w-10 text-gray-400 group-hover:text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        <p class="font-medium text-gray-600 group-hover:text-blue-600">Drop images here</p>
-                        <p class="mt-1 text-sm text-gray-500">or click to browse</p>
-                    {/if}
-                </button>
             </div>
 
             <!-- Order input field -->
