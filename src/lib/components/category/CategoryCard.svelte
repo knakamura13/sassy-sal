@@ -13,7 +13,7 @@
         attributes: {
             name: string;
             order: number;
-            thumbnail?: any; // Using any type to handle various response structures
+            thumbnail?: any;
         };
     }
 
@@ -40,26 +40,11 @@
     let fileInput: HTMLInputElement;
     let isDragging = false;
 
-    // Make sure category has the expected structure to prevent errors
-    if (!category) {
-        console.error(`Category is undefined!`);
-        category = {
-            id: 'placeholder',
-            attributes: {
-                name: 'Missing Category',
-                order: 0
-            }
-        };
-    } else if (!category.attributes) {
-        console.error(`Category is missing attributes`);
-        category.attributes = {
-            name: (category as any).name || 'Unknown Category',
-            order: (category as any).order || 0
-        };
-    } else if (category.attributes.order === undefined) {
-        // Ensure order has a default value if missing
-        category.attributes.order = 0;
-    }
+    // Ensure we have default values for missing properties
+    $: categoryId = category?.id || 'placeholder';
+    $: categoryName = category?.attributes?.name || 'Missing Category';
+    $: categoryOrder = category?.attributes?.order ?? 0;
+    $: categoryThumbnail = category?.attributes?.thumbnail;
 
     onMount(async () => {
         await loadImage();
@@ -69,53 +54,39 @@
     async function loadImage() {
         isLoading = true;
 
-        // Check if the category has a thumbnail property
-        if (category.attributes.thumbnail) {
-            // Handle different possible structures for thumbnail data
-            let thumbnailUrl = null;
-
-            // Structure: Sanity with data.attributes.url
-            if (category.attributes.thumbnail.data && category.attributes.thumbnail.data.attributes?.url) {
-                thumbnailUrl = category.attributes.thumbnail.data.attributes.url;
-            }
-            // Structure: Object with direct URL property
-            else if (category.attributes.thumbnail.url) {
-                thumbnailUrl = category.attributes.thumbnail.url;
-            }
-
-            // If we found a URL, use it
-            if (thumbnailUrl) {
-                imageUrl = thumbnailUrl;
-
-                // Verify the image loads correctly with a timeout
-                try {
-                    const testImg = new Image();
-
-                    // Set a timeout to prevent waiting too long for image load
-                    const timeoutPromise = new Promise((_, reject) => {
-                        setTimeout(() => reject(new Error('Image load timeout')), 5000);
-                    });
-
-                    const loadPromise = new Promise((resolve, reject) => {
-                        testImg.onload = () => {
-                            resolve('success');
-                        };
-                        testImg.onerror = (e) => {
-                            reject(new Error('Image load failed'));
-                        };
-                        testImg.src = imageUrl;
-                    });
-
-                    // Race between load and timeout
-                    await Promise.race([loadPromise, timeoutPromise]);
-                    isLoading = false;
-                } catch (error) {
-                    usePlaceholderBackground();
-                }
-            } else {
+        try {
+            if (!categoryThumbnail) {
                 usePlaceholderBackground();
+                return;
             }
-        } else {
+
+            // Extract thumbnail URL from different possible structures
+            const thumbnailUrl = categoryThumbnail.data?.attributes?.url || categoryThumbnail.url || null;
+
+            if (!thumbnailUrl) {
+                usePlaceholderBackground();
+                return;
+            }
+
+            imageUrl = thumbnailUrl;
+
+            // Verify image loads correctly with timeout
+            const testImg = new Image();
+
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Image load timeout')), 5000);
+            });
+
+            const loadPromise = new Promise((resolve, reject) => {
+                testImg.onload = () => resolve('success');
+                testImg.onerror = () => reject(new Error('Image load failed'));
+                testImg.src = imageUrl;
+            });
+
+            // Race between load and timeout
+            await Promise.race([loadPromise, timeoutPromise]);
+            isLoading = false;
+        } catch (error) {
             usePlaceholderBackground();
         }
     }
@@ -128,13 +99,13 @@
     }
 
     function handleRemove() {
-        dispatch('remove', category.id);
+        dispatch('remove', categoryId);
     }
 
     function handleEdit() {
-        editName = category.attributes.name;
-        editOrder = category.attributes.order;
-        imagePreview = imageUrl || ''; // Handle cases where imageUrl is empty
+        editName = categoryName;
+        editOrder = categoryOrder;
+        imagePreview = imageUrl || '';
         editDialogOpen = true;
     }
 
@@ -179,8 +150,8 @@
     }
 
     function resetForm() {
-        editName = category.attributes.name;
-        editOrder = category.attributes.order;
+        editName = categoryName;
+        editOrder = categoryOrder;
         selectedFile = null;
         imagePreview = imageUrl;
         isUploading = false;
@@ -204,70 +175,62 @@
 
         try {
             // Prepare the update data
-            const updateData: any = {
+            const updateData: { data: { name: string; order: number; thumbnail?: File } } = {
                 data: {
-                    name: editName,
-                    order: editOrder
+                    name: editName.trim(),
+                    order: Number(editOrder) || 0
                 }
             };
 
-            // For Sanity, we'll pass the file directly
-            // The uploadFile function is called within the updateCategory function
+            // Add thumbnail file if selected
             if (selectedFile) {
                 updateData.data.thumbnail = selectedFile;
             }
 
-            try {
-                // Store old name to check if name changed
-                const oldName = category.attributes.name;
+            // Store old name to check if name changed
+            const oldName = categoryName;
 
-                // Dispatch the update event
-                dispatch('update', {
-                    id: category.id,
-                    data: updateData
-                });
+            // Dispatch the update event
+            dispatch('update', {
+                id: categoryId,
+                data: updateData
+            });
 
-                // Update local state to reflect changes
+            // Update local state to reflect changes (via reactive declarations)
+            if (category && category.attributes) {
                 category.attributes.name = editName.trim();
                 category.attributes.order = Number(editOrder) || 0;
-
-                // Force a reload of the image when a new one is uploaded
-                if (selectedFile) {
-                    // Small delay to ensure the upload completes
-                    setTimeout(async () => {
-                        try {
-                            await loadImage();
-                        } catch (reloadError) {}
-                    }, 1500);
-                }
-
-                // Close dialog after successful submission
-                editDialogOpen = false;
-
-                // Prevent the default link navigation if name changed
-                // This gives Sanity time to update the category
-                if (oldName !== editName.trim()) {
-                    showToast.success('Category updated. Refreshing page in 2 seconds...');
-                    // Prevent immediate navigation by adding a slight delay
-                    setTimeout(() => {
-                        window.location.href = window.location.href;
-                    }, 2000);
-                }
-            } catch (updateError: any) {
-                // Check for 404 errors specifically
-                if (
-                    updateError?.status === 404 ||
-                    (typeof updateError?.message === 'string' && updateError.message.includes('404'))
-                ) {
-                    errorMessage = 'This category no longer exists. It may have been deleted from the server.';
-                } else {
-                    errorMessage = `Failed to update category: ${updateError?.message || 'Unknown error'}`;
-                }
-                console.error('Error updating category:', updateError);
             }
-        } catch (error) {
-            console.error('Error in category update process:', error);
-            errorMessage = 'Failed to update category. Please try again.';
+
+            // Force a reload of the image when a new one is uploaded
+            if (selectedFile) {
+                setTimeout(async () => {
+                    try {
+                        await loadImage();
+                    } catch (reloadError) {
+                        // Silent failure - image will use placeholder if needed
+                    }
+                }, 1500);
+            }
+
+            // Close dialog after successful submission
+            editDialogOpen = false;
+
+            // Prevent immediate navigation if name changed to give Sanity time to update
+            if (oldName !== editName.trim()) {
+                showToast.success('Category updated. Refreshing page in 2 seconds...');
+                setTimeout(() => {
+                    window.location.href = window.location.href;
+                }, 2000);
+            }
+        } catch (error: any) {
+            // Handle specific error types
+            if (error?.status === 404 || (typeof error?.message === 'string' && error.message.includes('404'))) {
+                errorMessage = 'This category no longer exists. It may have been deleted from the server.';
+            } else {
+                errorMessage = `Failed to update category: ${error?.message || 'Unknown error'}`;
+            }
+            console.error('Error updating category:', error);
         } finally {
             isUploading = false;
         }
@@ -275,7 +238,7 @@
 </script>
 
 <a
-    href={isAdmin ? `/${category.attributes.name}?admin=true` : `/${category.attributes.name}`}
+    href={isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
     class="category-card relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg"
 >
     <div
@@ -287,7 +250,7 @@
                 <div class="h-full w-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
                     <img
                         src={imageUrl}
-                        alt={category.attributes.name}
+                        alt={categoryName}
                         class="image-filter h-full w-full object-cover transition-[filter] duration-300 ease-out"
                     />
                 </div>
@@ -302,7 +265,7 @@
             style="padding: clamp(8px, 2vw, 20px) clamp(12px, 3vw, 24px) clamp(8px, 2vw, 20px) clamp(8px, 2vw, 20px);"
         >
             <h3 class="font-didot text-balance text-3xl text-white lg:text-[32px]">
-                {category.attributes.name}
+                {categoryName}
             </h3>
         </div>
 
@@ -432,8 +395,6 @@
             <Button type="submit" variant="default" class="font-didot" disabled={!editName || isUploading}>
                 {#if isUploading}
                     <span class="mr-2">Updating...</span>
-                    <!-- Simple loading spinner -->
-                    <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 {:else}
                     Update
                 {/if}
