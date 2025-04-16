@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     const isAuthenticated = cookies.get('admin_session') === 'authenticated';
 
     if (isAuthenticated) {
-        throw redirect(303, '/?admin=true');
+        throw redirect(303, '/');
     }
 
     return {};
@@ -46,8 +46,8 @@ export const actions: Actions = {
             sameSite: 'strict'
         });
 
-        // Redirect to home page with admin=true parameter
-        throw redirect(303, '/?admin=true');
+        // Redirect to home page without admin=true parameter
+        throw redirect(303, '/');
     },
 
     // Logout action

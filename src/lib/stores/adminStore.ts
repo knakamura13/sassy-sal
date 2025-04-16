@@ -7,8 +7,15 @@ function createAdminStore() {
 
     // Check for authentication on client-side initialization
     if (browser) {
-        // Admin state is determined by the server via cookies
-        // The store will be updated by the +page.svelte components
+        // Check for the admin_session cookie using document.cookie
+        const hasAdminCookie = document.cookie
+            .split('; ')
+            .some(cookie => cookie.startsWith('admin_session=authenticated'));
+
+        // Set the initial state based on the cookie
+        if (hasAdminCookie) {
+            set(true);
+        }
     }
 
     return {

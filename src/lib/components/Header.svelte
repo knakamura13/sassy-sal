@@ -55,7 +55,6 @@
                 <a href={link.href} class="link link--zoomies !text-[20px] !text-[#3f4a49]">{link.label}</a>
             {/each}
 
-            <!-- Admin Mode Indicator and Logout -->
             {#if $adminMode}
                 <form action="/admin?/logout" method="POST">
                     <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]">
@@ -96,11 +95,10 @@
 
             <!-- Admin Logout in Mobile Menu -->
             {#if $adminMode}
-                <span class="admin-indicator">Admin Mode</span>
                 <form action="/admin?/logout" method="POST">
                     <button
                         type="submit"
-                        class="logout-btn link link--zoomies !text-[20px] !text-[#3f4a49]"
+                        class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]"
                         on:click={() => (isMenuOpen = false)}
                     >
                         Logout
@@ -141,14 +139,6 @@
         background-color: white;
         z-index: 100;
         animation: slideDown 0.5s ease-out;
-    }
-
-    .admin-indicator {
-        font-size: 14px;
-        background: #3f4a49;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
     }
 
     .logout-btn {

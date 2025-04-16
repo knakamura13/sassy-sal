@@ -17,14 +17,14 @@
         return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
             loading = false;
 
-            if (result.type === 'success') {
-                adminMode.login();
-            } else if (result.type === 'failure') {
+            if (result.type === 'failure') {
                 errorMessage = result.data?.message || 'Invalid password';
                 await update();
+            } else if (result.type === 'redirect') {
+                // When we get redirected (which happens on successful login), set admin mode
+                adminMode.login();
+                await goto('/');
             }
-
-            await goto('/?admin=true');
         };
     }
 </script>
