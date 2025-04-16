@@ -47,13 +47,13 @@
         </button>
 
         <div
-            class="relative max-h-[90vh] max-w-[90vw] overflow-hidden shadow-md transition-transform duration-300 {show
+            class="relative h-full max-h-[95vh] w-full max-w-[95vw] overflow-hidden shadow-md transition-transform duration-300 {show
                 ? 'scale-100'
                 : 'scale-95'}"
             role="dialog"
             aria-modal="true"
         >
-            <img src={image.url} alt={image.alt || 'Image preview'} class="max-h-[90vh] max-w-full object-contain" />
+            <img src={image.url} alt={image.alt || 'Image preview'} class="h-full w-full object-contain" />
         </div>
     </button>
 {/if}

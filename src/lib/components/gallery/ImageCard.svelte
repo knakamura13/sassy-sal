@@ -149,7 +149,7 @@
     }
 </script>
 
-<div class="image-card-wrapper relative !m-auto aspect-square w-full">
+<div class="image-card-wrapper relative !m-auto h-auto w-full">
     <div
         class="image-card relative inset-0 h-full w-full cursor-pointer overflow-hidden shadow-md transition-all duration-200 hover:scale-[1.01] hover:transform"
         data-image-id={image.id}
@@ -173,16 +173,16 @@
         {/if}
 
         {#if isAdmin}
-            <div class="absolute right-2 top-2 flex gap-2">
+            <div class="absolute right-4 top-4 flex gap-3">
                 <button
-                    class="!m-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-0 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
+                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation={handleEdit}
                     aria-label="Edit image"
                 >
                     ✎
                 </button>
                 <button
-                    class="!m-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-0 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
+                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation={handleRemove}
                     aria-label="Remove image"
                 >
