@@ -18,7 +18,7 @@
 
             if (result.type === 'success') {
                 adminMode.login();
-                await goto('/?admin=true');
+                await goto('/');
             } else if (result.type === 'failure') {
                 errorMessage = result.data?.message || 'Invalid password';
                 await update();

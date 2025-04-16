@@ -169,9 +169,11 @@
         id: String(category.id)
     }));
 
-    // Set admin mode when URL parameter is present
+    // Set admin mode when the user is authenticated
     $: if (data.admin) {
         adminMode.set(true);
+    } else {
+        adminMode.set(false);
     }
 
     // Define interfaces for dnd event types
@@ -626,6 +628,4 @@
     :global(.category-item:hover) {
         z-index: 10;
     }
-
-
 </style>

@@ -1,6 +1,17 @@
-import { fail } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 import { VITE_ADMIN_PASSWORD } from '$env/static/private';
+
+// Redirect authenticated users away from login page
+export const load: PageServerLoad = async ({ cookies }) => {
+    const isAuthenticated = cookies.get('admin_session') === 'authenticated';
+
+    if (isAuthenticated) {
+        throw redirect(303, '/');
+    }
+
+    return {};
+};
 
 export const actions: Actions = {
     // Login action
@@ -35,5 +46,14 @@ export const actions: Actions = {
         });
 
         return { success: true };
+    },
+
+    // Logout action
+    logout: async ({ cookies }) => {
+        // Delete the admin session cookie
+        cookies.delete('admin_session', { path: '/' });
+
+        // Redirect to home page
+        throw redirect(303, '/');
     }
 };
