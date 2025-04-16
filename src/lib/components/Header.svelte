@@ -96,11 +96,7 @@
             <!-- Admin Logout in Mobile Menu -->
             {#if $adminMode}
                 <form action="/admin?/logout" method="POST">
-                    <button
-                        type="submit"
-                        class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]"
-                        on:click={() => (isMenuOpen = false)}
-                    >
+                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]">
                         Logout
                     </button>
                 </form>
