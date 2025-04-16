@@ -42,7 +42,7 @@
         <nav class="flex items-center gap-6">
             <a
                 href={homeUrl}
-                class="main-title link link--ascendence font-didot relative flex cursor-pointer items-center gap-4 !text-[32px] !text-[#3f4a49] transition-all duration-300"
+                class="main-title link link--ascendance font-didot relative flex cursor-pointer items-center gap-4 !text-[32px] !text-[#3f4a49] transition-all duration-300"
                 data-text="sallyjkphoto"
             >
                 sallyjkphoto
@@ -131,9 +131,4 @@
         }
     }
 
-    :global(body.no-scroll) {
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-    }
 </style>

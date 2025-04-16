@@ -18,10 +18,10 @@
 
             if (result.type === 'success') {
                 adminMode.login();
-                goto('/?admin=true');
+                await goto('/?admin=true');
             } else if (result.type === 'failure') {
                 errorMessage = result.data?.message || 'Invalid password';
-                update();
+                await update();
             }
         };
     }

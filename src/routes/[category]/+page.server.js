@@ -11,7 +11,7 @@ export async function load({ params, url, prerendering }) {
         // First, fetch all categories
         const allCategories = await getCategories();
 
-        // Find the matching category by name (case insensitive)
+        // Find the matching category by name (case-insensitive)
         const matchingCategory = allCategories.find(
             (cat) => cat.attributes.name.toLowerCase() === categoryParam.toLowerCase()
         );

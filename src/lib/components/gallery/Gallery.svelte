@@ -2,9 +2,9 @@
     import { onMount } from 'svelte';
 
     import { adminMode } from '$lib/stores/adminStore';
-    import { imageStore, type Image } from '$lib/stores/imageStore';
+    import { type Image, imageStore } from '$lib/stores/imageStore';
     import { showToast } from '$lib/utils';
-    import { sortImagesByOrder, ensureImageOrder, cloneImages, findImageChanges } from '$lib/utils/imageUtils';
+    import { cloneImages, ensureImageOrder, findImageChanges, sortImagesByOrder } from '$lib/utils/imageUtils';
     import AdminControls from './AdminControls.svelte';
     import CategoryNavigation from './CategoryNavigation.svelte';
     import ImageCard from './ImageCard.svelte';
@@ -56,7 +56,7 @@
             const categories = await getAllCategories();
 
             if (categories.length <= 1) {
-                return; // No next category if there's only 1 or 0 categories
+                return;
             }
 
             // Sort categories by order to ensure correct sequence
@@ -194,13 +194,10 @@
                 return;
             }
 
-            // Make sure newOrder is a number
-            const orderValue = typeof newOrder === 'number' ? newOrder : Number(newOrder || 0);
-
             // Update the order of the specific image
             localImages[imageIndex] = {
                 ...localImages[imageIndex],
-                order: orderValue
+                order: newOrder
             };
 
             // Mark as modified
@@ -275,15 +272,12 @@
             imageFile = updateFields.image;
         }
 
-        // Create a new image object to ensure reactivity
-        const updatedImage = {
+        // Update the image in the array
+        localImages[imageIndex] = {
             ...localImages[imageIndex],
             order: newOrder,
             file: imageFile // Store file for later processing
         };
-
-        // Update the image in the array
-        localImages[imageIndex] = updatedImage;
 
         // Force reactive update by reassigning the array
         localImages = [...localImages];

@@ -1,7 +1,10 @@
 <script context="module" lang="ts">
+    // Define a type for maxWidth options
+    type MaxWidthOption = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+
     // Helper function to handle max width classes
     function getMaxWidth(maxWidth: string): string {
-        const sizes = {
+        const sizes: Record<MaxWidthOption, string> = {
             sm: 'max-w-sm',
             md: 'max-w-md',
             lg: 'max-w-lg',
@@ -10,7 +13,7 @@
             full: 'max-w-full'
         };
 
-        return sizes[maxWidth] || sizes.md;
+        return sizes[maxWidth as MaxWidthOption] || sizes.md;
     }
 </script>
 
@@ -18,18 +21,30 @@
     import { Dialog as BitsDialog } from 'bits-ui';
 
     export let open = false;
-    export let maxWidth = 'md'; // new prop for customizing width
+    export let maxWidth: MaxWidthOption = 'md'; // typed prop for customizing width
 </script>
 
 <BitsDialog.Root bind:open>
     <BitsDialog.Portal>
         <BitsDialog.Overlay
-            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+            class="fixed inset-0 z-50 bg-black/80"
+            data-state={open ? 'open' : 'closed'}
+            data-animate-in={open ? true : null}
+            data-animate-out={!open ? true : null}
+            data-fade-in="0"
+            data-fade-out="0"
         />
         <BitsDialog.Content
-            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] rounded-md border bg-white p-6 shadow-lg outline-none {getMaxWidth(
+            class="fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] rounded-md border bg-white p-6 shadow-lg outline-none {getMaxWidth(
                 maxWidth
             )}"
+            data-state={open ? 'open' : 'closed'}
+            data-animate-in={open ? true : null}
+            data-animate-out={!open ? true : null}
+            data-fade-in="0"
+            data-fade-out="0"
+            data-zoom-in="95"
+            data-zoom-out="95"
         >
             <div class="mb-4 flex items-center justify-between">
                 <BitsDialog.Title class="text-lg font-semibold text-gray-900">
@@ -82,31 +97,31 @@
     }
 
     /* Animation utilities */
-    :global(.data-[state='open']:animate-in) {
+    :global([data-state='open'][data-animate-in]) {
         animation-duration: 300ms;
         animation-timing-function: ease-out;
         animation-fill-mode: forwards;
     }
 
-    :global(.data-[state='closed']:animate-out) {
+    :global([data-state='closed'][data-animate-out]) {
         animation-duration: 200ms;
         animation-timing-function: ease-in;
         animation-fill-mode: forwards;
     }
 
-    :global(.data-[state='open']:fade-in-0) {
+    :global([data-state='open'][data-fade-in='0']) {
         --opacity-from: 0;
         --opacity-to: 1;
         animation-name: fade-in-out;
     }
 
-    :global(.data-[state='closed']:fade-out-0) {
+    :global([data-state='closed'][data-fade-out='0']) {
         --opacity-from: 1;
         --opacity-to: 0;
         animation-name: fade-in-out;
     }
 
-    :global(.data-[state='open']:zoom-in-95) {
+    :global([data-state='open'][data-zoom-in='95']) {
         --opacity-from: 0;
         --opacity-to: 1;
         --scale-from: 0.95;
@@ -116,7 +131,7 @@
         animation-name: zoom-scale;
     }
 
-    :global(.data-[state='closed']:zoom-out-95) {
+    :global([data-state='closed'][data-zoom-out='95']) {
         --opacity-from: 1;
         --opacity-to: 0;
         --scale-from: 1;

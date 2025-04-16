@@ -46,7 +46,7 @@
             </svg>
         </button>
 
-        <div
+        <span
             class="relative h-full max-h-[95vh] w-full max-w-[95vw] overflow-hidden shadow-md transition-transform duration-300 {show
                 ? 'scale-100'
                 : 'scale-95'}"
@@ -54,6 +54,6 @@
             aria-modal="true"
         >
             <img src={image.url} alt={image.alt || 'Image preview'} class="h-full w-full object-contain" />
-        </div>
+        </span>
     </button>
 {/if}

@@ -187,7 +187,7 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
         const categories: SanityCategory[] = await client.fetch(query);
 
         // Transform the data to match the expected structure in the UI components
-        const transformedData: FormattedCategory[] = categories.map((category) => {
+        return categories.map((category) => {
             // Generate the thumbnail URL with safer handling
             let thumbnailUrl = '';
             try {
@@ -206,18 +206,16 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
                     order: category.order || 0,
                     thumbnail: category.thumbnail
                         ? {
-                            data: {
-                                attributes: {
-                                    url: thumbnailUrl
-                                }
-                            }
-                        }
+                              data: {
+                                  attributes: {
+                                      url: thumbnailUrl
+                                  }
+                              }
+                          }
                         : null
                 }
             };
         });
-
-        return transformedData;
     } catch (error) {
         console.error('Error fetching categories from Sanity:', error);
         return [];
@@ -232,7 +230,7 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
 export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: FormattedCategory } | null> => {
     try {
         // Check if it looks like a document ID
-        const isDocumentId = typeof nameOrId === 'string' && nameOrId.length > 10;
+        const isDocumentId = nameOrId.length > 10;
 
         // Build the GROQ query based on the identifier type
         const query = isDocumentId

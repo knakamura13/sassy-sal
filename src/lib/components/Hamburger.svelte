@@ -10,11 +10,11 @@
     aria-controls="main-menu"
     type="button"
 >
-    <div class="lines">
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-    </div>
+    <span class="lines">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+    </span>
 </button>
 
 <style lang="scss">

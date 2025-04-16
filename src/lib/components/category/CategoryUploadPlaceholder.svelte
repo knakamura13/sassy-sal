@@ -160,8 +160,8 @@
             class="flex h-full w-full cursor-pointer flex-col items-center justify-center p-4 transition-colors hover:bg-gray-100"
             on:click={() => (open = true)}
         >
-            <div class="mb-2 text-4xl text-gray-400">+</div>
-            <div class="font-medium text-gray-500">Add Images</div>
+            <span class="mb-2 text-4xl text-gray-400">+</span>
+            <span class="font-medium text-gray-500">Add Images</span>
         </button>
 
         <Dialog bind:open>

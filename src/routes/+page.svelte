@@ -149,8 +149,8 @@
         .sort((a, b) => {
             // Primary sort by order (ascending)
             // Make sure we're comparing numbers
-            const orderA = typeof a.attributes.order === 'number' ? a.attributes.order : 0;
-            const orderB = typeof b.attributes.order === 'number' ? b.attributes.order : 0;
+            const orderA = a.attributes.order;
+            const orderB = b.attributes.order;
             const orderDiff = orderA - orderB;
 
             if (orderDiff !== 0) return orderDiff;
@@ -627,17 +627,5 @@
         z-index: 10;
     }
 
-    /* Styles for items being dragged */
-    :global(.category-item.dndzone-drag-src) {
-        opacity: 0.4;
-    }
 
-    :global(.category-item.dndzone-drag) {
-        opacity: 1;
-        transform: scale(1.05);
-        z-index: 50;
-        box-shadow:
-            0 10px 25px -5px rgba(0, 0, 0, 0.1),
-            0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
 </style>

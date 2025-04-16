@@ -1,4 +1,4 @@
-import { redirect, type Handle } from '@sveltejs/kit';
+import { type Handle, redirect } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
     // Check if this is an admin route (except login)
@@ -10,12 +10,11 @@ export const handle: Handle = async ({ event, resolve }) => {
         // Check for admin session cookie
         const session = event.cookies.get('admin_session');
 
-        // If no session, redirect to login
+        // If no session, redirect to admin page
         if (!session || session !== 'authenticated') {
             throw redirect(303, '/admin');
         }
     }
 
-    const response = await resolve(event);
-    return response;
+    return resolve(event);
 };
