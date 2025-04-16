@@ -270,16 +270,16 @@
         </div>
 
         {#if isAdmin}
-            <div class="absolute right-2 top-2 flex space-x-2">
+            <div class="absolute right-4 top-4 flex gap-3">
                 <button
-                    class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-30 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
+                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation|preventDefault={handleEdit}
                     aria-label="Edit category"
                 >
                     ✎
                 </button>
                 <button
-                    class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 bg-opacity-30 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
+                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
                     on:click|stopPropagation|preventDefault={handleRemove}
                     aria-label="Remove category"
                 >
