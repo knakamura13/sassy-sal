@@ -5,7 +5,7 @@ import { browser } from '$app/environment';
 const storedDeletedCategories = browser ? JSON.parse(localStorage.getItem('deletedCategories') || '[]') : [];
 
 // Create a writable store
-const deletedCategoriesStore = writable(storedDeletedCategories);
+const deletedCategoriesStore = writable<(string | number)[]>(storedDeletedCategories);
 
 // Subscribe to changes and update localStorage
 if (browser) {
@@ -15,7 +15,7 @@ if (browser) {
 }
 
 // Helper functions to interact with the store
-export const addDeletedCategory = (categoryId) => {
+export const addDeletedCategory = (categoryId: string | number) => {
     deletedCategoriesStore.update((ids) => {
         if (!ids.includes(categoryId)) {
             return [...ids, categoryId];
@@ -24,11 +24,11 @@ export const addDeletedCategory = (categoryId) => {
     });
 };
 
-export const removeDeletedCategory = (categoryId) => {
+export const removeDeletedCategory = (categoryId: string | number) => {
     deletedCategoriesStore.update((ids) => ids.filter((id) => id !== categoryId));
 };
 
-export const isDeleted = (categoryId) => {
+export const isDeleted = (categoryId: string | number) => {
     let result = false;
     deletedCategoriesStore.subscribe((ids) => {
         result = ids.includes(categoryId);
@@ -38,4 +38,4 @@ export const isDeleted = (categoryId) => {
 
 export const deletedCategories = deletedCategoriesStore;
 
-export default deletedCategoriesStore;
+export default deletedCategoriesStore; 

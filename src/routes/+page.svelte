@@ -29,6 +29,27 @@
         };
     }
 
+    // Interface for formatted category data returned from the server
+    interface FormattedCategory {
+        id: string | number;
+        documentId?: string;
+        attributes: {
+            name: string;
+            order: number;
+            description?: string;
+            thumbnail: {
+                data: {
+                    attributes: {
+                        url: string;
+                    };
+                };
+            } | null;
+            images?: {
+                data: any[];
+            };
+        };
+    }
+
     // Interface for data received from page server load function
     interface PageData {
         admin?: boolean;
@@ -102,10 +123,10 @@
     });
 
     // Updates the categories state and forces component re-render
-    function updateCategoriesAndRender(newCategories: Category[]) {
+    function updateCategoriesAndRender(newCategories: Category[] | FormattedCategory[]) {
         // Deep copy to ensure reactivity when updating nested properties
         const categoriesCopy = JSON.parse(JSON.stringify(newCategories));
-        categories = categoriesCopy;
+        categories = categoriesCopy as Category[];
         // Increment counter to trigger re-render
         updateCounter++;
 
@@ -222,13 +243,13 @@
                     const categoryId = String(category.id).replace(/"/g, '');
 
                     // Find the matching server category
-                    let serverCategory: Category | undefined;
+                    let serverCategory: FormattedCategory | Category | undefined;
                     if (useLocalCategoriesAsBackup) {
                         // Use local data if server fetch failed
-                        serverCategory = categories.find((c: Category) => String(c.id) === categoryId);
+                        serverCategory = categories.find((c) => String(c.id) === categoryId);
                     } else {
                         // Use server data if available
-                        serverCategory = serverCategories.find((c: Category) => String(c.id) === categoryId);
+                        serverCategory = (serverCategories as any[]).find((c) => String(c.id) === categoryId);
                     }
 
                     if (serverCategory) {
@@ -241,9 +262,8 @@
                             try {
                                 // Create a promise for this update
                                 const updatePromise = updateCategory(String(serverCategory.id), {
-                                    data: {
-                                        order: newOrder
-                                    }
+                                    name: serverCategory.attributes.name,
+                                    order: newOrder
                                 })
                                     .then((result) => {
                                         console.log();
@@ -282,11 +302,9 @@
 
                         if (refreshedCategories && refreshedCategories.length > 0) {
                             // Combine server data with our local order
-                            const combinedCategories = refreshedCategories.map((serverCat: Category) => {
+                            const combinedCategories = (refreshedCategories as any[]).map((serverCat) => {
                                 // Find matching local category to get its order
-                                const localCat = categories.find(
-                                    (c: Category) => String(c.id) === String(serverCat.id)
-                                );
+                                const localCat = categories.find((c) => String(c.id) === String(serverCat.id));
                                 if (localCat) {
                                     return {
                                         ...serverCat,
@@ -337,7 +355,7 @@
                 try {
                     // Fetch latest categories to find the correct id
                     const allCategories = await getCategories();
-                    const categoryToDelete = allCategories.find((cat: Category) => {
+                    const categoryToDelete = (allCategories as any[]).find((cat) => {
                         return `${cat.id}` === `${id}`;
                     });
 
@@ -356,7 +374,7 @@
                         const updatedCategories = await getCategories();
 
                         // If category still exists in response, track it as deleted locally
-                        const categoryStillExists = updatedCategories.some((cat: Category) => cat.id === id);
+                        const categoryStillExists = (updatedCategories as any[]).some((cat) => cat.id === id);
                         if (categoryStillExists) {
                             addDeletedCategory(id);
                         }
@@ -364,7 +382,7 @@
                     } catch (fetchError) {
                         // If server refresh fails, update local state and mark as deleted
                         addDeletedCategory(id);
-                        const filteredCategories = categories.filter((cat: Category) => cat.id !== id);
+                        const filteredCategories = categories.filter((cat) => cat.id !== id);
                         updateCategoriesAndRender(filteredCategories);
                         showToast.info('Category deleted, but there was an error refreshing the category list.');
                     }
@@ -455,7 +473,7 @@
                 try {
                     // Fetch latest categories to find the category
                     const allCategories = await getCategories();
-                    const categoryToUpdate = allCategories.find((cat: Category) => {
+                    const categoryToUpdate = (allCategories as any[]).find((cat) => {
                         return `${cat.id}` === `${id}`;
                     });
 
@@ -470,7 +488,7 @@
                     const _ = await updateCategory(categoryId, data);
 
                     // Update local state immediately for responsiveness
-                    const updatedCategories = categories.map((cat: Category) => {
+                    const updatedCategories = categories.map((cat) => {
                         if (cat.id === id) {
                             return {
                                 ...cat,
@@ -490,8 +508,8 @@
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
                             // Find the updated category to check its thumbnail
-                            const updatedCategory = refreshedCategories.find(
-                                (cat: Category) => String(cat.id) === String(id)
+                            const updatedCategory = (refreshedCategories as any[]).find(
+                                (cat) => String(cat.id) === String(id)
                             );
 
                             updateCategoriesAndRender(refreshedCategories);
@@ -511,7 +529,7 @@
                         try {
                             const updatedCategories = await getCategories();
                             if (updatedCategories && updatedCategories.length > 0) {
-                                categories = updatedCategories;
+                                categories = updatedCategories as Category[];
                             }
                         } catch (refreshError) {
                             // If refresh fails, remove the category from local state
