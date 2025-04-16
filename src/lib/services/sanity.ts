@@ -1,6 +1,7 @@
 // Access Sanity Content API directly using @sanity/client and @sanity/image-url
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
+import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
 
 // Get Sanity configuration from environment variables
 const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID;
@@ -11,15 +12,102 @@ const SANITY_API_VERSION = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-0
 // Determine if we're in browser or server environment
 const isBrowser = typeof window !== 'undefined';
 
-// Ensure process is available in browser
-if (isBrowser && !window.process) {
-    window.process = {
-        env: {},
-        browser: true,
-        version: '',
-        versions: {},
-        nextTick: (fn) => setTimeout(fn, 0)
+// Ensure nextTick is available in browser
+if (isBrowser && typeof window.process === 'undefined') {
+    // Instead of trying to create a full polyfill, just add the one function we need
+    // This avoids TypeScript errors with the full Process interface
+    window.process = {} as any;
+    window.process.nextTick = (fn: () => void) => setTimeout(fn, 0);
+}
+
+// Define interfaces for type safety
+interface SanityClientConfig {
+    projectId: string;
+    dataset: string;
+    apiVersion: string;
+    token: string;
+    useCdn: boolean;
+    useProjectHostname?: boolean;
+    perspective?: 'published' | 'raw' | 'previewDrafts';
+    ignoreBrowserTokenWarning?: boolean;
+}
+
+interface SanityImage {
+    _type: string;
+    asset: {
+        _ref: string;
+        _type: string;
     };
+}
+
+interface SanityCategory {
+    _id: string;
+    _type: string;
+    name: string;
+    order?: number;
+    thumbnail?: SanityImage;
+}
+
+interface SanityGalleryImage {
+    _id: string;
+    _type: string;
+    order?: number;
+    image: SanityImage;
+    category: {
+        _type: string;
+        _ref: string;
+    };
+}
+
+interface FormattedCategory {
+    id: string;
+    documentId: string;
+    attributes: {
+        name: string;
+        order: number;
+        thumbnail: {
+            data: {
+                attributes: {
+                    url: string;
+                };
+            };
+        } | null;
+        images?: {
+            data: FormattedImage[];
+        };
+    };
+}
+
+interface FormattedImage {
+    id: string;
+    documentId?: string;
+    attributes: {
+        order: number;
+        image: {
+            data: {
+                attributes: {
+                    url: string;
+                };
+            };
+        };
+    };
+}
+
+interface CategoryData {
+    name: string;
+    order?: number;
+    thumbnail?: File;
+    data?: {
+        name: string;
+        order?: number;
+        thumbnail?: File;
+    };
+}
+
+interface ImageData {
+    order?: number;
+    image: File;
+    category: string;
 }
 
 /**
@@ -34,15 +122,15 @@ export const client = createClient({
     // Add browser-specific options only when in browser context
     ...(isBrowser
         ? {
-              // Browser-specific options
-              useProjectHostname: true, // Use the API hostname for the project instead of api.sanity.io
-              perspective: 'published', // Always fetch the published version in browser context
-              ignoreBrowserTokenWarning: true // Silence browser warnings about using token in browser
-          }
+            // Browser-specific options
+            useProjectHostname: true, // Use the API hostname for the project instead of api.sanity.io
+            perspective: 'published', // Always fetch the published version in browser context
+            ignoreBrowserTokenWarning: true // Silence browser warnings about using token in browser
+        }
         : {
-              // Server-specific options if needed
-          })
-});
+            // Server-specific options if needed
+        })
+} as SanityClientConfig);
 
 /**
  * Initialize the image URL builder
@@ -54,17 +142,31 @@ const builder = imageUrlBuilder(client);
  * @param {Object} source - The image object from Sanity
  * @returns {Object} - An image URL builder object
  */
-export function urlFor(source) {
+export function urlFor(source: any): ImageUrlBuilder {
     if (!source) {
         console.warn('Attempted to generate URL for undefined image source');
-        return { url: () => '' };
+        // Create a minimal mock implementation that won't cause TypeScript errors
+        return {
+            url: () => '',
+            width: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            height: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            format: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            auto: () => ({ url: () => '' } as unknown as ImageUrlBuilder)
+        } as unknown as ImageUrlBuilder;
     }
 
     try {
         return builder.image(source);
     } catch (error) {
         console.error('Error generating image URL:', error);
-        return { url: () => '' };
+        // Create a minimal mock implementation that won't cause TypeScript errors
+        return {
+            url: () => '',
+            width: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            height: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            format: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
+            auto: () => ({ url: () => '' } as unknown as ImageUrlBuilder)
+        } as unknown as ImageUrlBuilder;
     }
 }
 
@@ -72,7 +174,7 @@ export function urlFor(source) {
  * Fetch all categories
  * @returns {Promise<Array>} - Array of categories
  */
-export const getCategories = async () => {
+export const getCategories = async (): Promise<FormattedCategory[]> => {
     try {
         // Use GROQ to query all categories, sorted by order
         const query = `*[_type == "category"] | order(order asc) {
@@ -82,10 +184,10 @@ export const getCategories = async () => {
       thumbnail
     }`;
 
-        const categories = await client.fetch(query);
+        const categories: SanityCategory[] = await client.fetch(query);
 
         // Transform the data to match the expected structure in the UI components
-        const transformedData = categories.map((category) => {
+        const transformedData: FormattedCategory[] = categories.map((category) => {
             // Generate the thumbnail URL with safer handling
             let thumbnailUrl = '';
             try {
@@ -104,12 +206,12 @@ export const getCategories = async () => {
                     order: category.order || 0,
                     thumbnail: category.thumbnail
                         ? {
-                              data: {
-                                  attributes: {
-                                      url: thumbnailUrl
-                                  }
-                              }
-                          }
+                            data: {
+                                attributes: {
+                                    url: thumbnailUrl
+                                }
+                            }
+                        }
                         : null
                 }
             };
@@ -127,7 +229,7 @@ export const getCategories = async () => {
  * @param {string} nameOrId - The category name or ID
  * @returns {Promise<Object>} - Category with images
  */
-export const getCategoryWithImages = async (nameOrId) => {
+export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: FormattedCategory } | null> => {
     try {
         // Check if it looks like a document ID
         const isDocumentId = typeof nameOrId === 'string' && nameOrId.length > 10;
@@ -157,7 +259,7 @@ export const getCategoryWithImages = async (nameOrId) => {
           }
         }`;
 
-        const category = await client.fetch(query, { identifier: nameOrId });
+        const category: SanityCategory & { images: SanityGalleryImage[] } = await client.fetch(query, { identifier: nameOrId });
 
         if (!category) {
             return null;
@@ -174,7 +276,7 @@ export const getCategoryWithImages = async (nameOrId) => {
         }
 
         // Transform the data to match the expected structure in the UI components
-        const transformedCategory = {
+        const transformedCategory: FormattedCategory = {
             id: category._id,
             documentId: category._id,
             attributes: {
@@ -182,12 +284,12 @@ export const getCategoryWithImages = async (nameOrId) => {
                 order: category.order || 0,
                 thumbnail: category.thumbnail
                     ? {
-                          data: {
-                              attributes: {
-                                  url: thumbnailUrl
-                              }
-                          }
-                      }
+                        data: {
+                            attributes: {
+                                url: thumbnailUrl
+                            }
+                        }
+                    }
                     : null,
                 images: {
                     data: category.images.map((image) => {
@@ -232,9 +334,9 @@ export const getCategoryWithImages = async (nameOrId) => {
  * @param {Object} categoryData - Category data to add
  * @returns {Promise<Object>} - The created category
  */
-export const addCategory = async (categoryData) => {
+export const addCategory = async (categoryData: CategoryData): Promise<{ data: FormattedCategory }> => {
     try {
-        const category = {
+        const category: Partial<SanityCategory> = {
             _type: 'category',
             name: categoryData.name,
             order: categoryData.order || 0
@@ -253,22 +355,23 @@ export const addCategory = async (categoryData) => {
             };
         }
 
-        const createdCategory = await client.create(category);
+        const createdCategory: SanityCategory = await client.create(category as SanityCategory);
 
         // Transform the response to match expected format
-        const transformedCategory = {
+        const transformedCategory: FormattedCategory = {
             id: createdCategory._id,
+            documentId: createdCategory._id,
             attributes: {
                 name: createdCategory.name,
                 order: createdCategory.order || 0,
                 thumbnail: createdCategory.thumbnail
                     ? {
-                          data: {
-                              attributes: {
-                                  url: urlFor(createdCategory.thumbnail).url()
-                              }
-                          }
-                      }
+                        data: {
+                            attributes: {
+                                url: urlFor(createdCategory.thumbnail).url()
+                            }
+                        }
+                    }
                     : null
             }
         };
@@ -285,13 +388,13 @@ export const addCategory = async (categoryData) => {
  * @param {string} id - The category ID
  * @returns {Promise<null>} - Null on success
  */
-export const deleteCategory = async (id) => {
+export const deleteCategory = async (id: string): Promise<null> => {
     try {
         // Delete the category
         await client.delete(id);
 
         // Delete associated images (need to find them first)
-        const imagesToDelete = await client.fetch(`*[_type == "galleryImage" && references($categoryId)]._id`, {
+        const imagesToDelete: string[] = await client.fetch(`*[_type == "galleryImage" && references($categoryId)]._id`, {
             categoryId: id
         });
 
@@ -313,12 +416,12 @@ export const deleteCategory = async (id) => {
  * @param {Object} data - Updated category data
  * @returns {Promise<Object>} - The updated category
  */
-export const updateCategory = async (id, data) => {
+export const updateCategory = async (id: string, data: CategoryData): Promise<{ data: FormattedCategory }> => {
     try {
         // Handle the nested data structure from CategoryCard
         const categoryData = data.data || data;
 
-        const updates = {
+        const updates: Partial<SanityCategory> = {
             name: categoryData.name,
             order: categoryData.order !== undefined ? categoryData.order : undefined
         };
@@ -339,22 +442,23 @@ export const updateCategory = async (id, data) => {
         const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, value]) => value !== undefined));
 
         // Update the document
-        const updatedCategory = await client.patch(id).set(cleanUpdates).commit();
+        const updatedCategory: SanityCategory = await client.patch(id).set(cleanUpdates).commit();
 
         // Transform the response to match expected format
-        const transformedCategory = {
+        const transformedCategory: FormattedCategory = {
             id: updatedCategory._id,
+            documentId: updatedCategory._id,
             attributes: {
                 name: updatedCategory.name,
                 order: updatedCategory.order || 0,
                 thumbnail: updatedCategory.thumbnail
                     ? {
-                          data: {
-                              attributes: {
-                                  url: urlFor(updatedCategory.thumbnail).url()
-                              }
-                          }
-                      }
+                        data: {
+                            attributes: {
+                                url: urlFor(updatedCategory.thumbnail).url()
+                            }
+                        }
+                    }
                     : null
             }
         };
@@ -371,12 +475,12 @@ export const updateCategory = async (id, data) => {
  * @param {Object} imageData - Image data to add
  * @returns {Promise<Object>} - The created image
  */
-export const addImage = async (imageData) => {
+export const addImage = async (imageData: ImageData): Promise<{ data: FormattedImage }> => {
     try {
         // Handle file upload to Sanity
         const imageAsset = await uploadFile(imageData.image);
 
-        const image = {
+        const image: Partial<SanityGalleryImage> = {
             _type: 'galleryImage',
             order: imageData.order || 0,
             image: {
@@ -392,10 +496,10 @@ export const addImage = async (imageData) => {
             }
         };
 
-        const createdImage = await client.create(image);
+        const createdImage: SanityGalleryImage = await client.create(image as SanityGalleryImage);
 
         // Transform the response to match expected format
-        const transformedImage = {
+        const transformedImage: FormattedImage = {
             id: createdImage._id,
             attributes: {
                 order: createdImage.order || 0,
@@ -421,7 +525,7 @@ export const addImage = async (imageData) => {
  * @param {string} id - The image ID
  * @returns {Promise<null>} - Null on success
  */
-export const deleteImage = async (id) => {
+export const deleteImage = async (id: string): Promise<null> => {
     try {
         await client.delete(id);
         return null;
@@ -437,9 +541,9 @@ export const deleteImage = async (id) => {
  * @param {Object} data - Updated image data
  * @returns {Promise<Object>} - The updated image
  */
-export const updateImage = async (id, data) => {
+export const updateImage = async (id: string, data: { order?: number; image?: File }): Promise<{ data: FormattedImage }> => {
     try {
-        const updates = {
+        const updates: Partial<SanityGalleryImage> = {
             order: data.order !== undefined ? data.order : undefined
         };
 
@@ -459,10 +563,10 @@ export const updateImage = async (id, data) => {
         const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, value]) => value !== undefined));
 
         // Update the document
-        const updatedImage = await client.patch(id).set(cleanUpdates).commit();
+        const updatedImage: SanityGalleryImage = await client.patch(id).set(cleanUpdates).commit();
 
         // Transform the response to match expected format
-        const transformedImage = {
+        const transformedImage: FormattedImage = {
             id: updatedImage._id,
             attributes: {
                 order: updatedImage.order || 0,
@@ -488,7 +592,7 @@ export const updateImage = async (id, data) => {
  * @param {File} file - The file to upload
  * @returns {Promise<Object>} - The uploaded asset
  */
-export const uploadFile = async (file) => {
+export const uploadFile = async (file: File): Promise<any> => {
     try {
         // Check if we're in a browser environment where File is available
         if (!isBrowser) {
@@ -508,3 +612,10 @@ export const uploadFile = async (file) => {
         throw error;
     }
 };
+
+// Add support for TypeScript types in browser
+declare global {
+    interface Window {
+        process: any;
+    }
+} 
