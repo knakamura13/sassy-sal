@@ -5,7 +5,7 @@ import { client, urlFor } from './sanity';
  * Get all categories with optimized query shape
  * @returns {Promise<Array>} Array of formatted categories
  */
-export const getAllCategories = async () => {
+export const getAllCategories = async (): Promise<any[]> => {
     const query = `*[_type == "category"] | order(order asc) {
     _id,
     name,
@@ -13,7 +13,7 @@ export const getAllCategories = async () => {
     thumbnail
   }`;
 
-    return client.fetch(query).then((categories) => categories.map(formatCategory));
+    return client.fetch(query).then((categories: any[]) => categories.map(formatCategory));
 };
 
 /**
@@ -21,7 +21,7 @@ export const getAllCategories = async () => {
  * @param {number} limit - Number of categories to return
  * @returns {Promise<Array>} Array of formatted categories
  */
-export const getLatestCategories = async (limit = 10) => {
+export const getLatestCategories = async (limit: number = 10): Promise<any[]> => {
     const query = `*[_type == "category"] | order(_createdAt desc)[0...${limit}] {
     _id,
     name,
@@ -29,7 +29,7 @@ export const getLatestCategories = async (limit = 10) => {
     thumbnail
   }`;
 
-    return client.fetch(query).then((categories) => categories.map(formatCategory));
+    return client.fetch(query).then((categories: any[]) => categories.map(formatCategory));
 };
 
 /**
@@ -37,7 +37,7 @@ export const getLatestCategories = async (limit = 10) => {
  * @param {string} id - Category ID
  * @returns {Promise<Object>} Category with images
  */
-export const getCategoryById = async (id) => {
+export const getCategoryById = async (id: string): Promise<any | null> => {
     const query = `*[_type == "category" && _id == $id][0] {
     _id,
     name,
@@ -50,7 +50,7 @@ export const getCategoryById = async (id) => {
     }
   }`;
 
-    return client.fetch(query, { id }).then((category) => (category ? formatCategoryWithImages(category) : null));
+    return client.fetch(query, { id }).then((category: any) => (category ? formatCategoryWithImages(category) : null));
 };
 
 /**
@@ -58,7 +58,7 @@ export const getCategoryById = async (id) => {
  * @param {string} name - Category name
  * @returns {Promise<Object>} Category with images
  */
-export const getCategoryByName = async (name) => {
+export const getCategoryByName = async (name: string): Promise<any | null> => {
     const query = `*[_type == "category" && name == $name][0] {
     _id,
     name,
@@ -71,14 +71,14 @@ export const getCategoryByName = async (name) => {
     }
   }`;
 
-    return client.fetch(query, { name }).then((category) => (category ? formatCategoryWithImages(category) : null));
+    return client.fetch(query, { name }).then((category: any) => (category ? formatCategoryWithImages(category) : null));
 };
 
 /**
  * Get all images across all categories
  * @returns {Promise<Array>} Array of formatted images
  */
-export const getAllImages = async () => {
+export const getAllImages = async (): Promise<any[]> => {
     const query = `*[_type == "galleryImage"] | order(order asc) {
     _id,
     order,
@@ -89,7 +89,7 @@ export const getAllImages = async () => {
     }
   }`;
 
-    return client.fetch(query).then((images) => images.map(formatImage));
+    return client.fetch(query).then((images: any[]) => images.map(formatImage));
 };
 
 /**
@@ -97,14 +97,14 @@ export const getAllImages = async () => {
  * @param {string} categoryId - Category ID
  * @returns {Promise<Array>} Array of formatted images
  */
-export const getImagesByCategoryId = async (categoryId) => {
+export const getImagesByCategoryId = async (categoryId: string): Promise<any[]> => {
     const query = `*[_type == "galleryImage" && category._ref == $categoryId] | order(order asc) {
     _id,
     order,
     image
   }`;
 
-    return client.fetch(query, { categoryId }).then((images) => images.map(formatImage));
+    return client.fetch(query, { categoryId }).then((images: any[]) => images.map(formatImage));
 };
 
 /**
@@ -113,9 +113,9 @@ export const getImagesByCategoryId = async (categoryId) => {
  * @param {string} categoryId - Category ID
  * @returns {Promise<boolean>} Whether the image exists in the category
  */
-export const imageExistsInCategory = async (imageId, categoryId) => {
+export const imageExistsInCategory = async (imageId: string, categoryId: string): Promise<boolean> => {
     const query = `count(*[_type == "galleryImage" && _id == $imageId && category._ref == $categoryId])`;
-    return client.fetch(query, { imageId, categoryId }).then((count) => count > 0);
+    return client.fetch(query, { imageId, categoryId }).then((count: number) => count > 0);
 };
 
 /**
@@ -124,21 +124,21 @@ export const imageExistsInCategory = async (imageId, categoryId) => {
  * @param {string} excludeId - Optional ID to exclude from check (for updates)
  * @returns {Promise<boolean>} Whether the name exists
  */
-export const categoryNameExists = async (name, excludeId = null) => {
+export const categoryNameExists = async (name: string, excludeId: string | null = null): Promise<boolean> => {
     const query = excludeId
         ? `count(*[_type == "category" && name == $name && _id != $excludeId])`
         : `count(*[_type == "category" && name == $name])`;
 
-    return client.fetch(query, { name, excludeId }).then((count) => count > 0);
+    return client.fetch(query, { name, excludeId }).then((count: number) => count > 0);
 };
 
 /**
  * Get the highest order value in categories
  * @returns {Promise<number>} Highest order value
  */
-export const getHighestCategoryOrder = async () => {
+export const getHighestCategoryOrder = async (): Promise<number> => {
     const query = `*[_type == "category"] | order(order desc)[0].order`;
-    return client.fetch(query).then((order) => order || 0);
+    return client.fetch(query).then((order: number | null) => order || 0);
 };
 
 /**
@@ -146,17 +146,89 @@ export const getHighestCategoryOrder = async () => {
  * @param {string} categoryId - Category ID
  * @returns {Promise<number>} Highest order value
  */
-export const getHighestImageOrder = async (categoryId) => {
+export const getHighestImageOrder = async (categoryId: string): Promise<number> => {
     const query = `*[_type == "galleryImage" && category._ref == $categoryId] | order(order desc)[0].order`;
-    return client.fetch(query, { categoryId }).then((order) => order || 0);
+    return client.fetch(query, { categoryId }).then((order: number | null) => order || 0);
 };
+
+// Define interfaces for the different data structures
+interface SanityImage {
+    _type: string;
+    asset: {
+        _ref: string;
+        _type: string;
+    };
+}
+
+interface SanityCategory {
+    _id: string;
+    name: string;
+    order?: number;
+    thumbnail?: SanityImage;
+    images?: SanityGalleryImage[];
+}
+
+interface SanityGalleryImage {
+    _id: string;
+    order?: number;
+    image: SanityImage;
+    category?: {
+        _id: string;
+        name: string;
+    };
+}
+
+interface FormattedCategory {
+    id: string;
+    attributes: {
+        name: string;
+        order: number;
+        thumbnail: {
+            data: {
+                attributes: {
+                    url: string;
+                };
+            };
+        } | null;
+        images?: {
+            data: FormattedImage[];
+        };
+    };
+}
+
+interface FormattedImage {
+    id: string;
+    attributes: {
+        order: number;
+        image: {
+            data: {
+                attributes: {
+                    url: string;
+                };
+            };
+        };
+        category: {
+            data: {
+                id: string;
+                attributes: {
+                    name: string;
+                };
+            };
+        } | null;
+    };
+}
+
+// Add a type for the urlFor function return value
+interface UrlForResult {
+    url: () => string;
+}
 
 /**
  * Format a category for consistent API structure
  * @param {Object} category - Sanity category object
  * @returns {Object} Formatted category
  */
-export const formatCategory = (category) => {
+export const formatCategory = (category: SanityCategory | null): FormattedCategory | null => {
     if (!category) return null;
 
     return {
@@ -166,12 +238,12 @@ export const formatCategory = (category) => {
             order: category.order || 0,
             thumbnail: category.thumbnail
                 ? {
-                      data: {
-                          attributes: {
-                              url: urlFor(category.thumbnail).url()
-                          }
-                      }
-                  }
+                    data: {
+                        attributes: {
+                            url: (urlFor(category.thumbnail) as UrlForResult).url()
+                        }
+                    }
+                }
                 : null
         }
     };
@@ -182,14 +254,14 @@ export const formatCategory = (category) => {
  * @param {Object} category - Sanity category object with images
  * @returns {Object} Formatted category with images
  */
-export const formatCategoryWithImages = (category) => {
-    if (!category) return null;
+export const formatCategoryWithImages = (category: SanityCategory | null): { data: FormattedCategory | null } => {
+    if (!category) return { data: null };
 
     const formattedCategory = formatCategory(category);
 
-    if (category.images && Array.isArray(category.images)) {
+    if (formattedCategory && category.images && Array.isArray(category.images)) {
         formattedCategory.attributes.images = {
-            data: category.images.map(formatImage)
+            data: category.images.map(formatImage).filter((image): image is FormattedImage => image !== null)
         };
     }
 
@@ -203,7 +275,7 @@ export const formatCategoryWithImages = (category) => {
  * @param {Object} image - Sanity image object
  * @returns {Object} Formatted image
  */
-export const formatImage = (image) => {
+export const formatImage = (image: SanityGalleryImage | null): FormattedImage | null => {
     if (!image) return null;
 
     return {
@@ -213,20 +285,20 @@ export const formatImage = (image) => {
             image: {
                 data: {
                     attributes: {
-                        url: urlFor(image.image).url()
+                        url: (urlFor(image.image) as UrlForResult).url()
                     }
                 }
             },
             category: image.category
                 ? {
-                      data: {
-                          id: image.category._id,
-                          attributes: {
-                              name: image.category.name
-                          }
-                      }
-                  }
+                    data: {
+                        id: image.category._id,
+                        attributes: {
+                            name: image.category.name
+                        }
+                    }
+                }
                 : null
         }
     };
-};
+}; 
