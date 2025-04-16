@@ -24,7 +24,7 @@ When you make changes to the codebase or are provided with a git diff without ad
 **New Contextual Requirement:**
 
 - **Review Entire Conversation**: Before generating a commit message, review the entire conversation context to ensure that all code changes, fixes, and updates are reflected in the summary.
-- **Comprehensive Summary**: Do not provide commit messages that only describe the most recent changes (e.g., "remove debug logs") when earlier modifications (e.g., a failed bug fix or intermediate changes) have been made. The final commit message must consolidate all previous modifications into one cohesive summary (e.g., "fix: resolve unclickable button issue by applying comprehensive updates including removal of debug logs").
+- **Comprehensive Summary**: Do not provide commit messages that only describe the most recent changes (e.g., "remove debug logs") when earlier modifications (e.g., a failed bug fix or intermediate changes) have been made. The final commit message must consolidate all previous modifications into one cohesive summary (e.g., "fix: resolve un-clickable button issue by applying comprehensive updates including removal of debug logs").
 
 **Structure Details:**
 
