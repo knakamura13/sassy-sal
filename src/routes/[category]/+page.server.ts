@@ -1,10 +1,10 @@
 import { error } from '@sveltejs/kit';
-
+import type { PageServerLoad } from './$types';
 import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
 
-export async function load({ params, url, prerendering }) {
-    // Default to non-admin mode during prerendering
-    const admin = prerendering ? false : url.searchParams.get('admin') === 'true';
+export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
+    // Default to non-admin mode during SSR/prerendering
+    const admin = typeof document === 'undefined' ? false : url.searchParams.get('admin') === 'true';
     const categoryParam = params.category;
 
     try {
@@ -39,7 +39,7 @@ export async function load({ params, url, prerendering }) {
         }
 
         return { category, admin };
-    } catch (err) {
+    } catch (err: any) {
         // Handle errors
         if (err.status === 404) {
             throw error(404, 'Category not found');
@@ -59,4 +59,4 @@ export async function load({ params, url, prerendering }) {
         console.error('Error loading category:', err);
         throw error(500, 'Failed to load category');
     }
-}
+} 
