@@ -1,13 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+
 import { VITE_ADMIN_PASSWORD } from '$env/static/private';
+import type { Actions, PageServerLoad } from './$types';
 
 // Redirect authenticated users away from login page
 export const load: PageServerLoad = async ({ cookies }) => {
     const isAuthenticated = cookies.get('admin_session') === 'authenticated';
 
     if (isAuthenticated) {
-        throw redirect(303, '/');
+        throw redirect(303, '/?admin=true');
     }
 
     return {};
@@ -45,7 +46,8 @@ export const actions: Actions = {
             sameSite: 'strict'
         });
 
-        return { success: true };
+        // Redirect to home page with admin=true parameter
+        throw redirect(303, '/?admin=true');
     },
 
     // Logout action

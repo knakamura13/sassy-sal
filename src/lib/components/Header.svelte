@@ -57,11 +57,10 @@
 
             <!-- Admin Mode Indicator and Logout -->
             {#if $adminMode}
-                <span class="admin-indicator">Admin Mode</span>
                 <form action="/admin?/logout" method="POST">
-                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#3f4a49]"
-                        >Logout</button
-                    >
+                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]">
+                        Logout
+                    </button>
                 </form>
             {/if}
         </nav>

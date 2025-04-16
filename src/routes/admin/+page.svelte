@@ -3,6 +3,7 @@
     import { adminMode } from '$lib/stores/adminStore';
     import { enhance } from '$app/forms';
     import type { ActionResult } from '@sveltejs/kit';
+    import { tick } from 'svelte';
 
     let password = '';
     let loading = false;
@@ -18,11 +19,12 @@
 
             if (result.type === 'success') {
                 adminMode.login();
-                await goto('/');
             } else if (result.type === 'failure') {
                 errorMessage = result.data?.message || 'Invalid password';
                 await update();
             }
+
+            await goto('/?admin=true');
         };
     }
 </script>
