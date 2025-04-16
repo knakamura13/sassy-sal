@@ -285,8 +285,6 @@
             <Button type="submit" variant="default" class="font-didot" disabled={isUploading}>
                 {#if isUploading}
                     <span class="mr-2">Updating...</span>
-                    <!-- Simple loading spinner -->
-                    <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 {:else}
                     Update
                 {/if}

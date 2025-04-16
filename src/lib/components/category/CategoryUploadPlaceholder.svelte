@@ -16,51 +16,58 @@
         thumbnail?: File;
     }
 
+    // Define the structure for category items returned from API
+    interface CategoryItem {
+        attributes?: {
+            order?: number;
+        };
+    }
+
     const dispatch = createEventDispatcher<{ addCategory: CategoryData }>();
 
+    // Dialog state
     let open = false;
+
+    // Form field state
     let categoryName = '';
+    let orderValue = 0;
+
+    // File upload state
     let selectedFile: File | null = null;
     let imagePreview = '';
-    let isUploading = false;
-    let errorMessage = '';
     let dropZone: HTMLElement;
     let fileInput: HTMLInputElement;
     let isDragging = false;
-    let orderValue = 0; // Default order value
+
+    // Form process state
+    let isUploading = false;
     let isLoadingCategories = false;
+    let errorMessage = '';
 
-    // Reset form data when the dialog is closed
-    $: if (!open) {
-        resetForm();
-    }
+    // Reset form data when dialog closes
+    $: if (!open) resetForm();
 
-    // When dialog opens, fetch the latest order value
-    $: if (open) {
-        fetchLatestOrderValue();
-    }
+    // When dialog opens, fetch latest order value
+    $: if (open) fetchLatestOrderValue();
 
     // Fetch the highest order value from existing categories and add 1
     async function fetchLatestOrderValue() {
         isLoadingCategories = true;
         try {
             const categories = await getCategories();
-            if (categories && categories.length > 0) {
+            if (categories?.length > 0) {
                 // Find the highest order value
-                const highestOrder = categories.reduce((max: number, category: any) => {
+                const highestOrder = categories.reduce((max: number, category: CategoryItem) => {
                     const currentOrder = category.attributes?.order || 0;
                     return currentOrder > max ? currentOrder : max;
                 }, 0);
 
-                // Set the order value to highest + 1
                 orderValue = highestOrder + 1;
             } else {
-                // If no categories exist, default to 0
                 orderValue = 0;
             }
         } catch (error) {
             console.error('Error fetching categories for order value:', error);
-            // Default to 0 if there's an error
             orderValue = 0;
         } finally {
             isLoadingCategories = false;
@@ -71,35 +78,34 @@
         categoryName = '';
         selectedFile = null;
         imagePreview = '';
-        isUploading = false;
         errorMessage = '';
         isDragging = false;
         orderValue = 0;
+        isUploading = false;
     }
 
+    // File handling functions
     function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
-        if (input.files && input.files[0]) {
+        if (input.files?.[0]) {
             processFile(input.files[0]);
         }
     }
 
     function processFile(file: File) {
         selectedFile = file;
-
-        // Create preview URL
         const reader = new FileReader();
         reader.onload = (e) => {
             imagePreview = e.target?.result as string;
         };
-        reader.readAsDataURL(selectedFile);
+        reader.readAsDataURL(file);
     }
 
+    // Drag and drop handling
     function handleDropZoneClick() {
         fileInput.click();
     }
 
-    // Common handler for drag events
     function handleDragEvent(event: DragEvent, entering: boolean) {
         event.preventDefault();
         event.stopPropagation();
@@ -111,12 +117,11 @@
         event.stopPropagation();
         isDragging = false;
 
-        const files = event.dataTransfer?.files;
-        if (files && files.length > 0) {
-            processFile(files[0]);
-        }
+        const file = event.dataTransfer?.files?.[0];
+        if (file) processFile(file);
     }
 
+    // Form submission
     async function handleSubmit() {
         if (!categoryName.trim()) {
             showToast.error('Please enter a category name');
@@ -127,21 +132,17 @@
         errorMessage = '';
 
         try {
-            // Prepare the data for Sanity
             const categoryData: CategoryData = {
                 name: categoryName.trim(),
-                order: Number(orderValue) || 0 // Convert to number with fallback to 0
+                order: Number(orderValue) || 0
             };
 
-            // If there's a selected file, add it directly to the category data
-            // Sanity service will handle the upload
             if (selectedFile) {
                 categoryData.thumbnail = selectedFile;
             }
 
-            // Dispatch the event to create the category
             dispatch('addCategory', categoryData);
-            open = false; // Close dialog after successful submission
+            open = false;
         } catch (error) {
             errorMessage = 'Failed to create category. Please try again.';
         } finally {
@@ -278,10 +279,6 @@
                     <Button type="submit" variant="default" class="font-didot" disabled={!categoryName || isUploading}>
                         {#if isUploading}
                             <span class="mr-2">Creating...</span>
-                            <!-- Simple loading spinner -->
-                            <div
-                                class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
-                            ></div>
                         {:else}
                             Add
                         {/if}

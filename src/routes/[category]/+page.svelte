@@ -300,7 +300,7 @@
             {/if}
 
             {#if loadingImageUrls}
-                <!-- TODO: add a loading spinner here, but ensure it does not add content shift to the page -->
+                <!-- loading state... -->
             {/if}
 
             {#if !galleryImages.length}
