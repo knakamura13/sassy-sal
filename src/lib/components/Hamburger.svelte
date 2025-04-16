@@ -18,7 +18,7 @@
 </button>
 
 <style lang="scss">
-    @use '$lib/styles/variables' as vars;
+    @use '../styles/variables' as vars;
 
     // Local variables
     $hamburger-transition: 0.3s;

@@ -405,7 +405,7 @@
 
 <style lang="scss">
     @use 'sass:color';
-    @use '$lib/styles/variables' as vars;
+    @use '../../styles/variables' as vars;
 
     .image-filter {
         filter: contrast(0.95) brightness(1.05) saturate(0.95);

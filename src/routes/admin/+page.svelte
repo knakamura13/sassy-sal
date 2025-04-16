@@ -3,7 +3,6 @@
     import { adminMode } from '$lib/stores/adminStore';
     import { enhance } from '$app/forms';
     import type { ActionResult } from '@sveltejs/kit';
-    import { tick } from 'svelte';
 
     let password = '';
     let loading = false;

@@ -106,7 +106,7 @@
 {/if}
 
 <style lang="scss">
-    @use '$lib/styles/variables' as vars;
+    @use '../styles/variables' as vars;
 
     a:hover {
         color: vars.$secondary-color !important;

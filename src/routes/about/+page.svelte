@@ -122,7 +122,7 @@
 </div>
 
 <style lang="scss">
-    @use '$lib/styles/variables' as vars;
+    @use '../../lib/styles/variables' as vars;
     @use 'sass:color';
 
     h1,
