@@ -3533,29 +3533,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:2.5.20":
-  version: 2.5.20
-  resolution: "@sveltejs/kit@npm:2.5.20"
+"@sveltejs/kit@npm:2.20.7":
+  version: 2.20.7
+  resolution: "@sveltejs/kit@npm:2.20.7"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
-    devalue: "npm:^5.0.0"
-    esm-env: "npm:^1.0.0"
+    devalue: "npm:^5.1.0"
+    esm-env: "npm:^1.2.2"
     import-meta-resolve: "npm:^4.1.0"
     kleur: "npm:^4.1.5"
     magic-string: "npm:^0.30.5"
     mrmime: "npm:^2.0.0"
     sade: "npm:^1.8.1"
     set-cookie-parser: "npm:^2.6.0"
-    sirv: "npm:^2.0.4"
-    tiny-glob: "npm:^0.2.9"
+    sirv: "npm:^3.0.0"
   peerDependencies:
-    "@sveltejs/vite-plugin-svelte": ^3.0.0
+    "@sveltejs/vite-plugin-svelte": ^3.0.0 || ^4.0.0-next.1 || ^5.0.0
     svelte: ^4.0.0 || ^5.0.0-next.0
-    vite: ^5.0.3
+    vite: ^5.0.3 || ^6.0.0
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10c0/b5b6a3b22e203a246322cec120e320094d84d40d4e6adba580c1d441679dda8aa7f648c5a4a5f08dcb7bc2b3e5269f025485d34087c16e258959f53f356ad385
+  checksum: 10c0/f1c0e477e981b5dc3fd04bd636e68f77c1947bd4b7200914b1b3553095f34ed9ca249765be7e04e89b21ebeb58227546fd807238f558c0d6e7d6559e4ee61b26
   languageName: node
   linkType: hard
 
@@ -5378,7 +5377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"devalue@npm:^5.0.0, devalue@npm:^5.1.1":
+"devalue@npm:^5.1.0, devalue@npm:^5.1.1":
   version: 5.1.1
   resolution: "devalue@npm:5.1.1"
   checksum: 10c0/f6717a856fd54216959abd341cb189e47a9b37d72d8419e055ae77567ff4ed0fb683b1ffb6a71067f645adae5991bffabe6468a3e2385937bff49273e71c1f51
@@ -5883,7 +5882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esm-env@npm:^1.0.0":
+"esm-env@npm:^1.2.2":
   version: 1.2.2
   resolution: "esm-env@npm:1.2.2"
   checksum: 10c0/3d25c973f2fd69c25ffff29c964399cea573fe10795ecc1d26f6f957ce0483d3254e1cceddb34bf3296a0d7b0f1d53a28992f064ba509dfe6366751e752c4166
@@ -6564,13 +6563,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globalyzer@npm:0.1.0":
-  version: 0.1.0
-  resolution: "globalyzer@npm:0.1.0"
-  checksum: 10c0/e16e47a5835cbe8a021423d4c7fcd9f5f85815b4190a7f50c1fdb95fc559d72e4fb30be96f106c66a99413f36d72da0f8323d19d27f60a8feec9d936139ec5a8
-  languageName: node
-  linkType: hard
-
 "globby@npm:^11.1.0":
   version: 11.1.0
   resolution: "globby@npm:11.1.0"
@@ -6582,13 +6574,6 @@ __metadata:
     merge2: "npm:^1.4.1"
     slash: "npm:^3.0.0"
   checksum: 10c0/b39511b4afe4bd8a7aead3a27c4ade2b9968649abab0a6c28b1a90141b96ca68ca5db1302f7c7bd29eab66bf51e13916b8e0a3d0ac08f75e1e84a39b35691189
-  languageName: node
-  linkType: hard
-
-"globrex@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "globrex@npm:0.1.2"
-  checksum: 10c0/a54c029520cf58bda1d8884f72bd49b4cd74e977883268d931fd83bcbd1a9eb96d57c7dbd4ad80148fb9247467ebfb9b215630b2ed7563b2a8de02e1ff7f89d1
   languageName: node
   linkType: hard
 
@@ -10192,14 +10177,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sirv@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "sirv@npm:2.0.4"
+"sirv@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "sirv@npm:3.0.1"
   dependencies:
     "@polka/url": "npm:^1.0.0-next.24"
     mrmime: "npm:^2.0.0"
     totalist: "npm:^3.0.0"
-  checksum: 10c0/68f8ee857f6a9415e9c07a1f31c7c561df8d5f1b1ba79bee3de583fa37da8718def5309f6b1c6e2c3ef77de45d74f5e49efc7959214443aa92d42e9c99180a4e
+  checksum: 10c0/7cf64b28daa69b15f77b38b0efdd02c007b72bb3ec5f107b208ebf59f01b174ef63a1db3aca16d2df925501831f4c209be6ece3302b98765919ef5088b45bf80
   languageName: node
   linkType: hard
 
@@ -10751,7 +10736,7 @@ __metadata:
     "@sanity/image-url": "npm:^1.1.0"
     "@sanity/vision": "npm:^3.84.0"
     "@sveltejs/adapter-node": "npm:5.2.0"
-    "@sveltejs/kit": "npm:2.5.20"
+    "@sveltejs/kit": "npm:2.20.7"
     "@sveltejs/vite-plugin-svelte": "npm:^3.1.1"
     "@types/node": "npm:22.1.0"
     "@types/stylis": "npm:^4.2.7"
@@ -11106,16 +11091,6 @@ __metadata:
   version: 1.0.3
   resolution: "tiny-case@npm:1.0.3"
   checksum: 10c0/c0cbed35884a322265e2cd61ff435168d1ea523f88bf3864ce14a238ae9169e732649776964283a66e4eb882e655992081d4daf8c865042e2233425866111b35
-  languageName: node
-  linkType: hard
-
-"tiny-glob@npm:^0.2.9":
-  version: 0.2.9
-  resolution: "tiny-glob@npm:0.2.9"
-  dependencies:
-    globalyzer: "npm:0.1.0"
-    globrex: "npm:^0.1.2"
-  checksum: 10c0/cbe072f0d213a1395d30aa94845a051d4af18fe8ffb79c8e99ac1787cd25df69083f17791a53997cb65f469f48950cb61426ccc0683cc9df170ac2430e883702
   languageName: node
   linkType: hard
 

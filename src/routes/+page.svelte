@@ -269,7 +269,7 @@
                                         console.log();
                                         return result;
                                     })
-                                    .catch((error) => {
+                                    .catch(() => {
                                         // Don't throw, just log the error - we've already updated locally
                                         return null;
                                     });
@@ -432,7 +432,7 @@
     }
 
     // Handles adding a new category
-    async function handleAddCategory(event: CustomEvent<any>) {
+    async function handleAddCategory(event: CustomEvent) {
         try {
             const newCategory = event.detail;
 
@@ -465,7 +465,7 @@
     }
 
     // Handles updating an existing category
-    async function handleUpdateCategory(event: CustomEvent<any>) {
+    async function handleUpdateCategory(event: CustomEvent) {
         try {
             const { id, data } = event.detail;
 

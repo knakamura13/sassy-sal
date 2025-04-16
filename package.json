@@ -19,7 +19,7 @@
         "@sanity/image-url": "^1.1.0",
         "@sanity/vision": "^3.84.0",
         "@sveltejs/adapter-node": "5.2.0",
-        "@sveltejs/kit": "2.5.20",
+        "@sveltejs/kit": "2.20.7",
         "@sveltejs/vite-plugin-svelte": "^3.1.1",
         "@types/node": "22.1.0",
         "@types/stylis": "^4.2.7",
