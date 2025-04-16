@@ -2,27 +2,39 @@
     export let isActive = false;
 </script>
 
-<div class="hamburger" class:active={isActive}>
+<button
+    class="hamburger"
+    class:active={isActive}
+    aria-label="Toggle menu"
+    aria-expanded={isActive}
+    aria-controls="main-menu"
+    type="button"
+>
     <div class="lines">
         <div class="line"></div>
         <div class="line"></div>
         <div class="line"></div>
     </div>
-</div>
+</button>
 
 <style lang="scss">
     @use '$lib/styles/variables' as vars;
 
+    // Local variables
     $hamburger-transition: 0.3s;
     $hamburger-height: 1.125rem;
 
     .hamburger {
+        --hamburger-vertical-gap: 35%;
+
         height: $hamburger-height;
         width: auto;
         margin: auto;
         cursor: pointer;
         aspect-ratio: 1.5;
-        --hamburger-vertical-gap: 35%;
+        background: transparent;
+        border: none;
+        padding: 0;
 
         .lines {
             display: flex;
@@ -40,7 +52,6 @@
             width: 100%;
             margin: 0 0 0 auto;
             background-color: vars.$primary-color;
-
             opacity: 1;
             transition:
                 opacity $hamburger-transition,
