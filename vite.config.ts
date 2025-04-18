@@ -5,10 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [sveltekit(), purgeCss()],
     build: {
-        target: 'esnext',
-        rollupOptions: {
-            external: ['buffer', 'stream-browserify', 'util'],
-        }
+        target: 'esnext'
     },
     resolve: {
         alias: {
@@ -19,7 +16,7 @@ export default defineConfig({
         }
     },
     optimizeDeps: {
-        include: ['events'],
+        include: ['buffer', 'stream-browserify', 'util', 'events'],
         esbuildOptions: {
             define: {
                 global: 'globalThis',

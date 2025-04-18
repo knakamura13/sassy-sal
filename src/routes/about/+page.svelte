@@ -1,5 +1,12 @@
+<script lang="ts">
+    import { urlFor } from '$lib/sanity';
+
+    export let data;
+    const { about } = data;
+</script>
+
 <div class="container mx-auto max-w-4xl px-4 py-16">
-    <h1 class="font-didot mb-8 text-center text-4xl">About Me</h1>
+    <h1 class="font-didot mb-8 text-center text-4xl">{about?.title || 'About Me'}</h1>
 
     <div class="mb-16 grid grid-cols-1 items-center gap-12 md:grid-cols-2">
         <div>
@@ -12,20 +19,27 @@
         <div>
             <h2 class="font-didot mb-4 text-2xl">Hello, I'm Sally</h2>
 
-            <p class="mb-4">
-                Welcome to my photography portfolio! I'm a professional photographer based in [Your City], specializing
-                in lifestyle, portrait, and event photography.
-            </p>
+            {#if about?.mainContent}
+                <div class="prose prose-sm max-w-none">
+                    {@html about.mainContent[0]?.children[0]?.text || ''}
+                </div>
+            {:else}
+                <p class="mb-4">
+                    Welcome to my photography portfolio! I'm a professional photographer based in [Your City],
+                    specializing in lifestyle, portrait, and event photography.
+                </p>
 
-            <p class="mb-4">
-                My journey with photography began over 10 years ago when I picked up my first DSLR camera. Since then,
-                I've had the privilege of capturing countless special moments for families, couples, and individuals.
-            </p>
+                <p class="mb-4">
+                    My journey with photography began over 10 years ago when I picked up my first DSLR camera. Since
+                    then, I've had the privilege of capturing countless special moments for families, couples, and
+                    individuals.
+                </p>
 
-            <p class="mb-4">
-                My style is a blend of candid documentary and artistic portraiture. I believe in creating images that
-                feel authentic while bringing out the best in my subjects.
-            </p>
+                <p class="mb-4">
+                    My style is a blend of candid documentary and artistic portraiture. I believe in creating images
+                    that feel authentic while bringing out the best in my subjects.
+                </p>
+            {/if}
         </div>
     </div>
 
@@ -58,7 +72,8 @@
                 </div>
                 <h3 class="mb-2 font-semibold">Authentic Moments</h3>
                 <p class="text-gray-600">
-                    I focus on capturing genuine emotions and interactions rather than forced poses.
+                    {about?.mission ||
+                        'I focus on capturing genuine emotions and interactions rather than forced poses.'}
                 </p>
             </div>
 
@@ -104,7 +119,8 @@
                 </div>
                 <h3 class="mb-2 font-semibold">Personal Connection</h3>
                 <p class="text-gray-600">
-                    I believe in building relationships with clients to create comfortable and meaningful sessions.
+                    {about?.teamIntro ||
+                        'I believe in building relationships with clients to create comfortable and meaningful sessions.'}
                 </p>
             </div>
         </div>
