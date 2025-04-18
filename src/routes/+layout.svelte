@@ -7,9 +7,11 @@
 
 <div class="app-wrapper flex flex-col">
     <Header />
+
     <main class="main-content flex-1">
         <slot />
     </main>
+
     <Toaster />
 </div>
 

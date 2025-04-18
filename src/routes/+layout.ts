@@ -7,5 +7,5 @@ if (typeof window !== 'undefined') {
     import('$lib/polyfills');
 }
 
-export const ssr = false; // Toggle server-side rendering (SSR) site-wide
+export const ssr = true; // Enable server-side rendering site-wide
 export const prerender = false; 
