@@ -14,6 +14,7 @@ export const client = createClient({
     apiVersion,
     token,
     useCdn: false, // Set to true for production for better performance
+    perspective: 'published', // Only fetch published documents, not drafts
 });
 
 // Create image URL builder
