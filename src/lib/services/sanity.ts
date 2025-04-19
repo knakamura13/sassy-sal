@@ -206,12 +206,12 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
                     order: category.order || 0,
                     thumbnail: category.thumbnail
                         ? {
-                              data: {
-                                  attributes: {
-                                      url: thumbnailUrl
-                                  }
-                              }
-                          }
+                            data: {
+                                attributes: {
+                                    url: thumbnailUrl
+                                }
+                            }
+                        }
                         : null
                 }
             };

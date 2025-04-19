@@ -187,6 +187,9 @@ interface FormattedCategory {
             data: {
                 attributes: {
                     url: string;
+                    blurDataURL: string;
+                    width: number;
+                    height: number;
                 };
             };
         } | null;
@@ -204,6 +207,12 @@ interface FormattedImage {
             data: {
                 attributes: {
                     url: string;
+                    blurDataURL: string;
+                    responsive: {
+                        small: string;
+                        medium: string;
+                        large: string;
+                    };
                 };
             };
         };
@@ -240,7 +249,18 @@ export const formatCategory = (category: SanityCategory | null): FormattedCatego
                 ? {
                     data: {
                         attributes: {
-                            url: (urlFor(category.thumbnail) as UrlForResult).url()
+                            url: urlFor(category.thumbnail)
+                                .width(400)
+                                .auto('format')
+                                .quality(80)
+                                .url(),
+                            blurDataURL: urlFor(category.thumbnail)
+                                .width(20)
+                                .blur(10)
+                                .quality(20)
+                                .url(),
+                            width: 400,
+                            height: 400,
                         }
                     }
                 }
@@ -285,7 +305,22 @@ export const formatImage = (image: SanityGalleryImage | null): FormattedImage | 
             image: {
                 data: {
                     attributes: {
-                        url: (urlFor(image.image) as UrlForResult).url()
+                        url: urlFor(image.image)
+                            .auto('format')
+                            .quality(80)
+                            .url(),
+                        // Low-quality placeholder for progressive loading
+                        blurDataURL: urlFor(image.image)
+                            .width(20)
+                            .blur(10)
+                            .quality(20)
+                            .url(),
+                        // Responsive image sources
+                        responsive: {
+                            small: urlFor(image.image).width(640).quality(75).auto('format').url(),
+                            medium: urlFor(image.image).width(1080).quality(80).auto('format').url(),
+                            large: urlFor(image.image).width(1920).quality(80).auto('format').url(),
+                        }
                     }
                 }
             },

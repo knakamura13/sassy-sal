@@ -1,4 +1,5 @@
 import { createClient } from '@sanity/client';
+import imageUrlBuilder from '@sanity/image-url';
 
 // Import environment variables
 const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
@@ -15,12 +16,11 @@ export const client = createClient({
     useCdn: false, // Set to true for production for better performance
 });
 
-// Helper function to build image URLs
+// Create image URL builder
+const builder = imageUrlBuilder(client);
+
+// Helper function to build image URLs with transformations
 export const urlFor = (source: any) => {
     if (!source) return '';
-    return `https://cdn.sanity.io/images/${projectId}/${dataset}/${source.asset._ref
-        .replace('image-', '')
-        .replace('-jpg', '.jpg')
-        .replace('-png', '.png')
-        .replace('-webp', '.webp')}`;
+    return builder.image(source);
 }; 
