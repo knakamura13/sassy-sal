@@ -13,7 +13,18 @@
         attributes: {
             name: string;
             order: number;
-            thumbnail?: any;
+            thumbnail?: {
+                data?: {
+                    attributes?: {
+                        url?: string;
+                        placeholderUrl?: string;
+                        thumbnailUrl?: string;
+                        fullSizeUrl?: string;
+                        width?: number;
+                        height?: number;
+                    };
+                };
+            };
         };
     }
 
@@ -25,9 +36,16 @@
         update: { id: string | number; data: any };
     }>();
 
-    // State for image URL
-    let imageUrl = '';
+    // State for image URLs
+    let placeholderUrl = '';
+    let thumbnailUrl = '';
+    let fullSizeUrl = '';
+    let currentDisplayedUrl = '';
+
+    // Loading states
     let isLoading = true;
+    let thumbnailLoaded = false;
+    let fullSizeLoaded = false;
 
     // Edit dialog state
     let editDialogOpen = false;
@@ -46,11 +64,27 @@
     $: categoryOrder = category?.attributes?.order ?? 0;
     $: categoryThumbnail = category?.attributes?.thumbnail;
 
+    // Progressive loading logic
+    $: {
+        // Extract URLs from the category data
+        if (categoryThumbnail?.data?.attributes) {
+            const attrs = categoryThumbnail.data.attributes;
+            placeholderUrl = attrs.placeholderUrl || '';
+            thumbnailUrl = attrs.url || '';
+            fullSizeUrl = attrs.fullSizeUrl || attrs.url || '';
+        }
+
+        // Set initial display URL to placeholder if available
+        if (placeholderUrl && !currentDisplayedUrl) {
+            currentDisplayedUrl = placeholderUrl;
+        }
+    }
+
     onMount(async () => {
         await loadImage();
     });
 
-    // Function to load image from thumbnail or show placeholder background
+    // Function to load image in progressive stages
     async function loadImage() {
         isLoading = true;
 
@@ -60,52 +94,92 @@
                 return;
             }
 
-            // Extract thumbnail URL from different possible structures
-            const thumbnailUrl = categoryThumbnail.data?.attributes?.url || categoryThumbnail.url || null;
-
-            if (!thumbnailUrl) {
-                usePlaceholderBackground();
-                return;
+            // Start with placeholder if available
+            if (placeholderUrl) {
+                currentDisplayedUrl = placeholderUrl;
             }
 
-            imageUrl = thumbnailUrl;
+            // Function to preload an image and return a promise
+            const preloadImage = (url: string): Promise<void> => {
+                return new Promise((resolve, reject) => {
+                    if (!url) {
+                        reject(new Error('No URL provided'));
+                        return;
+                    }
 
-            // Verify image loads correctly with timeout
-            const testImg = new Image();
+                    const img = new Image();
+                    const timeoutId = setTimeout(() => reject(new Error('Image load timeout')), 7000);
 
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Image load timeout')), 5000);
-            });
+                    img.onload = () => {
+                        clearTimeout(timeoutId);
+                        resolve();
+                    };
 
-            const loadPromise = new Promise((resolve, reject) => {
-                testImg.onload = () => resolve('success');
-                testImg.onerror = () => reject(new Error('Image load failed'));
-                testImg.src = imageUrl;
-            });
+                    img.onerror = () => {
+                        clearTimeout(timeoutId);
+                        reject(new Error('Failed to load image'));
+                    };
 
-            // Race between load and timeout
-            await Promise.race([loadPromise, timeoutPromise]);
+                    img.src = url;
+                });
+            };
+
+            // Load thumbnail
+            if (thumbnailUrl) {
+                try {
+                    await preloadImage(thumbnailUrl);
+                    currentDisplayedUrl = thumbnailUrl;
+                    thumbnailLoaded = true;
+
+                    // Start loading full-size image after thumbnail is displayed
+                    if (fullSizeUrl && fullSizeUrl !== thumbnailUrl) {
+                        preloadImage(fullSizeUrl)
+                            .then(() => {
+                                currentDisplayedUrl = fullSizeUrl;
+                                fullSizeLoaded = true;
+                            })
+                            .catch((err) => {
+                                console.warn('Failed to load full-size image:', err);
+                                // Keep using thumbnail if full-size fails
+                            });
+                    } else {
+                        fullSizeLoaded = true; // Mark as loaded if no separate full-size URL
+                    }
+                } catch (error) {
+                    console.warn('Failed to load thumbnail:', error);
+                    // If thumbnail fails but we have a placeholder, keep using placeholder
+                    if (!placeholderUrl) {
+                        usePlaceholderBackground();
+                    }
+                }
+            } else {
+                usePlaceholderBackground();
+            }
+
             isLoading = false;
         } catch (error) {
+            console.error('Error in progressive image loading:', error);
             usePlaceholderBackground();
         }
     }
 
     // Helper to use placeholder background when no image is available
     function usePlaceholderBackground() {
-        // Set imageUrl to empty string to trigger placeholder background display
-        imageUrl = '';
+        // Set currentDisplayedUrl to empty string to trigger placeholder background display
+        currentDisplayedUrl = '';
         isLoading = false;
     }
 
-    function handleRemove() {
+    function handleRemove(e: Event) {
+        e.preventDefault();
         dispatch('remove', categoryId);
     }
 
-    function handleEdit() {
+    function handleEdit(e: Event) {
+        e.preventDefault();
         editName = categoryName;
         editOrder = categoryOrder;
-        imagePreview = imageUrl || '';
+        imagePreview = currentDisplayedUrl || '';
         editDialogOpen = true;
     }
 
@@ -153,7 +227,7 @@
         editName = categoryName;
         editOrder = categoryOrder;
         selectedFile = null;
-        imagePreview = imageUrl;
+        imagePreview = currentDisplayedUrl;
         isUploading = false;
         errorMessage = '';
         isDragging = false;
@@ -246,42 +320,69 @@
     ></div>
     <div class="relative h-full w-full">
         {#if !isLoading}
-            {#if imageUrl}
+            {#if currentDisplayedUrl}
                 <div class="h-full w-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
                     <img
-                        src={imageUrl}
+                        src={currentDisplayedUrl}
                         alt={categoryName}
-                        class="image-filter h-full w-full object-cover transition-[filter] duration-300 ease-out"
+                        class="h-full w-full object-cover transition-opacity duration-500"
+                        style="opacity: 1;"
                     />
                 </div>
             {:else}
-                <!-- Placeholder background for categories without images -->
-                <div class="category-placeholder h-full w-full transition-all duration-300"></div>
+                <!-- Placeholder pattern when no image is available -->
+                <div
+                    class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-gray-200"
+                >
+                    <div class="text-center text-gray-400">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="mx-auto h-12 w-12"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                        </svg>
+                        <p class="mt-2 text-xs">No image</p>
+                    </div>
+                </div>
             {/if}
+        {:else}
+            <!-- Loading placeholder - smaller version of the image without blur -->
+            <div class="flex h-full w-full items-center justify-center bg-gray-100">
+                {#if placeholderUrl}
+                    <img src={placeholderUrl} alt="Loading" class="h-full w-full object-cover" />
+                {:else}
+                    <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+                {/if}
+            </div>
         {/if}
 
-        <div
-            class="card-title absolute bottom-0 left-0 right-0 flex w-full items-center justify-end bg-gradient-to-t from-black/40 to-transparent transition-all duration-300"
-            style="padding: clamp(8px, 2vw, 20px) clamp(12px, 3vw, 24px) clamp(8px, 2vw, 20px) clamp(8px, 2vw, 20px);"
-        >
-            <h3 class="font-didot text-balance text-3xl text-white lg:text-[32px]">
-                {categoryName}
-            </h3>
+        <!-- Category name -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-4 text-white">
+            <h2 class="text-right text-2xl font-medium tracking-wide">{categoryName}</h2>
         </div>
 
+        <!-- Admin Controls Overlay -->
         {#if isAdmin}
             <div class="absolute right-4 top-4 flex gap-3">
                 <button
                     class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
-                    on:click|stopPropagation|preventDefault={handleEdit}
-                    aria-label="Edit category"
+                    on:click|stopPropagation={handleEdit}
+                    aria-label="Edit image"
                 >
                     ✎
                 </button>
                 <button
                     class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
-                    on:click|stopPropagation|preventDefault={handleRemove}
-                    aria-label="Remove category"
+                    on:click|stopPropagation={handleRemove}
+                    aria-label="Remove image"
                 >
                     ×
                 </button>
@@ -290,118 +391,103 @@
     </div>
 </a>
 
-<!-- Edit Category Dialog -->
-<Dialog bind:open={editDialogOpen}>
-    <svelte:fragment slot="title">Edit Category</svelte:fragment>
+<!-- Edit Dialog -->
+{#if editDialogOpen}
+    <Dialog bind:open={editDialogOpen} maxWidth="lg">
+        <svelte:fragment slot="title">Edit Category</svelte:fragment>
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-        <div class="space-y-2">
-            <Label for="editCategoryName" class="font-garamond">Category Name*</Label>
-            <Input
-                type="text"
-                id="editCategoryName"
-                bind:value={editName}
-                placeholder="e.g. Weddings"
-                class="font-garamond"
-                required
-                disabled={isUploading}
-            />
-        </div>
-
-        <div class="space-y-2">
-            <Label for="editCategoryOrder" class="font-garamond">Display Order*</Label>
-            <Input
-                type="number"
-                id="editCategoryOrder"
-                bind:value={editOrder}
-                placeholder="0"
-                class="font-garamond"
-                min="0"
-                disabled={isUploading}
-            />
-            <p class="text-xs text-gray-500">Categories are displayed in ascending order (lower numbers first)</p>
-        </div>
-
-        <div class="space-y-2">
-            <Label for="editCategoryImage" class="font-garamond">Thumbnail Image</Label>
-
-            <!-- Hidden file input -->
-            <input
-                bind:this={fileInput}
-                type="file"
-                id="editCategoryImage"
-                class="sr-only"
-                accept="image/*"
-                on:change={handleFileChange}
-                disabled={isUploading}
-            />
-
-            <!-- Custom Drop Zone -->
-            <button
-                type="button"
-                class="font-garamond group flex w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 text-center transition-colors {isDragging
-                    ? 'border-blue-500 bg-gray-100'
-                    : imagePreview
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
-                on:click={handleDropZoneClick}
-                on:dragenter={(e) => handleDragEvent(e, true)}
-                on:dragover={(e) => handleDragEvent(e, true)}
-                on:dragleave={(e) => handleDragEvent(e, false)}
-                on:drop={handleDrop}
-                disabled={isUploading}
-            >
-                {#if imagePreview}
-                    <div class="mb-2">
-                        <img src={imagePreview} alt="Preview" class="mx-auto max-h-32 max-w-full object-contain" />
-                    </div>
-                    <p class="text-sm text-gray-600">{selectedFile?.name || 'Current image'}</p>
-                    <p class="mt-1 text-xs text-gray-500">Click to change</p>
-                {:else}
-                    <svg
-                        class="mb-2 h-10 w-10 text-gray-400 group-hover:text-blue-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                    </svg>
-                    <p class="font-medium text-gray-600 group-hover:text-blue-600">Drop a thumbnail here</p>
-                    <p class="mt-1 text-sm text-gray-500">or click to browse</p>
-                {/if}
-            </button>
-        </div>
-
-        {#if errorMessage}
-            <div class="rounded bg-red-100 p-2 text-sm text-red-800">
-                {errorMessage}
+        <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+            <div class="space-y-2">
+                <Label for="category-name">Name</Label>
+                <Input id="category-name" type="text" bind:value={editName} placeholder="Category name" required />
             </div>
-        {/if}
 
-        <div class="flex flex-row justify-end space-x-3 pt-4">
-            <button
-                type="button"
-                class="font-didot cursor-pointer rounded bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300"
-                on:click={() => (editDialogOpen = false)}
-            >
-                Cancel
-            </button>
+            <div class="space-y-2">
+                <Label for="category-order">Order</Label>
+                <Input id="category-order" type="number" bind:value={editOrder} placeholder="Display order" min="0" />
+            </div>
 
-            <Button type="submit" variant="default" class="font-didot" disabled={!editName || isUploading}>
-                {#if isUploading}
-                    <span class="mr-2">Updating...</span>
-                {:else}
-                    Update
-                {/if}
-            </Button>
-        </div>
-    </form>
-</Dialog>
+            <div class="space-y-2">
+                <Label>Thumbnail</Label>
+                <div
+                    class="relative min-h-[150px] cursor-pointer rounded border-2 border-dashed border-gray-300 p-4 transition-colors hover:border-gray-400"
+                    class:border-indigo-400={isDragging}
+                    on:click={handleDropZoneClick}
+                    on:dragenter={(e) => handleDragEvent(e, true)}
+                    on:dragover={(e) => handleDragEvent(e, true)}
+                    on:dragleave={(e) => handleDragEvent(e, false)}
+                    on:drop={handleDrop}
+                >
+                    <input
+                        type="file"
+                        bind:this={fileInput}
+                        class="hidden"
+                        accept="image/*"
+                        on:change={handleFileChange}
+                    />
+
+                    {#if imagePreview}
+                        <img src={imagePreview} alt="Preview" class="mx-auto max-h-[200px] object-contain" />
+                        <p class="mt-2 text-center text-sm text-gray-500">Click or drag to change the image</p>
+                    {:else}
+                        <div class="text-center">
+                            <svg
+                                class="mx-auto h-12 w-12 text-gray-400"
+                                stroke="currentColor"
+                                fill="none"
+                                viewBox="0 0 48 48"
+                            >
+                                <path
+                                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                            <p class="text-sm text-gray-500">Click to upload or drag and drop</p>
+                            <p class="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+
+            {#if errorMessage}
+                <div class="rounded bg-red-50 p-4 text-sm text-red-500">{errorMessage}</div>
+            {/if}
+
+            <div class="flex justify-end space-x-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    on:click={() => (editDialogOpen = false)}
+                    disabled={isUploading}
+                >
+                    Cancel
+                </Button>
+                <Button type="submit" disabled={isUploading}>
+                    {#if isUploading}
+                        <svg
+                            class="mr-2 h-4 w-4 animate-spin"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                        </svg>
+                        Saving...
+                    {:else}
+                        Save Changes
+                    {/if}
+                </Button>
+            </div>
+        </form>
+    </Dialog>
+{/if}
 
 <style lang="scss">
     @use 'sass:color';

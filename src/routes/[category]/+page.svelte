@@ -1,17 +1,17 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
 
     import { adminMode } from '$lib/stores/adminStore';
-    import { client, urlFor } from '$lib/services/sanity';
+    import { client } from '$lib/services/sanity';
     import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
+    import { getImageUrls, urlForBuilder } from '$lib/services/imageConfig';
     import { goto } from '$app/navigation';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
     import type { Image } from '$lib/stores/imageStore';
 
     // Define the type for Sanity image URL builder
-    type SanityImageUrl = {
-        url: () => string;
-    };
+    type SanityImageUrl = ImageUrlBuilder;
 
     // Define Sanity types
     interface SanityImage {
@@ -27,6 +27,8 @@
                         url: string;
                         alternativeText?: string;
                         fullSizeUrl?: string;
+                        placeholderUrl?: string;
+                        thumbnailUrl?: string;
                         order?: number;
                     };
                 };
@@ -37,6 +39,8 @@
         description?: string;
         url?: string;
         fullSizeUrl?: string;
+        placeholderUrl?: string;
+        thumbnailUrl?: string;
         order?: number;
         image?: any; // Sanity image reference
     }
@@ -133,7 +137,7 @@
 
                         if (imageData && imageData.image) {
                             // Generate URLs using Sanity's urlFor helper
-                            const imageUrl = (urlFor(imageData.image) as SanityImageUrl).url();
+                            const imageUrl = (urlForBuilder(imageData.image) as SanityImageUrl).url();
 
                             // Update categoryImages array to ensure the UI updates
                             const index = categoryImages.findIndex((img) => img.id === image.id);
@@ -172,7 +176,7 @@
         loadImageUrls();
     }
 
-    // Transform categoryImages to Gallery-compatible format
+    // Update the image transformation to include responsive URLs
     $: {
         galleryImages = categoryImages.map((image) => {
             // Extract title from different possible locations
@@ -180,15 +184,49 @@
 
             // Get the URL from different possible locations
             let url = '';
+            let placeholderUrl = '';
+            let fullSizeUrl = '';
+            let responsiveUrls = undefined;
 
             // Try to get URL from all possible locations in the response structure
             if (image.url) {
                 url = image.url;
+                // If we have a direct URL but no optimized versions, use the same URL for all
+                if (!image.fullSizeUrl) {
+                    fullSizeUrl = image.url;
+                }
+                // Use existing responsive URLs if available
+                if (image.responsiveUrls) {
+                    responsiveUrls = image.responsiveUrls;
+                }
             } else if (image.attributes?.image?.data?.attributes?.url) {
                 url = image.attributes.image.data.attributes.url;
+                // Get full size URL if available
+                fullSizeUrl = image.attributes.image.data.attributes.fullSizeUrl || url;
+                // Get placeholder if available
+                placeholderUrl = image.attributes.image.data.attributes.placeholderUrl || '';
+                // Check for responsive URLs in the attributes
+                if (image.attributes.image.data.attributes.responsive) {
+                    responsiveUrls = {
+                        small: image.attributes.image.data.attributes.responsive.small || url,
+                        medium: image.attributes.image.data.attributes.responsive.medium || fullSizeUrl,
+                        large: image.attributes.image.data.attributes.responsive.large || fullSizeUrl
+                    };
+                }
             } else if (image.image) {
                 // Handle Sanity image object
-                url = (urlFor(image.image) as SanityImageUrl).url();
+                try {
+                    // Use centralized image URL configuration
+                    const urls = getImageUrls(image.image);
+                    placeholderUrl = urls.placeholder;
+                    url = urls.medium;
+                    fullSizeUrl = urls.large;
+                    // Add responsive URLs
+                    responsiveUrls = urls.responsive;
+                } catch (error) {
+                    console.error('Error generating image URLs:', error);
+                    url = '';
+                }
             }
 
             // Get the alt text
@@ -213,12 +251,15 @@
                 url,
                 alt,
                 categoryId,
-                order // Include the order attribute for sorting
+                order,
+                placeholderUrl,
+                fullSizeUrl,
+                responsiveUrls
             };
         });
     }
 
-    // Check for additional specific URL path variations
+    // Also update the second image URL generation for images without URLs
     $: {
         if (galleryImages.length > 0) {
             const imagesWithoutUrls = galleryImages.filter((img) => !img.url);
@@ -229,15 +270,26 @@
                     if (originalImage) {
                         // Try to generate URL using Sanity's urlFor if image property exists
                         if (originalImage.image) {
-                            const imageUrl = (urlFor(originalImage.image) as SanityImageUrl).url();
+                            try {
+                                // Use centralized image URL configuration
+                                const urls = getImageUrls(originalImage.image);
 
-                            // Update the URL in the gallery image
-                            image.url = imageUrl;
+                                // Update the URLs in the gallery image
+                                image.url = urls.medium;
+                                image.placeholderUrl = urls.placeholder;
+                                image.fullSizeUrl = urls.large;
+                                image.responsiveUrls = urls.responsive;
 
-                            // Also update the images array for next render
-                            const index = galleryImages.findIndex((img) => img.id === image.id);
-                            if (index !== -1) {
-                                galleryImages[index].url = imageUrl;
+                                // Also update the images array for next render
+                                const index = galleryImages.findIndex((img) => img.id === image.id);
+                                if (index !== -1) {
+                                    galleryImages[index].url = urls.medium;
+                                    galleryImages[index].placeholderUrl = urls.placeholder;
+                                    galleryImages[index].fullSizeUrl = urls.large;
+                                    galleryImages[index].responsiveUrls = urls.responsive;
+                                }
+                            } catch (error) {
+                                console.error('Error generating image URLs:', error);
                             }
                         }
                     }

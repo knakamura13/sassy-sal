@@ -328,7 +328,7 @@
     <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
 {/if}
 
-<div class="gallery-container m-auto max-w-[1000px] py-6 pb-24">
+<div class="gallery-container m-auto max-w-screen-md py-6 pb-24">
     <div class="grid w-full grid-cols-1 gap-6">
         {#each sortedImages as image (image.id)}
             <div class="image-container relative">

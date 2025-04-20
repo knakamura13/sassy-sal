@@ -5,7 +5,7 @@
     export let alt: string = '';
     export let width: number | undefined = undefined;
     export let height: number | undefined = undefined;
-    export let blurDataURL: string | undefined = undefined;
+    export let placeholderSrc: string | undefined = undefined;
     export let responsive:
         | {
               small: string;
@@ -64,18 +64,18 @@
 </script>
 
 <div class="image-container {className}" style="position: relative; overflow: hidden;">
-    {#if blurDataURL && !loaded}
+    {#if placeholderSrc && !loaded}
         <img
-            src={blurDataURL}
+            src={placeholderSrc}
             alt=""
-            class="blur-image"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(10px); transform: scale(1.1);"
+            class="placeholder-image"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
         />
     {/if}
 
     <img
         bind:this={thisImage}
-        src={priority ? src : blurDataURL || ''}
+        src={priority ? src : placeholderSrc || ''}
         srcset={priority && responsive
             ? `${responsive.small} 640w, ${responsive.medium} 1080w, ${responsive.large} 1920w`
             : ''}

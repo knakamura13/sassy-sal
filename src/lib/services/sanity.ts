@@ -1,7 +1,8 @@
-// Access Sanity Content API directly using @sanity/client and @sanity/image-url
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
+
+import { getImageUrls } from './imageConfig';
 
 // Get Sanity configuration from environment variables
 const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID;
@@ -69,6 +70,11 @@ interface FormattedCategory {
             data: {
                 attributes: {
                     url: string;
+                    thumbnailUrl?: string;
+                    placeholderUrl?: string;
+                    fullSizeUrl?: string;
+                    width?: number;
+                    height?: number;
                 };
             };
         } | null;
@@ -87,6 +93,9 @@ interface FormattedImage {
             data: {
                 attributes: {
                     url: string;
+                    thumbnailUrl?: string;
+                    placeholderUrl?: string;
+                    fullSizeUrl?: string;
                 };
             };
         };
@@ -188,11 +197,18 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
 
         // Transform the data to match the expected structure in the UI components
         return categories.map((category) => {
-            // Generate the thumbnail URL with safer handling
+            // Generate the thumbnail URLs with safer handling
             let thumbnailUrl = '';
+            let placeholderUrl = '';
+            let fullSizeUrl = '';
+
             try {
                 if (category.thumbnail) {
-                    thumbnailUrl = urlFor(category.thumbnail).url();
+                    // Use the centralized image configuration
+                    const urls = getImageUrls(category.thumbnail);
+                    thumbnailUrl = urls.medium;
+                    placeholderUrl = urls.placeholder;
+                    fullSizeUrl = urls.large;
                 }
             } catch (error) {
                 console.error('Error generating thumbnail URL for category:', category.name, error);
@@ -208,7 +224,9 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
                         ? {
                             data: {
                                 attributes: {
-                                    url: thumbnailUrl
+                                    url: thumbnailUrl,
+                                    placeholderUrl: placeholderUrl,
+                                    fullSizeUrl: fullSizeUrl
                                 }
                             }
                         }
@@ -263,11 +281,18 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
             return null;
         }
 
-        // Generate thumbnail URL with safe handling
+        // Generate thumbnail URLs with safe handling
         let thumbnailUrl = '';
+        let placeholderUrl = '';
+        let fullSizeUrl = '';
+
         try {
             if (category.thumbnail) {
-                thumbnailUrl = urlFor(category.thumbnail).url();
+                // Use the centralized image configuration
+                const thumbnailUrls = getImageUrls(category.thumbnail);
+                thumbnailUrl = thumbnailUrls.medium;
+                placeholderUrl = thumbnailUrls.placeholder;
+                fullSizeUrl = thumbnailUrls.large;
             }
         } catch (error) {
             console.error('Error generating category thumbnail URL:', error);
@@ -284,21 +309,30 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                     ? {
                         data: {
                             attributes: {
-                                url: thumbnailUrl
+                                url: thumbnailUrl,
+                                placeholderUrl: placeholderUrl,
+                                fullSizeUrl: fullSizeUrl
                             }
                         }
                     }
                     : null,
                 images: {
                     data: category.images.map((image) => {
-                        // Generate image URL with safe handling
+                        // Generate progressive image URLs with safe handling
                         let imageUrl = '';
+                        let imagePlaceholderUrl = '';
+                        let imageFullSizeUrl = '';
+
                         try {
                             if (image.image) {
-                                imageUrl = urlFor(image.image).url();
+                                // Use the centralized image configuration
+                                const imageUrls = getImageUrls(image.image);
+                                imageUrl = imageUrls.medium;
+                                imagePlaceholderUrl = imageUrls.placeholder;
+                                imageFullSizeUrl = imageUrls.large;
                             }
                         } catch (error) {
-                            console.error('Error generating image URL:', error);
+                            console.error('Error generating progressive image URLs:', error);
                         }
 
                         return {
@@ -309,7 +343,9 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                                 image: {
                                     data: {
                                         attributes: {
-                                            url: imageUrl
+                                            url: imageUrl,
+                                            placeholderUrl: imagePlaceholderUrl,
+                                            fullSizeUrl: imageFullSizeUrl
                                         }
                                     }
                                 }
@@ -366,7 +402,7 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
                     ? {
                         data: {
                             attributes: {
-                                url: urlFor(createdCategory.thumbnail).url()
+                                url: getImageUrls(createdCategory.thumbnail).medium
                             }
                         }
                     }
@@ -453,7 +489,7 @@ export const updateCategory = async (id: string, data: CategoryData): Promise<{ 
                     ? {
                         data: {
                             attributes: {
-                                url: urlFor(updatedCategory.thumbnail).url()
+                                url: getImageUrls(updatedCategory.thumbnail).medium
                             }
                         }
                     }
@@ -504,7 +540,7 @@ export const addImage = async (imageData: ImageData): Promise<{ data: FormattedI
                 image: {
                     data: {
                         attributes: {
-                            url: urlFor(createdImage.image).url()
+                            url: getImageUrls(createdImage.image).medium
                         }
                     }
                 }
@@ -571,7 +607,7 @@ export const updateImage = async (id: string, data: { order?: number; image?: Fi
                 image: {
                     data: {
                         attributes: {
-                            url: urlFor(updatedImage.image).url()
+                            url: getImageUrls(updatedImage.image).medium
                         }
                     }
                 }

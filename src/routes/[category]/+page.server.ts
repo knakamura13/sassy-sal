@@ -1,6 +1,8 @@
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+
 import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
+import { getImageUrls } from '$lib/services/imageConfig';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
     // Default to non-admin mode during SSR/prerendering
@@ -36,6 +38,31 @@ export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
         // Ensure images data is properly structured, even if empty
         if (!category.attributes.images) {
             category.attributes.images = { data: [] };
+        }
+
+        // Pre-process images to add optimized URLs for progressive loading
+        if (category.attributes.images.data) {
+            category.attributes.images.data = category.attributes.images.data.map((image: any) => {
+                // Skip if the image doesn't have a Sanity image reference
+                if (!image.image) return image;
+
+                try {
+                    // Generate all image URLs using centralized config
+                    const urls = getImageUrls(image.image);
+
+                    // Assign URLs to the image object
+                    image.placeholderUrl = urls.placeholder;
+                    image.url = urls.medium;
+                    image.fullSizeUrl = urls.large;
+
+                    // Add responsive URLs for different screen sizes
+                    image.responsiveUrls = urls.responsive;
+                } catch (error) {
+                    console.error('Error generating progressive URLs for image:', error);
+                }
+
+                return image;
+            });
         }
 
         return { category, admin };

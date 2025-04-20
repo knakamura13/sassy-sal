@@ -1,5 +1,6 @@
 // Helper functions for working with Sanity queries
-import { client, urlFor } from './sanity';
+import { client } from './sanity';
+import { getImageUrls, getMediumUrl, getPlaceholderUrl, getResponsiveUrls } from './imageConfig';
 
 /**
  * Get all categories with optimized query shape
@@ -187,7 +188,7 @@ interface FormattedCategory {
             data: {
                 attributes: {
                     url: string;
-                    blurDataURL: string;
+                    placeholderSrc: string;
                     width: number;
                     height: number;
                 };
@@ -207,7 +208,7 @@ interface FormattedImage {
             data: {
                 attributes: {
                     url: string;
-                    blurDataURL: string;
+                    placeholderSrc: string;
                     responsive: {
                         small: string;
                         medium: string;
@@ -249,16 +250,8 @@ export const formatCategory = (category: SanityCategory | null): FormattedCatego
                 ? {
                     data: {
                         attributes: {
-                            url: urlFor(category.thumbnail)
-                                .width(400)
-                                .auto('format')
-                                .quality(80)
-                                .url(),
-                            blurDataURL: urlFor(category.thumbnail)
-                                .width(20)
-                                .blur(10)
-                                .quality(20)
-                                .url(),
+                            url: getMediumUrl(category.thumbnail),
+                            placeholderSrc: getPlaceholderUrl(category.thumbnail),
                             width: 400,
                             height: 400,
                         }
@@ -270,7 +263,7 @@ export const formatCategory = (category: SanityCategory | null): FormattedCatego
 };
 
 /**
- * Format a category with images for consistent API structure
+ * Format a category with images for API responses
  * @param {Object} category - Sanity category object with images
  * @returns {Object} Formatted category with images
  */
@@ -278,16 +271,16 @@ export const formatCategoryWithImages = (category: SanityCategory | null): { dat
     if (!category) return { data: null };
 
     const formattedCategory = formatCategory(category);
+    if (!formattedCategory) return { data: null };
 
-    if (formattedCategory && category.images && Array.isArray(category.images)) {
+    // Add formatted images if they exist
+    if (category.images && category.images.length > 0) {
         formattedCategory.attributes.images = {
-            data: category.images.map(formatImage).filter((image): image is FormattedImage => image !== null)
+            data: category.images.map((image) => formatImage(image)).filter(Boolean) as FormattedImage[]
         };
     }
 
-    return {
-        data: formattedCategory
-    };
+    return { data: formattedCategory };
 };
 
 /**
@@ -298,6 +291,10 @@ export const formatCategoryWithImages = (category: SanityCategory | null): { dat
 export const formatImage = (image: SanityGalleryImage | null): FormattedImage | null => {
     if (!image) return null;
 
+    // Get all URLs using the centralized configuration
+    const urls = getImageUrls(image.image);
+    const responsiveUrls = getResponsiveUrls(image.image);
+
     return {
         id: image._id,
         attributes: {
@@ -305,21 +302,12 @@ export const formatImage = (image: SanityGalleryImage | null): FormattedImage | 
             image: {
                 data: {
                     attributes: {
-                        url: urlFor(image.image)
-                            .auto('format')
-                            .quality(80)
-                            .url(),
-                        // Low-quality placeholder for progressive loading
-                        blurDataURL: urlFor(image.image)
-                            .width(20)
-                            .blur(10)
-                            .quality(20)
-                            .url(),
-                        // Responsive image sources
+                        url: urls.medium,
+                        placeholderSrc: urls.placeholder,
                         responsive: {
-                            small: urlFor(image.image).width(640).quality(75).auto('format').url(),
-                            medium: urlFor(image.image).width(1080).quality(80).auto('format').url(),
-                            large: urlFor(image.image).width(1920).quality(80).auto('format').url(),
+                            small: responsiveUrls.small,
+                            medium: responsiveUrls.medium,
+                            large: responsiveUrls.large
                         }
                     }
                 }

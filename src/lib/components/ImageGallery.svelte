@@ -9,8 +9,8 @@
                 data: {
                     attributes: {
                         url: string;
-                        blurDataURL: string;
-                        responsive: {
+                        placeholderSrc?: string;
+                        responsive?: {
                             small: string;
                             medium: string;
                             large: string;
@@ -42,7 +42,7 @@
         <div class="gallery-item" bind:this={imageRefs[i]}>
             <ResponsiveImage
                 src={image.attributes.image.data.attributes.url}
-                blurDataURL={image.attributes.image.data.attributes.blurDataURL}
+                placeholderSrc={image.attributes.image.data.attributes.placeholderSrc}
                 responsive={image.attributes.image.data.attributes.responsive}
                 alt=""
                 priority={imagePriorities[image.id] || false}
