@@ -39,7 +39,6 @@
 
     // Edit dialog state
     let editDialogOpen = false;
-    let editTitle = '';
     let editOrder = 0;
     let selectedFile: File | null = null;
     let imagePreview = '';
@@ -159,7 +158,6 @@
         event.stopPropagation();
         event.preventDefault();
 
-        editTitle = image.title || '';
         editOrder = image.order || 0;
         imagePreview = currentDisplayedUrl || '';
         editDialogOpen = true;
@@ -206,7 +204,6 @@
     }
 
     function resetForm() {
-        editTitle = image.title || '';
         editOrder = image.order || 0;
         selectedFile = null;
         imagePreview = currentDisplayedUrl || '';
@@ -228,7 +225,6 @@
             // Prepare the update data
             const updateData: any = {
                 data: {
-                    title: editTitle,
                     order: editOrder
                 }
             };
@@ -369,17 +365,6 @@
     <svelte:fragment slot="title">Edit Image</svelte:fragment>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-        <div class="space-y-2">
-            <Label for="editImageTitle">Image Title</Label>
-            <Input
-                type="text"
-                id="editImageTitle"
-                bind:value={editTitle}
-                placeholder="Enter image title"
-                class="w-full"
-            />
-        </div>
-
         <div class="space-y-2">
             <Label for="editImageOrder">Display Order</Label>
             <Input

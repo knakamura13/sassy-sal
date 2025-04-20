@@ -24,7 +24,7 @@ export const IMAGE_SIZES = {
     // Large images (lightbox/detailed view)
     LARGE: {
         width: 1200,
-        quality: 95
+        quality: 100
     },
     // Responsive image sizes
     RESPONSIVE: {
@@ -38,7 +38,7 @@ export const IMAGE_SIZES = {
         },
         LARGE: {
             width: 1920,
-            quality: 95
+            quality: 100
         }
     }
 };

@@ -53,7 +53,7 @@
             role="dialog"
             aria-modal="true"
         >
-            <img src={image.url} alt={image.alt || 'Image preview'} class="h-full w-full object-contain" />
+            <img src={image.fullSizeUrl} alt={image.alt || 'Image preview'} class="h-full w-full object-contain" />
         </span>
     </button>
 {/if}

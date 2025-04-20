@@ -413,10 +413,14 @@
                     class="relative min-h-[150px] cursor-pointer rounded border-2 border-dashed border-gray-300 p-4 transition-colors hover:border-gray-400"
                     class:border-indigo-400={isDragging}
                     on:click={handleDropZoneClick}
+                    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ' ? handleDropZoneClick() : null)}
                     on:dragenter={(e) => handleDragEvent(e, true)}
                     on:dragover={(e) => handleDragEvent(e, true)}
                     on:dragleave={(e) => handleDragEvent(e, false)}
                     on:drop={handleDrop}
+                    tabindex="0"
+                    role="button"
+                    aria-label="Upload image"
                 >
                     <input
                         type="file"
@@ -488,26 +492,3 @@
         </form>
     </Dialog>
 {/if}
-
-<style lang="scss">
-    @use 'sass:color';
-    @use '../../styles/variables' as vars;
-
-    .image-filter {
-        filter: contrast(0.95) brightness(1.05) saturate(0.95);
-    }
-
-    /* Styling for the category placeholder when no thumbnail is available */
-    .category-placeholder {
-        background-color: color.adjust(vars.$secondary-color, $lightness: 10%);
-    }
-
-    .category-card:hover {
-        .category-card-border {
-            opacity: 1;
-        }
-        .image-filter {
-            filter: contrast(1) brightness(0.98) saturate(1.05);
-        }
-    }
-</style>

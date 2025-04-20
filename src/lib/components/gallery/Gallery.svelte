@@ -331,72 +331,21 @@
 <div class="gallery-container m-auto max-w-screen-md py-6 pb-24">
     <div class="grid w-full grid-cols-1 gap-6">
         {#each sortedImages as image (image.id)}
-            <div class="image-container relative">
-                {#if $adminMode}
-                    <div
-                        class="order-controls absolute -left-12 top-1/2 flex -translate-y-1/2 transform flex-col space-y-2"
-                    >
-                        <button
-                            type="button"
-                            class="rounded-full bg-gray-200 p-2 {sortedImages.indexOf(image) === 0
-                                ? 'pointer-events-none opacity-40'
-                                : 'hover:bg-gray-300'}"
-                            on:click|preventDefault|stopPropagation={() => moveImageUp(image.id)}
-                            disabled={sortedImages.indexOf(image) === 0}
-                            title="Move up"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                                    clip-rule="evenodd"
-                                />
-                            </svg>
-                        </button>
-                        <button
-                            type="button"
-                            class="rounded-full bg-gray-200 p-2 {sortedImages.indexOf(image) === sortedImages.length - 1
-                                ? 'pointer-events-none opacity-40'
-                                : 'hover:bg-gray-300'}"
-                            on:click|preventDefault|stopPropagation={() => moveImageDown(image.id)}
-                            disabled={sortedImages.indexOf(image) === sortedImages.length - 1}
-                            title="Move down"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                {/if}
-                <button
-                    type="button"
-                    class="w-full cursor-pointer border-0 bg-transparent p-0 text-left"
-                    on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
-                    on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
-                    aria-label={image.title || 'View image'}
-                >
-                    <ImageCard
-                        {image}
-                        isCategory={true}
-                        isAdmin={$adminMode}
-                        on:remove={() => handleRemoveImage(image.id)}
-                        on:update={handleUpdateImage}
-                    />
-                </button>
+            <div
+                class="gallery-item w-full"
+                on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
+                on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
+                role="button"
+                tabindex="0"
+                aria-label={image.title || 'View image'}
+            >
+                <ImageCard
+                    {image}
+                    isCategory={true}
+                    isAdmin={$adminMode}
+                    on:remove={() => handleRemoveImage(image.id)}
+                    on:update={handleUpdateImage}
+                />
             </div>
         {/each}
 
