@@ -3,8 +3,8 @@
     const { contact } = data;
 </script>
 
-<div class="container m-auto flex min-h-[50vh] max-w-2xl flex-col items-center justify-center px-4 py-12">
-    <h1 class="font-didot mb-8 text-center text-3xl">{contact.title}</h1>
+<div class="container mx-auto max-w-4xl px-4 py-16">
+    <h1 class="font-didot mb-12 text-center text-4xl">{contact.title}</h1>
 
     <p class="mb-6 text-center">{contact.mainContent}</p>
 

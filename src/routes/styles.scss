@@ -1,3 +1,12 @@
+@use '../lib/styles/variables' as vars;
+@use 'sass:color';
+
+body,
+html,
+.page {
+    color: vars.$primary-color;
+}
+
 .page {
     max-width: 1400px;
     width: 100%;
@@ -14,6 +23,34 @@ h4,
 h5,
 h6 {
     font-family: 'Didot', serif;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+}
+
+h5 {
+    font-size: 1.1rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
+p {
+    font-size: 1rem;
 }
 
 /* Content text */
