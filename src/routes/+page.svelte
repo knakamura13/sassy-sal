@@ -602,7 +602,7 @@
 </script>
 
 <svelte:head>
-    <title>Photography Portfolio | Home</title>
+    <title>SallyJK Photography</title>
 </svelte:head>
 
 <div class="page min-h-[100vh] !px-[6vw] !pb-[240px] !pt-[60px]" id="home">

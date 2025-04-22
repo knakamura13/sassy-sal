@@ -5,9 +5,7 @@
     import { Toaster } from '$lib/components/ui/sonner';
 </script>
 
-<svelte:head>
-    <title>Photography Portfolio</title>
-</svelte:head>
+<!-- No title set in the layout - this allows page components to set their own titles -->
 
 <div class="app-wrapper flex flex-col">
     <Header />
