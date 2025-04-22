@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
 
     import { adminMode } from '$lib/stores/adminStore';
     import { type Image, imageStore } from '$lib/stores/imageStore';
@@ -487,6 +487,19 @@
 
         localImages = [...localImages, ...processedImages];
         isModified = true;
+
+        // Scroll to .next-category-nav at the bottom of the page
+        setTimeout(() => {
+            const nextCategoryNav = document.querySelector('.next-category-nav');
+            if (nextCategoryNav) {
+                nextCategoryNav.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 150);
+
+        // Show a toast notification
+        showToast.success(
+            `${processedImages.length} images added. Remember to press "Save Changes" to upload and publish the new images.`
+        );
     }
 
     // Function to handle image click for preview
@@ -577,6 +590,16 @@
             e.preventDefault();
             e.stopPropagation();
             handlePreviewClose();
+        }
+    }}
+    on:beforeunload={(e) => {
+        if ($adminMode && isModified) {
+            // Show confirmation dialog before unloading page with unsaved changes
+            e.preventDefault();
+            // This message may not be displayed in modern browsers, but returning a string
+            // will trigger the confirmation dialog
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return e.returnValue;
         }
     }}
 />
