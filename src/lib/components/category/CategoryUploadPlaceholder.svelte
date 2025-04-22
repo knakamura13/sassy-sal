@@ -8,6 +8,7 @@
     import { Label } from '$lib/components/ui/label';
     import { showToast } from '$lib/utils';
     import Dialog from '$lib/components/Dialog.svelte';
+    import FileDropZone from '$lib/components/common/FileDropZone.svelte';
 
     // Define the data structure that will be sent to Sanity
     interface CategoryData {
@@ -35,9 +36,8 @@
     // File upload state
     let selectedFile: File | null = null;
     let imagePreview = '';
-    let dropZone: HTMLElement;
-    let fileInput: HTMLInputElement;
-    let isDragging = false;
+    let previewUrls: string[] = [];
+    let selectedFiles: File[] = [];
 
     // Form process state
     let isUploading = false;
@@ -79,46 +79,27 @@
         selectedFile = null;
         imagePreview = '';
         errorMessage = '';
-        isDragging = false;
+        selectedFiles = [];
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        previewUrls = [];
         orderValue = 0;
         isUploading = false;
     }
 
-    // File handling functions
-    function handleFileChange(event: Event) {
-        const input = event.target as HTMLInputElement;
-        if (input.files?.[0]) {
-            processFile(input.files[0]);
+    // Handle files selected from the FileDropZone
+    function handleFilesSelected(event: CustomEvent<File[]>) {
+        if (event.detail.length > 0) {
+            const file = event.detail[0]; // Just take the first file for the thumbnail
+            selectedFile = file;
+            selectedFiles = [file];
+
+            // Revoke any previous object URLs to prevent memory leaks
+            previewUrls.forEach((url) => URL.revokeObjectURL(url));
+
+            // Create new preview URL
+            imagePreview = URL.createObjectURL(file);
+            previewUrls = [imagePreview];
         }
-    }
-
-    function processFile(file: File) {
-        selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            imagePreview = e.target?.result as string;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Drag and drop handling
-    function handleDropZoneClick() {
-        fileInput.click();
-    }
-
-    function handleDragEvent(event: DragEvent, entering: boolean) {
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = entering;
-    }
-
-    function handleDrop(event: DragEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = false;
-
-        const file = event.dataTransfer?.files?.[0];
-        if (file) processFile(file);
     }
 
     // Form submission
@@ -160,8 +141,8 @@
             class="flex h-full w-full cursor-pointer flex-col items-center justify-center p-4 transition-colors hover:bg-gray-100"
             on:click={() => (open = true)}
         >
-            <span class="mb-2 text-4xl text-gray-400">+</span>
-            <span class="font-medium text-gray-500">Add Images</span>
+            <span class="mb-2 text-3xl text-gray-500">+</span>
+            <span class="font-medium text-gray-500">Add Category</span>
         </button>
 
         <Dialog bind:open>
@@ -204,61 +185,17 @@
                 <div class="space-y-2">
                     <Label for="categoryImage" class="font-garamond">Thumbnail Image</Label>
 
-                    <!-- Hidden file input -->
-                    <input
-                        bind:this={fileInput}
-                        type="file"
-                        id="categoryImage"
-                        class="sr-only"
-                        accept="image/*"
-                        on:change={handleFileChange}
-                        disabled={isUploading}
+                    <!-- FileDropZone component -->
+                    <FileDropZone
+                        {selectedFiles}
+                        {previewUrls}
+                        multiple={false}
+                        placeholderText="Drop a thumbnail here"
+                        browseText="or click to browse"
+                        previewClasses="max-h-32 max-w-full object-contain"
+                        previewWrapperClasses="mb-2"
+                        on:filesSelected={handleFilesSelected}
                     />
-
-                    <!-- Custom Drop Zone -->
-                    <button
-                        type="button"
-                        bind:this={dropZone}
-                        class="font-garamond group flex w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 text-center transition-colors {isDragging
-                            ? 'border-blue-500 bg-gray-100'
-                            : imagePreview
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}"
-                        on:click={handleDropZoneClick}
-                        on:dragenter={(e) => handleDragEvent(e, true)}
-                        on:dragover={(e) => handleDragEvent(e, true)}
-                        on:dragleave={(e) => handleDragEvent(e, false)}
-                        on:drop={handleDrop}
-                        disabled={isUploading}
-                    >
-                        {#if imagePreview}
-                            <div class="mb-2">
-                                <img
-                                    src={imagePreview}
-                                    alt="Preview"
-                                    class="mx-auto max-h-32 max-w-full object-contain"
-                                />
-                            </div>
-                            <p class="text-sm text-gray-600">{selectedFile?.name || 'Image selected'}</p>
-                            <p class="mt-1 text-xs text-gray-500">Click to change</p>
-                        {:else}
-                            <svg
-                                class="mb-2 h-10 w-10 text-gray-400 group-hover:text-blue-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                />
-                            </svg>
-                            <p class="font-medium text-gray-600 group-hover:text-blue-600">Drop a thumbnail here</p>
-                            <p class="mt-1 text-sm text-gray-500">or click to browse</p>
-                        {/if}
-                    </button>
                 </div>
 
                 {#if errorMessage}
