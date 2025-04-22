@@ -363,7 +363,7 @@
 
         // Reset and show the progress dialog
         $progressStep = 0;
-        $progressTotal = 1; // Default until we know how many images
+        $progressTotal = 0; // Set to 0 initially to indicate we don't know the count yet
         $progressMessage = 'Starting category deletion...';
         $progressPercentage = 0;
         $showProgressDialog = true;
@@ -683,7 +683,9 @@
                     <div class="flex flex-col space-y-1.5">
                         <div class="flex justify-between text-sm font-medium">
                             <span>Progress</span>
-                            <span>{$progressStep} of {$progressTotal} steps</span>
+                            {#if $progressTotal > 0}
+                                <span>{$progressStep} of {$progressTotal} steps</span>
+                            {/if}
                         </div>
                         <Progress.Progress value={$progressPercentage} class="h-2" />
                         <div class="mt-1 text-center text-sm text-muted-foreground">

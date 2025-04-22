@@ -438,7 +438,7 @@ export const deleteCategory = async (
 
         // Update progress to show we're starting
         if (progressCallback) {
-            progressCallback(currentStep, totalSteps, "Preparing to delete category and images...");
+            progressCallback(currentStep, totalSteps, "Starting category deletion...");
         }
 
         // Delete each referenced image first
@@ -469,7 +469,7 @@ export const deleteCategory = async (
             progressCallback(
                 totalSteps - 1,
                 totalSteps,
-                "Finalizing category deletion..."
+                "Deleting category..."
             );
         }
 
@@ -480,7 +480,7 @@ export const deleteCategory = async (
             progressCallback(
                 totalSteps,
                 totalSteps,
-                "Category deletion complete!"
+                "Category deleted successfully!"
             );
         }
 

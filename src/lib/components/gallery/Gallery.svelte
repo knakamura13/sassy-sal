@@ -42,6 +42,11 @@
     let uploadMessage = '';
     let uploadPercentage = 0;
     let uploadOperation = '';
+    let totalFileSizeBytes = 0;
+    let uploadedFileSizeBytes = 0;
+    let uploadStartTime = 0;
+    let uploadSpeed = 0; // Bytes per second
+    let isCanceled = false; // Add flag to track cancellation state
 
     // Initialize with provided category images
     onMount(() => {
@@ -54,6 +59,18 @@
         if (categoryId && categoryOrder !== undefined) {
             fetchNextCategory();
         }
+
+        // Set up an interval to update upload statistics regularly
+        const updateInterval = setInterval(() => {
+            if (showProgressDialog && uploadStartTime > 0) {
+                updateUploadSpeed();
+            }
+        }, 1000);
+
+        // Clean up the interval when component is unmounted
+        return () => {
+            clearInterval(updateInterval);
+        };
     });
 
     // Fetch the next category based on current category order
@@ -116,13 +133,37 @@
     // Use the utility function to sort images
     $: sortedImages = sortImagesByOrder(localImages);
 
+    function refreshAfterDelay(delay: number) {
+        setTimeout(() => {
+            const timestamp = new Date().getTime();
+            const url = new URL(window.location.href);
+            url.searchParams.set('t', timestamp.toString());
+            window.location.href = url.toString();
+        }, delay);
+    }
+
     // Function to handle saving changes
     async function saveChanges() {
         if (isSaving) return; // Prevent multiple save operations
         isSaving = true;
+        isCanceled = false; // Reset canceled state
 
         // Find images to add, update, or remove
         const { imagesToAdd, imagesToRemove, imagesToUpdate } = findImageChanges(localImages, originalImages);
+
+        // Reset file size tracking
+        totalFileSizeBytes = 0;
+        uploadedFileSizeBytes = 0;
+        uploadSpeed = 0;
+
+        // Calculate total file size to upload
+        const filesToUpload = [...imagesToAdd.filter((img) => img.file), ...imagesToUpdate.filter((img) => img.file)];
+
+        for (const image of filesToUpload) {
+            if (image.file) {
+                totalFileSizeBytes += image.file.size;
+            }
+        }
 
         // Calculate total operations for progress tracking
         uploadTotal = imagesToRemove.length + imagesToAdd.length + imagesToUpdate.length;
@@ -133,6 +174,7 @@
             uploadMessage = 'Preparing to process images...';
             uploadPercentage = 0;
             showProgressDialog = true;
+            uploadStartTime = Date.now();
         }
 
         // Process changes
@@ -146,6 +188,7 @@
                 uploadMessage = `Deleting images...`;
 
                 for (const image of imagesToRemove) {
+                    if (isCanceled) break; // Check for cancellation
                     try {
                         await deleteImage(image.id);
                         uploadStep++;
@@ -159,11 +202,12 @@
             }
 
             // Process additions
-            if (imagesToAdd.length > 0) {
+            if (imagesToAdd.length > 0 && !isCanceled) {
                 uploadOperation = 'Uploading';
                 uploadMessage = `Uploading new images...`;
 
                 for (let i = 0; i < imagesToAdd.length; i++) {
+                    if (isCanceled) break; // Check for cancellation
                     const image = imagesToAdd[i];
                     if (!image.file) {
                         uploadStep++;
@@ -178,10 +222,16 @@
                             category: categoryId
                         };
 
-                        uploadMessage = `Uploading image ${i + 1} of ${imagesToAdd.length}...`;
+                        const fileSize = image.file.size;
+                        const fileSizeFormatted = formatFileSize(fileSize);
+                        uploadMessage = `Uploading image ${i + 1} of ${imagesToAdd.length} (${fileSizeFormatted})...`;
 
                         // Add the image in Sanity
                         await addImage(imageData);
+
+                        // Update upload statistics
+                        uploadedFileSizeBytes += fileSize;
+                        updateUploadSpeed();
 
                         uploadStep++;
                         uploadPercentage = Math.round((uploadStep / uploadTotal) * 100);
@@ -194,11 +244,12 @@
             }
 
             // Process updates
-            if (imagesToUpdate.length > 0) {
+            if (imagesToUpdate.length > 0 && !isCanceled) {
                 uploadOperation = 'Updating';
                 uploadMessage = `Updating images...`;
 
                 for (let i = 0; i < imagesToUpdate.length; i++) {
+                    if (isCanceled) break; // Check for cancellation
                     const image = imagesToUpdate[i];
                     try {
                         // Prepare update data
@@ -209,13 +260,21 @@
                         // Include file if present
                         if (image.file) {
                             updateData.image = image.file;
-                            uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length} (with new file)...`;
+                            const fileSize = image.file.size;
+                            const fileSizeFormatted = formatFileSize(fileSize);
+                            uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length} with new file (${fileSizeFormatted})...`;
                         } else {
                             uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length}...`;
                         }
 
                         // Update the image
                         await updateImage(image.id, updateData);
+
+                        // Update upload statistics if we uploaded a file
+                        if (image.file) {
+                            uploadedFileSizeBytes += image.file.size;
+                            updateUploadSpeed();
+                        }
 
                         uploadStep++;
                         uploadPercentage = Math.round((uploadStep / uploadTotal) * 100);
@@ -228,23 +287,25 @@
             }
 
             // Set final progress state before hiding dialog
-            uploadMessage = 'All images processed successfully!';
-            uploadPercentage = 100;
+            if (isCanceled) {
+                uploadMessage = 'Upload process canceled.';
+            } else {
+                uploadMessage = 'All images processed successfully!';
+                uploadPercentage = 100;
+            }
 
             // Keep the dialog visible for a moment so user can see completion
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            if (!isCanceled) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
             showProgressDialog = false;
 
-            isModified = false;
-            showToast.success('Changes saved successfully');
+            if (!isCanceled) {
+                isModified = false;
+                showToast.success('Changes saved successfully');
+            }
 
-            // Force page refresh to reflect the changes from the server
-            setTimeout(() => {
-                const timestamp = new Date().getTime();
-                const url = new URL(window.location.href);
-                url.searchParams.set('t', timestamp.toString());
-                window.location.href = url.toString();
-            }, 1000);
+            refreshAfterDelay(1000);
         } catch (error) {
             console.error('Error saving changes:', error);
             showToast.error('Error saving changes. Please try again.');
@@ -380,10 +441,77 @@
         }
     }
 
-    // Handle preview close
+    // Function to handle preview close
     function handlePreviewClose() {
         showPreview = false;
         previewImage = null;
+    }
+
+    // Helper function to format file size
+    function formatFileSize(bytes: number): string {
+        if (bytes === 0) return '0 Bytes';
+
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // Helper function to format upload speed
+    function formatSpeed(bytesPerSecond: number): string {
+        if (bytesPerSecond === 0) return '0 KB/s';
+
+        if (bytesPerSecond < 1024) {
+            return bytesPerSecond.toFixed(1) + ' B/s';
+        } else if (bytesPerSecond < 1048576) {
+            return (bytesPerSecond / 1024).toFixed(1) + ' KB/s';
+        }
+
+        return (bytesPerSecond / 1048576).toFixed(1) + ' MB/s';
+    }
+
+    // Simple moving average of the last 10 upload speeds
+    let uploadSpeeds: number[] = [];
+    $: SMA = uploadSpeeds.length
+        ? uploadSpeeds.slice(-10).reduce((sum, speed) => sum + speed, 0) / uploadSpeeds.slice(-10).length
+        : 0;
+
+    function updateUploadSpeed() {
+        const currentTime = Date.now();
+        const elapsedSeconds = (currentTime - uploadStartTime) / 1000;
+
+        if (elapsedSeconds > 0) {
+            uploadSpeed = uploadedFileSizeBytes / elapsedSeconds;
+            uploadSpeeds = [...uploadSpeeds, uploadSpeed];
+        }
+    }
+
+    // Helper function to format remaining time
+    function formatTimeRemaining(seconds: number): string {
+        if (!isFinite(seconds) || seconds <= 0) {
+            return 'Almost done...';
+        }
+
+        if (seconds < 60) {
+            return `${Math.ceil(seconds)} seconds`;
+        } else if (seconds < 3600) {
+            return `${Math.ceil(seconds / 60)} minutes`;
+        } else {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.ceil((seconds % 3600) / 60);
+            return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${minutes > 1 ? 's' : ''}`;
+        }
+    }
+
+    // Function to handle cancel upload
+    function cancelUpload() {
+        isCanceled = true;
+        uploadMessage = 'Canceling upload process...';
+        showProgressDialog = false; // Close dialog immediately
+        showToast.info('Upload process was canceled');
+
+        refreshAfterDelay(1000);
     }
 </script>
 
@@ -451,13 +579,49 @@
                             <span>{uploadStep} of {uploadTotal} items</span>
                         </div>
                         <Progress.Progress value={uploadPercentage} class="h-2" />
-                        <div class="mt-1 text-center text-sm text-muted-foreground">
-                            {uploadPercentage}%
+                        <div class="mt-1 flex justify-between text-sm text-muted-foreground">
+                            <span>{uploadPercentage}%</span>
+                            {#if totalFileSizeBytes > 0}
+                                <span
+                                    >{formatFileSize(uploadedFileSizeBytes)} of {formatFileSize(
+                                        totalFileSizeBytes
+                                    )}</span
+                                >
+                            {/if}
                         </div>
                     </div>
+
+                    {#if uploadSpeed > 0}
+                        <div class="mt-2 text-center text-sm text-muted-foreground">
+                            <div class="flex items-center justify-center gap-1">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"><path d="M7 7h10v10" /><path d="M7 17 17 7" /></svg
+                                >
+                                Upload speed: {formatSpeed(SMA)}
+                            </div>
+                            <div class="mt-1 text-xs">
+                                Estimated time remaining: {uploadSpeed > 0
+                                    ? formatTimeRemaining((totalFileSizeBytes - uploadedFileSizeBytes) / SMA)
+                                    : 'Calculating...'}
+                            </div>
+                        </div>
+                    {/if}
                 </div>
             </AlertDialog.Description>
         </AlertDialog.Header>
+        <AlertDialog.Footer>
+            <AlertDialog.Cancel on:click={cancelUpload} disabled={isCanceled || uploadPercentage === 100}>
+                Cancel
+            </AlertDialog.Cancel>
+        </AlertDialog.Footer>
     </AlertDialog.Content>
 </AlertDialog.Root>
 
