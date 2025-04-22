@@ -5,15 +5,14 @@ import imageUrlBuilder from '@sanity/image-url';
 const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
 const dataset = import.meta.env.VITE_SANITY_DATASET;
 const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
-const token = import.meta.env.VITE_SANITY_API_TOKEN;
+// Remove token import from server-side
 
-// Create Sanity client
+// Create Sanity client (public, read-only)
 export const client = createClient({
     projectId,
     dataset,
     apiVersion,
-    token,
-    useCdn: false, // Set to true for production for better performance
+    useCdn: true, // Use CDN for better performance on public data
     perspective: 'published', // Only fetch published documents, not drafts
 });
 

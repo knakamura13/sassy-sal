@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import { VITE_ADMIN_PASSWORD } from '$env/static/private';
+import { ADMIN_PASSWORD } from '$env/static/private';
 import type { Actions, PageServerLoad } from './$types';
 
 // Redirect authenticated users away from login page
@@ -27,13 +27,13 @@ export const actions: Actions = {
         }
 
         // Simple password check against environment variable
-        if (!VITE_ADMIN_PASSWORD) {
-            console.warn('VITE_ADMIN_PASSWORD not set in environment variables!');
+        if (!ADMIN_PASSWORD) {
+            console.warn('ADMIN_PASSWORD not set in environment variables!');
             // Fallback for development
             if (password !== 'password') {
                 return fail(401, { message: 'Invalid password' });
             }
-        } else if (password !== VITE_ADMIN_PASSWORD) {
+        } else if (password !== ADMIN_PASSWORD) {
             return fail(401, { message: 'Invalid password' });
         }
 

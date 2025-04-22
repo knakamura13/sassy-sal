@@ -7,7 +7,6 @@ import { getImageUrls } from './imageConfig';
 // Get Sanity configuration from environment variables
 const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID;
 const SANITY_DATASET = import.meta.env.VITE_SANITY_DATASET || 'production';
-const SANITY_API_TOKEN = import.meta.env.VITE_SANITY_API_TOKEN;
 const SANITY_API_VERSION = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
 
 // Determine if we're in browser or server environment
@@ -125,9 +124,8 @@ interface ImageData {
 export const client = createClient({
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
-    apiVersion: SANITY_API_VERSION, // Use a UTC date string
-    token: SANITY_API_TOKEN,
-    useCdn: false, // Set to `true` for production
+    apiVersion: SANITY_API_VERSION,
+    useCdn: true, // Use CDN for better performance on client-side
     // Add browser-specific options only when in browser context
     ...(isBrowser
         ? {
@@ -370,16 +368,18 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
  */
 export const addCategory = async (categoryData: CategoryData): Promise<{ data: FormattedCategory }> => {
     try {
+        // For file uploads, we need to use a different approach
+        // First, prepare the category data without the thumbnail
         const category: Partial<SanityCategory> = {
             _type: 'category',
             name: categoryData.name,
             order: categoryData.order || 0
         };
 
-        // If there's a thumbnail file, upload it
+        // If there's a thumbnail file, upload it first via separate endpoint
         if (categoryData.thumbnail) {
-            // Handle file upload to Sanity
             const thumbnailAsset = await uploadFile(categoryData.thumbnail);
+
             category.thumbnail = {
                 _type: 'image',
                 asset: {
@@ -389,7 +389,25 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
             };
         }
 
-        const createdCategory: SanityCategory = await client.create(category as SanityCategory);
+        // Then call our server endpoint to create the category
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'createCategory',
+                data: category
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create category');
+        }
+
+        const result = await response.json();
+        const createdCategory: SanityCategory = result.data;
 
         // Transform the response to match expected format
         const transformedCategory: FormattedCategory = {
@@ -441,13 +459,27 @@ export const deleteCategory = async (
             progressCallback(currentStep, totalSteps, "Starting category deletion...");
         }
 
-        // Delete each referenced image first
+        // Delete each referenced image via server endpoint
         if (imagesToDelete.length > 0) {
             console.log(`Deleting ${imagesToDelete.length} gallery images for category ${id}`);
 
             // Delete images one by one
             for (const imageId of imagesToDelete) {
-                await client.delete(imageId);
+                const response = await fetch('/api/sanity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        operation: 'deleteImage',
+                        data: { imageId }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to delete image');
+                }
 
                 // Increment step and report progress
                 currentStep++;
@@ -460,11 +492,11 @@ export const deleteCategory = async (
                 }
             }
 
-            // Add a small delay to ensure Sanity has time to process all deletions
+            // Add a small delay to ensure all requests are processed
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        // Now it's safe to delete the category itself
+        // Now delete the category itself via server endpoint
         if (progressCallback) {
             progressCallback(
                 totalSteps - 1,
@@ -473,7 +505,21 @@ export const deleteCategory = async (
             );
         }
 
-        await client.delete(id);
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'deleteCategory',
+                data: { id }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete category');
+        }
 
         // Final progress update
         if (progressCallback) {
@@ -680,14 +726,23 @@ export const uploadFile = async (file: File): Promise<any> => {
             throw new Error('File upload is only available in browser environment');
         }
 
-        // Use more browser-friendly approach with fewer dependencies
-        return client.assets.upload('image', file, {
-            filename: file.name,
-            // Important: use alternative options without Node.js dependencies
-            contentType: file.type,
-            // Avoid options that might use Node.js-specific APIs like fs or Buffer
-            preserveFilename: true
+        // Create form data to send the file
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Send to server endpoint for upload
+        const response = await fetch('/api/sanity/upload', {
+            method: 'POST',
+            body: formData
         });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to upload file');
+        }
+
+        const result = await response.json();
+        return result.asset;
     } catch (error) {
         console.error('Error uploading file to Sanity:', error);
         throw error;
