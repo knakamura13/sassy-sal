@@ -1,8 +1,9 @@
 /* Garamond Libre Font */
 @font-face {
     font-family: 'Garamond Libre';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/garamond-libre/GaramondLibre-Regular.otf') format('opentype');
+    src:
+        url('/fonts/garamond-libre/GaramondLibre-Regular.woff2') format('woff2'),
+        url('/fonts/garamond-libre/GaramondLibre-Regular.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -10,8 +11,9 @@
 
 @font-face {
     font-family: 'Garamond Libre';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/garamond-libre/GaramondLibre-Bold.otf') format('opentype');
+    src:
+        url('/fonts/garamond-libre/GaramondLibre-Bold.woff2') format('woff2'),
+        url('/fonts/garamond-libre/GaramondLibre-Bold.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -19,8 +21,9 @@
 
 @font-face {
     font-family: 'Garamond Libre';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/garamond-libre/GaramondLibre-Italic.otf') format('opentype');
+    src:
+        url('/fonts/garamond-libre/GaramondLibre-Italic.woff2') format('woff2'),
+        url('/fonts/garamond-libre/GaramondLibre-Italic.otf') format('opentype');
     font-weight: normal;
     font-style: italic;
     font-display: swap;
@@ -29,8 +32,9 @@
 /* Didot Font */
 @font-face {
     font-family: 'Didot';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/didot-ssv/Didot Regular.ttf') format('truetype');
+    src:
+        url('/fonts/didot-ssv/Didot Regular.woff2') format('woff2'),
+        url('/fonts/didot-ssv/Didot Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -38,8 +42,9 @@
 
 @font-face {
     font-family: 'Didot';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/didot-ssv/Didot LT Std Bold.otf') format('opentype');
+    src:
+        url('/fonts/didot-ssv/Didot LT Std Bold.woff2') format('woff2'),
+        url('/fonts/didot-ssv/Didot LT Std Bold.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -47,8 +52,9 @@
 
 @font-face {
     font-family: 'Didot';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/didot-ssv/Didot LT Std Italic.otf') format('opentype');
+    src:
+        url('/fonts/didot-ssv/Didot LT Std Italic.woff2') format('woff2'),
+        url('/fonts/didot-ssv/Didot LT Std Italic.otf') format('opentype');
     font-weight: normal;
     font-style: italic;
     font-display: swap;
@@ -56,8 +62,9 @@
 
 @font-face {
     font-family: 'Didot';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/didot-ssv/Didot Bold Italic.ttf') format('truetype');
+    src:
+        url('/fonts/didot-ssv/Didot Bold Italic.woff2') format('woff2'),
+        url('/fonts/didot-ssv/Didot Bold Italic.ttf') format('truetype');
     font-weight: bold;
     font-style: italic;
     font-display: swap;
@@ -65,8 +72,9 @@
 
 @font-face {
     font-family: 'Didot';
-    /*noinspection CssUnknownTarget*/
-    src: url('/fonts/didot-ssv/Didot Medium.ttf') format('truetype');
+    src:
+        url('/fonts/didot-ssv/Didot Medium.woff2') format('woff2'),
+        url('/fonts/didot-ssv/Didot Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;

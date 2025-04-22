@@ -16,5 +16,14 @@ export const handle: Handle = async ({ event, resolve }) => {
         }
     }
 
-    return resolve(event);
+    // Add long cache headers for font files
+    const response = await resolve(event);
+    const pathname = event.url.pathname;
+
+    if (pathname.match(/\.(woff2|woff|ttf|otf)$/i)) {
+        // Set long cache for font files (1 year)
+        response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+
+    return response;
 };
