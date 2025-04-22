@@ -581,11 +581,11 @@
     }}
 />
 
-{#if $adminMode && isModified}
-    <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
-{/if}
-
 <div class="gallery-container m-auto max-w-screen-md py-6 pb-24">
+    {#if $adminMode && isModified}
+        <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
+    {/if}
+
     <div class="grid w-full grid-cols-1 gap-6">
         {#each sortedImages as image (image.id)}
             <div
@@ -608,6 +608,11 @@
 
         {#if $adminMode}
             <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} {categoryId} />
+        {/if}
+
+        <!-- Show Admin Controls at the bottom of the Gallery as well -->
+        {#if $adminMode && isModified}
+            <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
         {/if}
     </div>
 
