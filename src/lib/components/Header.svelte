@@ -66,15 +66,7 @@
 
         <!-- Mobile Navigation Toggle -->
         <div class="flex items-center md:hidden">
-            <button
-                class="hamburger-btn"
-                on:click={toggleMenu}
-                aria-label="Toggle menu"
-                aria-expanded={isMenuOpen}
-                aria-controls="mobile-menu"
-            >
-                <Hamburger isActive={isMenuOpen} />
-            </button>
+            <Hamburger isActive={isMenuOpen} on:click={toggleMenu} ariaControls="mobile-menu" />
         </div>
     </div>
 </header>
@@ -116,13 +108,6 @@
         width: 100%;
         box-sizing: border-box;
         padding: 2.8vw 6vw;
-    }
-
-    .hamburger-btn {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 0.5rem;
     }
 
     .mobile-menu {

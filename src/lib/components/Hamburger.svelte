@@ -1,5 +1,6 @@
 <script lang="ts">
     export let isActive = false;
+    export let ariaControls = 'main-menu';
 </script>
 
 <button
@@ -7,7 +8,7 @@
     class:active={isActive}
     aria-label="Toggle menu"
     aria-expanded={isActive}
-    aria-controls="main-menu"
+    aria-controls={ariaControls}
     type="button"
 >
     <span class="lines">
