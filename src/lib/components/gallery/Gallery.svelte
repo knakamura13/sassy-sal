@@ -70,6 +70,19 @@
         // Clean up the interval when component is unmounted
         return () => {
             clearInterval(updateInterval);
+
+            // Clean up any blob URLs when component unmounts
+            localImages.forEach((img) => {
+                if (img.url && img.url.startsWith('blob:')) {
+                    URL.revokeObjectURL(img.url);
+                }
+                if (img.thumbnailUrl && img.thumbnailUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(img.thumbnailUrl);
+                }
+                if (img.fullSizeUrl && img.fullSizeUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(img.fullSizeUrl);
+                }
+            });
         };
     });
 
@@ -303,6 +316,19 @@
             if (!isCanceled) {
                 isModified = false;
                 showToast.success('Changes saved successfully');
+
+                // Revoke any blob URLs before refreshing
+                localImages.forEach((img) => {
+                    if (img.url && img.url.startsWith('blob:')) {
+                        URL.revokeObjectURL(img.url);
+                    }
+                    if (img.thumbnailUrl && img.thumbnailUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(img.thumbnailUrl);
+                    }
+                    if (img.fullSizeUrl && img.fullSizeUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(img.fullSizeUrl);
+                    }
+                });
             }
 
             refreshAfterDelay(1000);
@@ -369,6 +395,20 @@
 
     // Function to discard changes
     function discardChanges() {
+        // Revoke any blob URLs to prevent memory leaks
+        localImages.forEach((img) => {
+            // Check if URL is a blob URL that we created
+            if (img.url && img.url.startsWith('blob:')) {
+                URL.revokeObjectURL(img.url);
+            }
+            if (img.thumbnailUrl && img.thumbnailUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(img.thumbnailUrl);
+            }
+            if (img.fullSizeUrl && img.fullSizeUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(img.fullSizeUrl);
+            }
+        });
+
         imageStore.reset();
         localImages = cloneImages(originalImages);
         isModified = false;
@@ -429,7 +469,23 @@
                 categoryId
             }));
         }
-        localImages = [...localImages, ...newImages];
+
+        // Process images to ensure blob URLs stay valid
+        const processedImages = newImages.map((img) => {
+            if (img.file) {
+                // Create a new blob URL that will persist
+                const newBlobUrl = URL.createObjectURL(img.file);
+                return {
+                    ...img,
+                    url: newBlobUrl,
+                    thumbnailUrl: newBlobUrl,
+                    fullSizeUrl: newBlobUrl
+                };
+            }
+            return img;
+        });
+
+        localImages = [...localImages, ...processedImages];
         isModified = true;
     }
 
