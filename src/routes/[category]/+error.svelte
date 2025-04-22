@@ -2,6 +2,10 @@
     import { page } from '$app/state';
 </script>
 
+<svelte:head>
+    <title>Error {page.status} | Photography Portfolio</title>
+</svelte:head>
+
 <div class="error-page flex min-h-[70vh] flex-col items-center justify-center p-6">
     <div class="w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-md">
         <h1 class="mb-4 text-3xl font-bold text-red-600">

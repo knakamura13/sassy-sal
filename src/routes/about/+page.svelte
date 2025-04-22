@@ -6,6 +6,10 @@
     const { about } = data;
 </script>
 
+<svelte:head>
+    <title>{about?.title || 'About Me'} | Photography Portfolio</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-4xl px-4 py-16">
     <h1 class="font-didot mb-12 text-center text-4xl">{about?.title || 'About Me'}</h1>
 

@@ -5,6 +5,10 @@
     import { Toaster } from '$lib/components/ui/sonner';
 </script>
 
+<svelte:head>
+    <title>Photography Portfolio</title>
+</svelte:head>
+
 <div class="app-wrapper flex flex-col">
     <Header />
 

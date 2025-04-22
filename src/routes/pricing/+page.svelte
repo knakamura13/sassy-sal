@@ -3,6 +3,10 @@
     const { pricing } = data;
 </script>
 
+<svelte:head>
+    <title>{pricing?.title || 'Pricing'} | Photography Portfolio</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-6xl px-4 py-16">
     <h1 class="font-didot mb-3 text-center text-4xl">{pricing.title}</h1>
     <p class="mx-auto mb-12 max-w-lg text-center leading-tight text-gray-600">

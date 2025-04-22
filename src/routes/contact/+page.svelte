@@ -3,6 +3,10 @@
     const { contact } = data;
 </script>
 
+<svelte:head>
+    <title>{contact?.title || 'Contact'} | Photography Portfolio</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-4xl px-4 py-16">
     <h1 class="font-didot mb-12 text-center text-4xl">{contact.title}</h1>
 
