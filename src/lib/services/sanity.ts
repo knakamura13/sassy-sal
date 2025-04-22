@@ -420,21 +420,68 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
 /**
  * Delete a category
  * @param {string} id - The category ID
+ * @param {Function} progressCallback - Callback for progress updates
  * @returns {Promise<null>} - Null on success
  */
-export const deleteCategory = async (id: string): Promise<null> => {
+export const deleteCategory = async (
+    id: string,
+    progressCallback?: (step: number, total: number, message: string) => void
+): Promise<null> => {
     try {
-        // Delete the category
-        await client.delete(id);
-
-        // Delete associated images (need to find them first)
+        // First find all gallery images that reference this category
         const imagesToDelete: string[] = await client.fetch(`*[_type == "galleryImage" && references($categoryId)]._id`, {
             categoryId: id
         });
 
-        // Delete each image one by one
-        for (const imageId of imagesToDelete) {
-            await client.delete(imageId);
+        const totalSteps = imagesToDelete.length + 1; // +1 for the category itself
+        let currentStep = 0;
+
+        // Update progress to show we're starting
+        if (progressCallback) {
+            progressCallback(currentStep, totalSteps, "Preparing to delete category and images...");
+        }
+
+        // Delete each referenced image first
+        if (imagesToDelete.length > 0) {
+            console.log(`Deleting ${imagesToDelete.length} gallery images for category ${id}`);
+
+            // Delete images one by one
+            for (const imageId of imagesToDelete) {
+                await client.delete(imageId);
+
+                // Increment step and report progress
+                currentStep++;
+                if (progressCallback) {
+                    progressCallback(
+                        currentStep,
+                        totalSteps,
+                        `Deleting image ${currentStep} of ${imagesToDelete.length}...`
+                    );
+                }
+            }
+
+            // Add a small delay to ensure Sanity has time to process all deletions
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // Now it's safe to delete the category itself
+        if (progressCallback) {
+            progressCallback(
+                totalSteps - 1,
+                totalSteps,
+                "Finalizing category deletion..."
+            );
+        }
+
+        await client.delete(id);
+
+        // Final progress update
+        if (progressCallback) {
+            progressCallback(
+                totalSteps,
+                totalSteps,
+                "Category deletion complete!"
+            );
         }
 
         return null;

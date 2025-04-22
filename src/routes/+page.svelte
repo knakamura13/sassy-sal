@@ -9,6 +9,8 @@
     import { AspectRatio } from '$lib/components/ui/aspect-ratio';
     import { showToast } from '$lib/utils';
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
+    import * as Alert from '$lib/components/ui/alert';
+    import * as Progress from '$lib/components/ui/progress';
     import CategoryCard from '$lib/components/category/CategoryCard.svelte';
     import CategoryUploadPlaceholder from '$lib/components/category/CategoryUploadPlaceholder.svelte';
 
@@ -73,6 +75,13 @@
     let showDeleteDialog = writable(false);
     let categoryToDelete = writable<string | number | null>(null);
     let categoryNameToDelete = writable<string>('');
+
+    // Progress dialog state
+    let showProgressDialog = writable(false);
+    let progressStep = writable(0);
+    let progressTotal = writable(0);
+    let progressMessage = writable('');
+    let progressPercentage = writable(0);
 
     // Flag to check if categories are currently being reordered
     let isReordering = false;
@@ -352,6 +361,15 @@
         const id = $categoryToDelete;
         if (!id) return;
 
+        // Reset and show the progress dialog
+        $progressStep = 0;
+        $progressTotal = 1; // Default until we know how many images
+        $progressMessage = 'Starting category deletion...';
+        $progressPercentage = 0;
+        $showProgressDialog = true;
+        // Hide the delete confirmation dialog
+        $showDeleteDialog = false;
+
         try {
             if ($adminMode) {
                 try {
@@ -368,8 +386,22 @@
                     // Use the category id (ensure it's a string for Sanity)
                     const categoryId = String(id);
 
-                    // Delete from Sanity backend in admin mode
-                    await deleteCategory(categoryId);
+                    // Progress callback function to update UI
+                    const updateProgress = (step: number, total: number, message: string) => {
+                        $progressStep = step;
+                        $progressTotal = total;
+                        $progressMessage = message;
+                        $progressPercentage = Math.round((step / total) * 100);
+                    };
+
+                    // Delete from Sanity backend with progress updates
+                    await deleteCategory(categoryId, updateProgress);
+
+                    // Keep progress dialog visible for a moment so user can see completion
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                    // Hide the progress dialog
+                    $showProgressDialog = false;
 
                     // Refresh category list from server after deletion
                     try {
@@ -381,6 +413,9 @@
                             addDeletedCategory(id);
                         }
                         updateCategoriesAndRender(updatedCategories);
+
+                        // Successful deletion toast
+                        showToast.success('Category and all associated images deleted successfully');
                     } catch (fetchError) {
                         // If server refresh fails, update local state and mark as deleted
                         addDeletedCategory(id);
@@ -389,8 +424,22 @@
                         showToast.info('Category deleted, but there was an error refreshing the category list.');
                     }
                 } catch (deleteError: any) {
-                    // Special handling for 404 errors (category not found)
+                    // Hide the progress dialog in case of error
+                    $showProgressDialog = false;
+
+                    // Special handling for reference constraint errors
                     if (
+                        typeof deleteError.message === 'string' &&
+                        (deleteError.message.includes('references to it') ||
+                            deleteError.message.includes('cannot be deleted as there are references'))
+                    ) {
+                        showToast.error(
+                            'Error: Some images could not be automatically deleted. Please try again or delete the images manually first.'
+                        );
+                        console.error('Reference constraint error:', deleteError);
+                    }
+                    // Special handling for 404 errors (category not found)
+                    else if (
                         deleteError.status === 404 ||
                         (typeof deleteError.message === 'string' && deleteError.message.includes('404'))
                     ) {
@@ -416,11 +465,13 @@
                 }
             }
         } catch (error) {
+            // Hide the progress dialog in case of error
+            $showProgressDialog = false;
+
             console.error('Error removing category:', error);
             showToast.error('Failed to delete category');
         } finally {
             // Reset alert dialog state
-            $showDeleteDialog = false;
             $categoryToDelete = null;
             $categoryNameToDelete = '';
         }
@@ -603,12 +654,45 @@
             <AlertDialog.Description>
                 Are you sure you want to delete the category "{$categoryNameToDelete}"? All images belonging to this
                 category will also be deleted. <strong>This action cannot be undone.</strong>
+
+                <p class="mt-2 text-sm text-muted-foreground">
+                    The system will attempt to delete all associated images first, then the category itself.
+                </p>
             </AlertDialog.Description>
         </AlertDialog.Header>
         <AlertDialog.Footer>
             <AlertDialog.Cancel on:click={cancelDelete}>Cancel</AlertDialog.Cancel>
             <AlertDialog.Action on:click={confirmDeleteCategory}>Delete</AlertDialog.Action>
         </AlertDialog.Footer>
+    </AlertDialog.Content>
+</AlertDialog.Root>
+
+<!-- Progress Dialog -->
+<AlertDialog.Root bind:open={$showProgressDialog}>
+    <AlertDialog.Content class="sm:max-w-md">
+        <AlertDialog.Header>
+            <AlertDialog.Title>Deleting Category</AlertDialog.Title>
+            <AlertDialog.Description>
+                <div class="space-y-4">
+                    <Alert.Alert>
+                        <Alert.AlertDescription>
+                            {$progressMessage}
+                        </Alert.AlertDescription>
+                    </Alert.Alert>
+
+                    <div class="flex flex-col space-y-1.5">
+                        <div class="flex justify-between text-sm font-medium">
+                            <span>Progress</span>
+                            <span>{$progressStep} of {$progressTotal} steps</span>
+                        </div>
+                        <Progress.Progress value={$progressPercentage} class="h-2" />
+                        <div class="mt-1 text-center text-sm text-muted-foreground">
+                            {$progressPercentage}%
+                        </div>
+                    </div>
+                </div>
+            </AlertDialog.Description>
+        </AlertDialog.Header>
     </AlertDialog.Content>
 </AlertDialog.Root>
 
