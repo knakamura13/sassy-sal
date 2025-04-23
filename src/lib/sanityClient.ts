@@ -7,7 +7,7 @@ const dataset = import.meta.env.VITE_SANITY_DATASET;
 const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
 
 // Create Sanity client (public, read-only)
-export const client = createClient({
+export const publicClient = createClient({
     projectId,
     dataset,
     apiVersion,
@@ -16,7 +16,7 @@ export const client = createClient({
 });
 
 // Create image URL builder
-const builder = imageUrlBuilder(client);
+const builder = imageUrlBuilder(publicClient);
 
 // Helper function to build image URLs with transformations
 export const urlFor = (source: any) => {

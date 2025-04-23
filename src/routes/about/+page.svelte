@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { urlFor } from '$lib/sanity';
+    import { urlFor } from '$lib/sanityClient';
     import { PortableText } from '@portabletext/svelte';
 
     export let data;
