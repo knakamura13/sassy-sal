@@ -5,6 +5,7 @@
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
     export let isSaving: boolean = false;
+    export let className: string = '';
 
     const dispatch = createEventDispatcher();
 
@@ -22,7 +23,7 @@
     }
 </script>
 
-<div class="admin-actions m-auto mt-6 flex w-full max-w-screen-md justify-end space-x-4">
+<div class="admin-actions m-auto flex w-full max-w-screen-md justify-end space-x-4 {className}">
     <AlertDialog.Root bind:open={showDiscardDialog}>
         <AlertDialog.Trigger asChild let:builder>
             <Button variant="destructive" size="default" disabled={isSaving} builders={[builder]}>

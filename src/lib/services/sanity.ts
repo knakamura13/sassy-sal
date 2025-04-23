@@ -623,7 +623,25 @@ export const addImage = async (imageData: ImageData): Promise<{ data: FormattedI
             }
         };
 
-        const createdImage: SanityGalleryImage = await client.create(image as SanityGalleryImage);
+        // Use server endpoint instead of direct client creation
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'createImage',
+                data: image
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create image');
+        }
+
+        const result = await response.json();
+        const createdImage: SanityGalleryImage = result.data;
 
         // Transform the response to match expected format
         const transformedImage: FormattedImage = {
@@ -654,7 +672,22 @@ export const addImage = async (imageData: ImageData): Promise<{ data: FormattedI
  */
 export const deleteImage = async (id: string): Promise<null> => {
     try {
-        await client.delete(id);
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'deleteImage',
+                data: { imageId: id }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete image');
+        }
+
         return null;
     } catch (error) {
         console.error('Error deleting image from Sanity:', error);
@@ -689,8 +722,28 @@ export const updateImage = async (id: string, data: { order?: number; image?: Fi
         // Filter out undefined values
         const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, value]) => value !== undefined));
 
-        // Update the document
-        const updatedImage: SanityGalleryImage = await client.patch(id).set(cleanUpdates).commit();
+        // Update the document via server endpoint
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'updateImage',
+                data: {
+                    imageId: id,
+                    imageUpdates: cleanUpdates
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update image');
+        }
+
+        const result = await response.json();
+        const updatedImage: SanityGalleryImage = result.data;
 
         // Transform the response to match expected format
         const transformedImage: FormattedImage = {
