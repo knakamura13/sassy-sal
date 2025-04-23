@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { uploadSanityAsset } from '$lib/server/sanity';
+import { uploadSanityAsset } from '$lib/server/sanityServerClient';
 
 export async function POST({ request }) {
     try {

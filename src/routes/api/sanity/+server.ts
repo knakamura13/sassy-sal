@@ -3,7 +3,7 @@ import {
     createSanityDocument,
     updateSanityDocument,
     deleteSanityDocument
-} from '$lib/server/sanity';
+} from '$lib/server/sanityServerClient';
 
 export async function POST({ request }) {
     try {
