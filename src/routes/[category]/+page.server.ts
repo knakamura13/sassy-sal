@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 
-import { getCategoryWithImages, getCategories } from '$lib/services/sanity';
+import { getCategoryWithImages, getCategories } from '$lib/services/sanityContentService';
 import { getImageUrls } from '$lib/services/imageConfig';
 import type { PageServerLoad } from './$types';
 

@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { getCategories } from '$lib/services/sanity';
+import { getCategories } from '$lib/services/sanityContentService';
 
 export const load: PageServerLoad = async ({ cookies }) => {
     const categories = await getCategories();

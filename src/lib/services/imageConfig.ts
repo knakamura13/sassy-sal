@@ -2,7 +2,7 @@
  * Centralized configuration for Sanity image URLs
  * This file provides standardized image size and quality settings across the application
  */
-import { urlFor as baseSanityUrlFor } from './sanity';
+import { urlFor as baseSanityUrlFor } from './sanityContentService';
 
 // Image size configurations
 export const IMAGE_SIZES = {

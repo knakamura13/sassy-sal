@@ -4,7 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
-    import { uploadFile } from '$lib/services/sanity';
+    import { uploadFile } from '$lib/services/sanityContentService';
     import Dialog from '$lib/components/Dialog.svelte';
     import type { Image } from '$lib/stores/imageStore';
 

@@ -193,7 +193,7 @@
         // Process changes
         try {
             // Import Sanity services
-            const { addImage, deleteImage, updateImage } = await import('$lib/services/sanity');
+            const { addImage, deleteImage, updateImage } = await import('$lib/services/sanityContentService');
 
             // Process deletions first
             if (imagesToRemove.length > 0) {

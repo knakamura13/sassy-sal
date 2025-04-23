@@ -1,5 +1,5 @@
 // Helper functions for working with Sanity queries
-import { client } from './sanity';
+import { client } from './sanityContentService';
 import { getImageUrls, getMediumUrl, getPlaceholderUrl, getResponsiveUrls } from './imageConfig';
 
 /**
