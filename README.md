@@ -6,14 +6,26 @@ A simple website builder for photographers, built with SvelteKit and Sanity CMS.
 
 - Responsive home page with categories and image galleries
 - Dynamic category pages with custom routing (slug route)
-- Sanity CMS backend (formerly Strapi CMS)
-    - Persistent storage of categories and images
-    - Content management through Sanity Studio
-    - Image uploads and transformations via Sanity's CDN
-    - Direct REST API integration using `fetch`
-- Secure admin authentication
-    - Server-side password verification
-    - Secure HTTP-only cookie session management
+- Modern UI with Tailwind CSS and Shadcn components
+- Drag-and-drop image management with svelte-dnd-action
+- Optimistic UI updates for smoother user experience
+- Sanity CMS backend integration
+    - Type-safe content modeling with GROQ queries
+    - Real-time content updates with @sanity/client
+    - Image pipeline with hotspot handling and CDN optimization
+    - Server-side and client-side Sanity clients
+    - Drag-and-drop image management with custom Svelte components
+- Admin features
+    - Password-protected admin login
+    - Drag-and-drop category reorganization
+    - Category management with atomic updates
+    - Optimistic UI updates with local state management
+    - Client-side image uploads with progress indicators
+    - Toast notifications for user feedback
+- SEO optimized page structure
+- Contact and about pages
+- Pricing information page
+- API routes for backend functionality
 
 ## Prerequisites
 
@@ -42,6 +54,32 @@ Build and run the app for production:
 ```
 yarn start
 ```
+
+## Sanity Studio
+
+This project contains a Sanity Studio instance in the `sanity-studio` directory. The Studio manages the content schema definitions and provides a CMS interface.
+
+To modify Sanity schemas:
+
+1. Navigate to the `sanity-studio` directory:
+
+    ```
+    cd sanity-studio
+    ```
+
+2. Make your schema changes in the `schemaTypes` directory
+
+3. Deploy your schema changes to Sanity:
+
+    ```
+    yarn run deploy
+    ```
+
+4. To run the Sanity Studio locally:
+    ```
+    cd sanity-studio
+    yarn run dev
+    ```
 
 ## Sanity Schema
 
@@ -111,30 +149,3 @@ export default {
     ]
 };
 ```
-
-## API Integration
-
-This project uses Sanity's Content API to fetch and manage content:
-
-- Categories: GROQ queries to fetch and manage categories
-- Images: GROQ queries to fetch and manage images
-- Asset Management: Sanity's Asset Pipeline for image uploads
-
-The integration will use the Sanity JavaScript client for optimized queries and type safety.
-
-## TODO Checklist
-
-**Bug Fixes**
-
-- [ ] N/A
-
-**Features**
-
-- [ ] Enable re-arranging images in the Gallery by drag-and-drop
-
-**Chores**
-
-- [ ] Remove deprecated Category properties
-    - Delete the `description` field and all references to `category.description`
-- [ ] Remove deprecated Image properties
-    - Delete the `title` and `description` fields and all references
