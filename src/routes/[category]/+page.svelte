@@ -30,6 +30,11 @@
                         placeholderUrl?: string;
                         thumbnailUrl?: string;
                         order?: number;
+                        responsive?: {
+                            small?: string;
+                            medium?: string;
+                            large?: string;
+                        };
                     };
                 };
             };
@@ -43,6 +48,11 @@
         thumbnailUrl?: string;
         order?: number;
         image?: any; // Sanity image reference
+        responsiveUrls?: {
+            small?: string;
+            medium?: string;
+            large?: string;
+        };
     }
 
     interface SanityCategory {
@@ -254,7 +264,13 @@
                 order,
                 placeholderUrl,
                 fullSizeUrl,
-                responsiveUrls
+                responsiveUrls: responsiveUrls
+                    ? {
+                          small: responsiveUrls.small || url,
+                          medium: responsiveUrls.medium || fullSizeUrl || url,
+                          large: responsiveUrls.large || fullSizeUrl || url
+                      }
+                    : undefined
             };
         });
     }
@@ -278,7 +294,13 @@
                                 image.url = urls.medium;
                                 image.placeholderUrl = urls.placeholder;
                                 image.fullSizeUrl = urls.large;
-                                image.responsiveUrls = urls.responsive;
+                                image.responsiveUrls = urls.responsive
+                                    ? {
+                                          small: urls.responsive.small || urls.medium,
+                                          medium: urls.responsive.medium || urls.large || urls.medium,
+                                          large: urls.responsive.large || urls.large || urls.medium
+                                      }
+                                    : undefined;
 
                                 // Also update the images array for next render
                                 const index = galleryImages.findIndex((img) => img.id === image.id);
@@ -286,7 +308,13 @@
                                     galleryImages[index].url = urls.medium;
                                     galleryImages[index].placeholderUrl = urls.placeholder;
                                     galleryImages[index].fullSizeUrl = urls.large;
-                                    galleryImages[index].responsiveUrls = urls.responsive;
+                                    galleryImages[index].responsiveUrls = urls.responsive
+                                        ? {
+                                              small: urls.responsive.small || urls.medium,
+                                              medium: urls.responsive.medium || urls.large || urls.medium,
+                                              large: urls.responsive.large || urls.large || urls.medium
+                                          }
+                                        : undefined;
                                 }
                             } catch (error) {
                                 console.error('Error generating image URLs:', error);
