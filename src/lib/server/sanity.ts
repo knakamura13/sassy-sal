@@ -7,6 +7,9 @@ export const serverClient = createClient({
     dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
     apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03',
     token: SANITY_API_TOKEN,
+    // Keep useCdn false for server-side clients performing write operations
+    // This ensures requests go directly to Sanity's API rather than through CDN,
+    // which is necessary for real-time data and proper authentication
     useCdn: false
 });
 
