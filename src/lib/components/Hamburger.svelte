@@ -1,11 +1,16 @@
 <script lang="ts">
+    import { createEventDispatcher } from 'svelte';
+
     export let isActive = false;
     export let ariaControls = 'main-menu';
+
+    const dispatch = createEventDispatcher();
 </script>
 
 <button
     class="hamburger"
     class:active={isActive}
+    on:click={() => dispatch('click')}
     aria-label="Toggle menu"
     aria-expanded={isActive}
     aria-controls={ariaControls}
