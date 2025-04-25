@@ -71,6 +71,9 @@
     // Counter to force component re-renders when category data changes
     let updateCounter = 0;
 
+    // Flag to prevent multiple simultaneous category operations
+    let isAddingCategory = false;
+
     // Alert dialog state
     let showDeleteDialog = writable(false);
     let categoryToDelete = writable<string | number | null>(null);
@@ -146,10 +149,14 @@
             // Also save just the order mapping for easier access
             const orderMap: Record<string, number> = {};
             categories.forEach((cat) => {
-                orderMap[String(cat.id)] = cat.attributes.order;
+                if (cat.id && cat.attributes && cat.attributes.order !== undefined) {
+                    orderMap[String(cat.id)] = cat.attributes.order;
+                }
             });
             localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
-        } catch (e) {}
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
     }
 
     // Reactive statement: filter deleted categories and sort by order, then by name
@@ -171,13 +178,6 @@
     // Reactive derived value for category grid that triggers re-renders
     $: categoryGrid = { categories: filteredCategories, updateCounter };
 
-    // Prepare categories for dndzone (add unique id property for tracking)
-    $: dndCategories = filteredCategories.map((category) => ({
-        ...category,
-        // Add a stringified id property that dndzone can track
-        id: String(category.id)
-    }));
-
     // Set admin mode when the user is authenticated
     $: if (data.admin) {
         adminMode.set(true);
@@ -185,21 +185,15 @@
         adminMode.set(false);
     }
 
-    // Define interfaces for dnd event types
-    interface DndEvent {
-        detail: {
-            items: Array<Category & { id: string }>;
-        };
-    }
-
     // Handles drag and drop reordering of categories
-    async function handleDndConsider(e: DndEvent) {
+    async function handleDndConsider(e: CustomEvent<{ items: Array<Category & { id: string }> }>) {
         const { items } = e.detail;
-        dndCategories = items;
+        // We don't need to maintain a separate dndCategories variable
+        // Just update the items in the event
     }
 
     // Handles when the user has completed a drag and drop operation
-    async function handleDndFinalize(e: DndEvent) {
+    async function handleDndFinalize(e: CustomEvent<{ items: Array<Category & { id: string }> }>) {
         const { items } = e.detail;
 
         // Prevent multiple reordering operations
@@ -207,9 +201,6 @@
         isReordering = true;
 
         try {
-            // Update the dndCategories to reflect the new order
-            dndCategories = items;
-
             // Create updated categories with new order values
             const updatedCategories = items.map((item: Category & { id: string }, index: number) => {
                 const category = { ...item };
@@ -486,34 +477,96 @@
 
     // Handles adding a new category
     async function handleAddCategory(event: CustomEvent) {
+        // Prevent multiple simultaneous operations
+        if (isAddingCategory) return;
+        isAddingCategory = true;
+
         try {
             const newCategory = event.detail;
+            console.log('Adding new category:', newCategory);
 
-            if ($adminMode) {
-                // Save new category to Sanity
+            if (!$adminMode) {
+                isAddingCategory = false;
+                return;
+            }
+
+            // Create a temporary local category with unique ID
+            const tempId = `temp-${Date.now()}`;
+            const tempCategory: Category = {
+                id: tempId,
+                attributes: {
+                    name: newCategory.name,
+                    order: newCategory.order,
+                    description: '',
+                    thumbnail: newCategory.thumbnail
+                        ? {
+                              data: {
+                                  attributes: {
+                                      url: URL.createObjectURL(newCategory.thumbnail)
+                                  }
+                              }
+                          }
+                        : undefined
+                }
+            };
+
+            console.log('Created temporary category with ID:', tempId);
+
+            // Add temporary category to the UI immediately
+            categories = [...categories, tempCategory];
+            updateCounter++; // Force re-render
+
+            try {
+                // Now save to server
+                console.log('Saving category to Sanity...');
                 const response = await addCategory(newCategory);
-                // Cast response to the expected structure with type assertion
                 const savedCategory = (response as any)?.data ? (response as any).data : response;
+                console.log('Category saved to Sanity:', savedCategory);
 
-                // Refresh categories from server to get complete data with associations
-                try {
-                    const updatedCategories = await getCategories();
-                    if (updatedCategories && updatedCategories.length > 0) {
-                        updateCategoriesAndRender(updatedCategories);
-                        showToast.success('Category added successfully');
-                        return;
+                // Wait for the save to complete
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                // After successful save, replace the temporary category with the real one
+                categories = categories.map((cat) => {
+                    if (cat.id === tempId) {
+                        console.log(`Replacing temp category ${tempId} with saved category ${savedCategory.id}`);
+                        return savedCategory;
                     }
-                } catch (refreshError) {
-                    // Silently continue if refresh fails
+                    return cat;
+                });
+
+                // Force re-render after replacement
+                updateCounter++;
+
+                // Save to localStorage
+                try {
+                    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+                    const orderMap: Record<string, number> = {};
+                    categories.forEach((cat) => {
+                        if (cat.id && cat.attributes && cat.attributes.order !== undefined) {
+                            orderMap[String(cat.id)] = cat.attributes.order;
+                        }
+                    });
+                    localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
                 }
 
-                // Fallback: update local state with the saved category
-                updateCategoriesAndRender([...categories, savedCategory]);
                 showToast.success('Category added successfully');
+            } catch (error) {
+                console.error('Error saving to Sanity:', error);
+                showToast.error("Failed to save category to server, but it's displayed locally");
+                // Keep the temp category visible as a fallback
             }
         } catch (error) {
-            console.error('Error adding category:', error);
+            console.error('Error in handleAddCategory:', error);
             showToast.error('Failed to add category');
+
+            // Remove any temporary categories if there was a critical error
+            categories = categories.filter((cat) => !String(cat.id).startsWith('temp-'));
+            updateCounter++; // Force re-render
+        } finally {
+            isAddingCategory = false;
         }
     }
 
@@ -610,11 +663,18 @@
         <!-- Draggable category grid for admin mode -->
         <div
             class="grid auto-rows-min grid-cols-1 gap-10 md:grid-cols-2 lg:gap-20"
-            use:dndzone={{ items: dndCategories, flipDurationMs: 300, type: 'categories' }}
+            use:dndzone={{
+                items: filteredCategories.map((category) => ({
+                    ...category,
+                    id: String(category.id)
+                })),
+                flipDurationMs: 300,
+                type: 'categories'
+            }}
             on:consider={handleDndConsider}
             on:finalize={handleDndFinalize}
         >
-            {#each dndCategories as category (category.id)}
+            {#each filteredCategories as category (String(category.id) + '-' + updateCounter)}
                 <div class="category-item">
                     <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
                         <CategoryCard

@@ -312,13 +312,19 @@
 </script>
 
 <a
-    href={isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
+    href={String(categoryId).startsWith('temp-') ? '#' : isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
     class="category-card relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg"
+    class:pointer-events-none={String(categoryId).startsWith('temp-')}
 >
     <div
         class="category-card-border pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300"
     ></div>
     <div class="relative h-full w-full">
+        {#if String(categoryId).startsWith('temp-')}
+            <div class="absolute left-0 right-0 top-0 z-10 bg-blue-600 px-2 py-1 text-center text-xs text-white">
+                Saving...
+            </div>
+        {/if}
         {#if !isLoading}
             {#if currentDisplayedUrl}
                 <div class="h-full w-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">

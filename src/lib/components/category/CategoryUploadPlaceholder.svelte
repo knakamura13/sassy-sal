@@ -122,11 +122,22 @@
                 categoryData.thumbnail = selectedFile;
             }
 
-            dispatch('addCategory', categoryData);
+            // Close dialog BEFORE dispatching the event
             open = false;
+
+            // Wait for dialog to close
+            setTimeout(() => {
+                // Then dispatch the event
+                dispatch('addCategory', categoryData);
+
+                // Show feedback
+                showToast.success(`Creating category "${categoryName}"...`);
+
+                // Reset form after everything is done
+                resetForm();
+            }, 200);
         } catch (error) {
             errorMessage = 'Failed to create category. Please try again.';
-        } finally {
             isUploading = false;
         }
     }
