@@ -381,10 +381,8 @@
 
     function refreshAfterDelay(delay: number) {
         setTimeout(() => {
-            const timestamp = new Date().getTime();
-            const url = new URL(window.location.href);
-            url.searchParams.set('t', timestamp.toString());
-            window.location.href = url.toString();
+            // Simply reload the current page without adding timestamp parameter
+            window.location.reload();
         }, delay);
     }
 
