@@ -161,6 +161,8 @@
         isSaving = true;
         isCanceled = false; // Reset canceled state
 
+        let allProcessingComplete = false; // Flag to track completion of all operations
+
         // Find images to add, update, or remove
         const { imagesToAdd, imagesToRemove, imagesToUpdate } = findImageChanges(localImages, originalImages);
 
@@ -299,6 +301,9 @@
                 }
             }
 
+            // Mark all processing as complete
+            allProcessingComplete = true;
+
             // Set final progress state before hiding dialog
             if (isCanceled) {
                 uploadMessage = 'Upload process canceled.';
@@ -329,9 +334,17 @@
                         URL.revokeObjectURL(img.fullSizeUrl);
                     }
                 });
-            }
 
-            refreshAfterDelay(1000);
+                // Only refresh if all operations completed successfully
+                if (allProcessingComplete) {
+                    // Wait a bit longer to ensure server has time to process the final requests
+                    refreshAfterDelay(3500);
+                } else {
+                    showToast.error(
+                        'Some uploads may not have completed successfully. Please check and try again if needed.'
+                    );
+                }
+            }
         } catch (error) {
             console.error('Error saving changes:', error);
             showToast.error('Error saving changes. Please try again.');
