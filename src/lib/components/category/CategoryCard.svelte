@@ -377,18 +377,22 @@
 
         <!-- Admin Controls Overlay -->
         {#if isAdmin}
-            <div class="absolute right-4 top-4 flex gap-3">
+            <div
+                class="absolute right-0 top-0 z-10 flex space-x-1 rounded-bl-md bg-gray-900 bg-opacity-60 p-1 shadow-lg"
+            >
                 <button
-                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
+                    type="button"
+                    class="aspect-square h-10 w-10 rounded p-1 text-white hover:bg-gray-600"
                     on:click|stopPropagation={handleEdit}
-                    aria-label="Edit image"
+                    aria-label="Edit category"
                 >
                     ✎
                 </button>
                 <button
-                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
+                    type="button"
+                    class="aspect-square h-10 w-10 rounded p-1 text-white hover:bg-red-600"
                     on:click|stopPropagation={handleRemove}
-                    aria-label="Remove image"
+                    aria-label="Remove category"
                 >
                     ×
                 </button>

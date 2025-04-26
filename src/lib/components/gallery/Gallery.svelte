@@ -725,26 +725,14 @@
 
     // Function to handle image removal with optimistic UI and immediate deletion
     async function handleRemoveImage(id: string) {
-        // Find and remove image optimistically
-        const removedImage = localImages.find((img) => img.id === id);
+        // Remove image optimistically from local images
         localImages = localImages.filter((img) => img.id !== id);
 
-        showToast.info('Deleting image...');
+        // Mark gallery as modified to trigger save button
+        isModified = true;
 
-        try {
-            const { deleteImage } = await import('$lib/services/sanityContentService');
-            await deleteImage(id);
-            showToast.success('Image deleted successfully');
-            // Sync originalImages to prevent re-adding on discard
-            originalImages = [...localImages];
-        } catch (error) {
-            console.error('Error deleting image:', error);
-            showToast.error('Error deleting image. Please try again.');
-            // Revert removal on error
-            if (removedImage) {
-                localImages = [...localImages, removedImage];
-            }
-        }
+        // Show toast notification
+        showToast.info('Image removed. Click "Save Changes" to delete permanently.');
     }
 
     // Function to handle image update
