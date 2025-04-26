@@ -415,10 +415,28 @@
         showToast.info('Changes discarded');
     }
 
-    // Function to handle image removal
-    function handleRemoveImage(id: string) {
+    // Function to handle image removal with optimistic UI and immediate deletion
+    async function handleRemoveImage(id: string) {
+        // Find and remove image optimistically
+        const removedImage = localImages.find((img) => img.id === id);
         localImages = localImages.filter((img) => img.id !== id);
-        isModified = true;
+
+        showToast.info('Deleting image...');
+
+        try {
+            const { deleteImage } = await import('$lib/services/sanityContentService');
+            await deleteImage(id);
+            showToast.success('Image deleted successfully');
+            // Sync originalImages to prevent re-adding on discard
+            originalImages = [...localImages];
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            showToast.error('Error deleting image. Please try again.');
+            // Revert removal on error
+            if (removedImage) {
+                localImages = [...localImages, removedImage];
+            }
+        }
     }
 
     // Function to handle image update
