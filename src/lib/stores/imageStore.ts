@@ -20,6 +20,10 @@ export interface Image {
     thumbnailUrl?: string; // Medium quality/size image for initial display
     fullSizeUrl?: string; // Full-size high quality image for final display
     responsiveUrls?: ResponsiveUrls; // Responsive image URLs for different devices
+    cdnUrl?: string; // URL directly from Sanity CDN (used to check availability)
+    isFromCache?: boolean; // Flag to indicate if the image is from local cache or Sanity CDN
+    uploadedAt?: number; // Timestamp when the image was uploaded (for cache management)
+    updatedAt?: number; // Timestamp when the image was last updated (for cache management)
 }
 
 // Create a writable store with initial images

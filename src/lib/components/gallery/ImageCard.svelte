@@ -31,6 +31,7 @@
     let currentDisplayedUrl = '';
     let thumbnailLoaded = false;
     let fullSizeLoaded = false;
+    let isFromCache = image.isFromCache || false; // Track if image is from local cache
 
     // Responsive image URLs
     let responsiveSmallUrl = '';
@@ -54,19 +55,30 @@
         }
     }
 
-    onMount(async () => {
-        // Set responsive URLs if available from image object
+    // When responsive URLs are available in the image, use them
+    $: {
         if (image.responsiveUrls) {
             responsiveSmallUrl = image.responsiveUrls.small || '';
             responsiveMediumUrl = image.responsiveUrls.medium || '';
             responsiveLargeUrl = image.responsiveUrls.large || '';
-        } else {
-            // Use the best available URLs for responsive sizes
-            responsiveSmallUrl = image.url || image.fullSizeUrl || '';
-            responsiveMediumUrl = image.fullSizeUrl || image.url || '';
-            responsiveLargeUrl = image.fullSizeUrl || '';
         }
+    }
 
+    // Watch for changes to the image URL (e.g. when transitioning from blob to CDN URL)
+    $: if (image.url && image.url !== thumbnailUrl) {
+        // Update URLs
+        placeholderUrl = image.placeholderUrl || '';
+        thumbnailUrl = image.url;
+        fullSizeUrl = image.fullSizeUrl || image.url;
+
+        // Reset loading state and rerun progressive loading
+        isLoading = true;
+        thumbnailLoaded = false;
+        fullSizeLoaded = false;
+        loadImage();
+    }
+
+    onMount(async () => {
         await loadImage();
     });
 
@@ -262,99 +274,143 @@
     }
 </script>
 
-<div class="image-card-wrapper relative !m-auto h-auto w-full">
+<div class="image-card group w-full">
     <div
-        class="image-card relative inset-0 h-full w-full cursor-pointer overflow-hidden shadow-md transition-all duration-200 hover:scale-[1.01] hover:transform"
-        data-image-id={image.id}
+        class="relative overflow-hidden rounded bg-gray-100 transition-all duration-300 hover:shadow-lg"
         data-has-url={!!currentDisplayedUrl}
     >
-        {#if isLoading}
-            <!-- Loading state with medium-resolution placeholder -->
-            <div class="flex h-full w-full items-center justify-center bg-gray-100">
-                {#if placeholderUrl}
-                    <img src={placeholderUrl} alt="Loading" class="h-full w-full object-cover" />
-                {:else}
-                    <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-                {/if}
-            </div>
-        {:else if currentDisplayedUrl}
-            <!-- Responsive image with picture element and srcset -->
-            <picture>
-                <!-- For small devices like phones (width < 640px) -->
-                <source
-                    media="(max-width: 639px)"
-                    srcset={responsiveSmallUrl || currentDisplayedUrl}
-                    type="image/webp"
-                />
+        <!-- Image with progressive loading -->
+        <div class="relative w-full overflow-hidden">
+            {#if isFromCache}
+                <div
+                    class="absolute right-2 top-2 z-10 rounded-md bg-amber-500 bg-opacity-90 px-2 py-1 text-xs font-medium text-white shadow-md"
+                >
+                    Processing
+                </div>
+            {/if}
 
-                <!-- For medium devices like tablets (640px <= width < 1024px) -->
-                <source
-                    media="(min-width: 640px) and (max-width: 1023px)"
-                    srcset={responsiveMediumUrl || currentDisplayedUrl}
-                    type="image/webp"
-                />
+            {#if isLoading}
+                <!-- Loading state with placeholder -->
+                <div class="flex h-full w-full items-center justify-center bg-gray-100">
+                    {#if placeholderUrl}
+                        <img
+                            src={placeholderUrl}
+                            alt="Loading"
+                            class="h-full w-full object-cover {isFromCache ? 'border-2 border-amber-400' : ''}"
+                        />
+                    {:else}
+                        <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+                    {/if}
+                </div>
+            {:else if currentDisplayedUrl}
+                <!-- Responsive image with picture element and srcset -->
+                <picture>
+                    <!-- For small devices like phones (width < 640px) -->
+                    <source
+                        media="(max-width: 639px)"
+                        srcset={responsiveSmallUrl || currentDisplayedUrl}
+                        type="image/webp"
+                    />
 
-                <!-- For large devices like desktops (width >= 1024px) -->
-                <source
-                    media="(min-width: 1024px)"
-                    srcset={responsiveLargeUrl || currentDisplayedUrl}
-                    type="image/webp"
-                />
+                    <!-- For medium devices like tablets (640px <= width < 1024px) -->
+                    <source
+                        media="(min-width: 640px) and (max-width: 1023px)"
+                        srcset={responsiveMediumUrl || currentDisplayedUrl}
+                        type="image/webp"
+                    />
 
-                <!-- Fallback image for browsers that don't support picture/srcset -->
-                <img
-                    src={currentDisplayedUrl}
-                    alt={image.alt}
-                    class="h-full w-full object-cover transition-opacity duration-500"
-                    style="opacity: 1;"
-                    loading="lazy"
-                />
-            </picture>
-        {:else}
-            <!-- Fallback when no image is available -->
-            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-gray-200">
-                <div class="text-center text-gray-400">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="mx-auto h-12 w-12"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                    <!-- For large devices like desktops (width >= 1024px) -->
+                    <source
+                        media="(min-width: 1024px)"
+                        srcset={responsiveLargeUrl || currentDisplayedUrl}
+                        type="image/webp"
+                    />
+
+                    <!-- Fallback image for browsers that don't support picture/srcset -->
+                    <img
+                        src={currentDisplayedUrl}
+                        alt={image.alt || 'Gallery image'}
+                        class="h-full w-full object-cover transition-opacity duration-500 {isFromCache
+                            ? 'border-2 border-amber-400'
+                            : ''}"
+                        style="opacity: 1;"
+                        loading="lazy"
+                        on:load={() => {
+                            thumbnailLoaded = true;
+                            isLoading = false;
+                        }}
+                    />
+                </picture>
+            {:else}
+                <!-- Fallback when no image is available -->
+                <div
+                    class="flex min-h-[200px] w-full items-center justify-center rounded bg-gray-100 {isFromCache
+                        ? 'border-2 border-amber-400'
+                        : ''}"
+                >
+                    <div class="text-gray-400">Image loading...</div>
+                </div>
+            {/if}
+
+            {#if isAdmin}
+                <div
+                    class="absolute bottom-0 right-0 z-10 flex space-x-1 rounded-tl-md bg-gray-900 bg-opacity-60 p-1 shadow"
+                >
+                    <!-- Edit button -->
+                    <button
+                        type="button"
+                        class="rounded p-1 text-white hover:bg-gray-600"
+                        title="Edit image"
+                        on:click|stopPropagation|preventDefault={handleEdit}
                     >
-                        <path
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            stroke-width="1"
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                    </svg>
-                    <p class="mt-2 text-xs">{image.title || 'Untitled'}</p>
+                            stroke-width="2"
+                        >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Delete button -->
+                    <button
+                        type="button"
+                        class="rounded p-1 text-white hover:bg-red-600"
+                        title="Delete image"
+                        on:click|stopPropagation|preventDefault={handleRemove}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                        >
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            ></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
                 </div>
-            </div>
-        {/if}
+            {/if}
+        </div>
 
         {#if image.title && !isCategory && currentDisplayedUrl}
             <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white">
                 <h3 class="text-sm font-medium md:text-base">{image.title}</h3>
-            </div>
-        {/if}
-
-        {#if isAdmin}
-            <div class="absolute right-4 top-4 flex gap-3">
-                <button
-                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none"
-                    on:click|stopPropagation={handleEdit}
-                    aria-label="Edit image"
-                >
-                    ✎
-                </button>
-                <button
-                    class="!m-0 flex h-10 w-10 items-center justify-center rounded-[2px] bg-gray-800 bg-opacity-50 text-xl text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-red-700 hover:shadow-lg focus:outline-none"
-                    on:click|stopPropagation={handleRemove}
-                    aria-label="Remove image"
-                >
-                    ×
-                </button>
             </div>
         {/if}
     </div>

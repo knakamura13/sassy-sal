@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, tick } from 'svelte';
+    import { onMount, tick, onDestroy } from 'svelte';
 
     import { adminMode } from '$lib/stores/adminStore';
     import { type Image, imageStore } from '$lib/stores/imageStore';
@@ -27,6 +27,12 @@
     let isSaving = false;
     let isReorderingImages = false;
 
+    // Used for optimistic UI to show images before Sanity CDN is ready
+    let cachedLocalImages: Record<string, Image> = {};
+    const IMAGE_CACHE_KEY = `sanity-image-cache-${categoryId}`;
+    let cacheInitialized = false;
+    let checkCdnStatusInterval: ReturnType<typeof setInterval>;
+
     // Next category navigation state
     let nextCategory: { id: string; name: string } | null = null;
     let isLoadingNextCategory = false;
@@ -48,8 +54,225 @@
     let uploadSpeed = 0; // Bytes per second
     let isCanceled = false; // Add flag to track cancellation state
 
+    // Function to load cached images from session storage
+    function loadCachedImages() {
+        if (cacheInitialized) return;
+
+        try {
+            const cacheData = sessionStorage.getItem(IMAGE_CACHE_KEY);
+            if (cacheData) {
+                cachedLocalImages = JSON.parse(cacheData);
+
+                // Apply cached images to the current set if they aren't in the loaded images
+                const imageIds = new Set(images.map((img) => img.id));
+
+                for (const [id, cachedImage] of Object.entries(cachedLocalImages)) {
+                    if (!imageIds.has(id)) {
+                        // Create a proper image object
+                        const imageToAdd: Image = {
+                            ...(cachedImage as Image),
+                            id: id,
+                            // Use the CDN URL directly if available, otherwise use a placeholder
+                            url: cachedImage.cdnUrl || '/placeholder.png',
+                            thumbnailUrl: cachedImage.cdnUrl || '/placeholder.png',
+                            fullSizeUrl: cachedImage.cdnUrl || '/placeholder.png',
+                            alt: cachedImage.alt || 'Image',
+                            categoryId: categoryId,
+                            isFromCache: true
+                        };
+
+                        console.log(`Added cached image ${id} to display while waiting for CDN`);
+                        // Add to the images array
+                        images = [...images, imageToAdd];
+                        // Also add to local images
+                        localImages = [...localImages, imageToAdd];
+                    }
+                }
+
+                // If we have cached images, start the CDN status check and show notification
+                if (Object.keys(cachedLocalImages).length > 0) {
+                    showToast.info(
+                        `Showing ${Object.keys(cachedLocalImages).length} recently uploaded images while Sanity processes them.`
+                    );
+                    startCdnStatusCheck();
+                }
+            }
+        } catch (error) {
+            console.error('Error loading cached images from session storage:', error);
+        }
+
+        cacheInitialized = true;
+    }
+
+    // Clear image cache for a specific image once it's available from Sanity CDN
+    function clearCachedImage(imageId: string) {
+        if (cachedLocalImages[imageId]) {
+            delete cachedLocalImages[imageId];
+            try {
+                sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cachedLocalImages));
+            } catch (error) {
+                console.error('Error updating image cache in session storage:', error);
+            }
+        }
+    }
+
+    // Check if the Sanity CDN versions are ready by testing image URLs
+    function startCdnStatusCheck() {
+        // Clear any existing interval
+        if (checkCdnStatusInterval) {
+            clearInterval(checkCdnStatusInterval);
+        }
+
+        // Initial check immediately
+        checkCdnAvailability();
+
+        // Then check every 5 seconds for CDN readiness
+        checkCdnStatusInterval = setInterval(checkCdnAvailability, 5000);
+    }
+
+    // Function to check CDN availability for cached images
+    function checkCdnAvailability() {
+        const imageIds = Object.keys(cachedLocalImages);
+        if (imageIds.length === 0) {
+            // No cached images to check, clear the interval
+            if (checkCdnStatusInterval) {
+                clearInterval(checkCdnStatusInterval);
+            }
+            return;
+        }
+
+        console.log(`Checking CDN availability for ${imageIds.length} images...`);
+
+        // Count to track how many images we're checking
+        let pendingChecks = 0;
+
+        // For each cached image, try to load it from Sanity CDN
+        imageIds.forEach((id) => {
+            const cachedImage = cachedLocalImages[id];
+
+            // Skip if no URLs to check
+            if (!cachedImage) return;
+
+            // Log what we're working with for debugging
+            console.log(`Image ${id} checking... 
+            cdnUrl: ${cachedImage.cdnUrl || 'none'}
+            fullSizeUrl: ${cachedImage.fullSizeUrl || 'none'}
+            url: ${cachedImage.url || 'none'}`);
+
+            // Build possible URLs to check (in Sanity's format)
+            const possibleUrls: string[] = [];
+
+            // Add CDN URL if it exists
+            if (cachedImage.cdnUrl && !cachedImage.cdnUrl.startsWith('blob:')) {
+                possibleUrls.push(cachedImage.cdnUrl);
+            }
+
+            // Add full size URL if it exists and isn't a blob
+            if (cachedImage.fullSizeUrl && !cachedImage.fullSizeUrl.startsWith('blob:')) {
+                possibleUrls.push(cachedImage.fullSizeUrl);
+            }
+
+            // Check if we have any valid URLs to test
+            if (possibleUrls.length === 0) {
+                console.log(`No valid URLs to check for image ${id}`);
+                return;
+            }
+
+            // Increment pending checks
+            pendingChecks++;
+
+            // Try each URL until one works
+            let urlIndex = 0;
+
+            function tryNextUrl() {
+                if (urlIndex >= possibleUrls.length) {
+                    // All URLs failed, log and decrement counter
+                    pendingChecks--;
+                    console.log(`Image ${id} not yet available from Sanity CDN, will retry`);
+                    return;
+                }
+
+                const urlToCheck = possibleUrls[urlIndex];
+
+                // Properly format the cache-busting URL parameter
+                const urlWithCacheBusting = urlToCheck.includes('?')
+                    ? `${urlToCheck}&cb=${new Date().getTime()}`
+                    : `${urlToCheck}?cb=${new Date().getTime()}`;
+
+                // Use image preloading instead of fetch API for more reliable detection
+                const img = new Image();
+                img.onload = () => {
+                    pendingChecks--;
+                    console.log(`Image ${id} now available from Sanity CDN (URL: ${urlToCheck})`);
+
+                    // Find this image in localImages and update its URLs with CDN versions
+                    const imageIndex = localImages.findIndex((img) => img.id === id);
+                    if (imageIndex !== -1) {
+                        // Create new image object with CDN URL
+                        const updatedImage = {
+                            ...localImages[imageIndex],
+                            url: urlToCheck,
+                            thumbnailUrl: urlToCheck,
+                            fullSizeUrl: urlToCheck,
+                            isFromCache: false
+                        };
+
+                        // Update the array with the new image
+                        localImages[imageIndex] = updatedImage;
+
+                        // Force reactive update
+                        localImages = [...localImages];
+
+                        // Force image re-rendering in children
+                        tick().then(() => {
+                            console.log(`UI updated for image ${id}`);
+                        });
+                    }
+
+                    // Remove from cache
+                    clearCachedImage(id);
+                };
+
+                img.onerror = () => {
+                    // This URL failed, try the next one
+                    urlIndex++;
+                    tryNextUrl();
+                };
+
+                // Start loading the image
+                img.src = urlWithCacheBusting;
+            }
+
+            // Start trying URLs
+            tryNextUrl();
+        });
+
+        // If no more images to check, cleanup
+        if (pendingChecks === 0 && Object.keys(cachedLocalImages).length === 0) {
+            console.log('All images confirmed available from CDN, cleaning up');
+            if (checkCdnStatusInterval) {
+                clearInterval(checkCdnStatusInterval);
+            }
+        }
+    }
+
     // Initialize with provided category images
     onMount(() => {
+        // Load any cached images
+        loadCachedImages();
+
+        // Start checking for CDN status if we have cached images
+        if (Object.keys(cachedLocalImages).length > 0) {
+            // Immediately check if images are already available
+            checkCdnAvailability();
+
+            // Then keep checking every 5 seconds
+            checkCdnStatusInterval = setInterval(checkCdnAvailability, 5000);
+
+            // Add a forced cleanup of very old cached images (more than 5 minutes old)
+            cleanupStaleCache();
+        }
+
         // Initialize with order values and create deep copies
         const processedImages = ensureImageOrder(images);
         originalImages = cloneImages(processedImages);
@@ -70,6 +293,9 @@
         // Clean up the interval when component is unmounted
         return () => {
             clearInterval(updateInterval);
+            if (checkCdnStatusInterval) {
+                clearInterval(checkCdnStatusInterval);
+            }
 
             // Clean up any blob URLs when component unmounts
             localImages.forEach((img) => {
@@ -84,6 +310,13 @@
                 }
             });
         };
+    });
+
+    onDestroy(() => {
+        // Clean up the CDN check interval when component is destroyed
+        if (checkCdnStatusInterval) {
+            clearInterval(checkCdnStatusInterval);
+        }
     });
 
     // Fetch the next category based on current category order
@@ -162,6 +395,7 @@
         isCanceled = false; // Reset canceled state
 
         let allProcessingComplete = false; // Flag to track completion of all operations
+        const newlyUploadedImages: Image[] = []; // Store newly uploaded images for caching
 
         // Find images to add, update, or remove
         const { imagesToAdd, imagesToRemove, imagesToUpdate } = findImageChanges(localImages, originalImages);
@@ -206,6 +440,10 @@
                     if (isCanceled) break; // Check for cancellation
                     try {
                         await deleteImage(image.id);
+
+                        // Remove from cache if present
+                        clearCachedImage(image.id);
+
                         uploadStep++;
                         uploadPercentage = Math.round((uploadStep / uploadTotal) * 100);
                         uploadMessage = `Deleting image ${uploadStep} of ${imagesToRemove.length}...`;
@@ -242,7 +480,27 @@
                         uploadMessage = `Uploading image ${i + 1} of ${imagesToAdd.length} (${fileSizeFormatted})...`;
 
                         // Add the image in Sanity
-                        await addImage(imageData);
+                        const uploadResult = await addImage(imageData);
+
+                        // Create a copy of this image that we can cache
+                        if (uploadResult?.data?.id) {
+                            const uploadedImage = {
+                                ...image,
+                                id: uploadResult.data.id,
+                                // Keep local URLs for immediate display until CDN is ready
+                                url: image.url,
+                                thumbnailUrl: image.thumbnailUrl || image.url,
+                                fullSizeUrl: image.fullSizeUrl || image.url,
+                                // Store the CDN URLs for checking availability
+                                cdnUrl: uploadResult.data.attributes?.image?.data?.attributes?.url,
+                                // Store additional metadata
+                                uploadedAt: new Date().getTime(),
+                                categoryId
+                            };
+
+                            // Add to the list of uploaded images for session storage
+                            newlyUploadedImages.push(uploadedImage);
+                        }
 
                         // Update upload statistics
                         uploadedFileSizeBytes += fileSize;
@@ -278,6 +536,21 @@
                             const fileSize = image.file.size;
                             const fileSizeFormatted = formatFileSize(fileSize);
                             uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length} with new file (${fileSizeFormatted})...`;
+
+                            // Store the update in cache
+                            const updatedImage = {
+                                ...image,
+                                // Keep local URLs for immediate display until CDN is ready
+                                url: URL.createObjectURL(image.file),
+                                thumbnailUrl: URL.createObjectURL(image.file),
+                                fullSizeUrl: URL.createObjectURL(image.file),
+                                // Store additional metadata
+                                updatedAt: new Date().getTime(),
+                                categoryId
+                            };
+
+                            // Add to cache
+                            newlyUploadedImages.push(updatedImage);
                         } else {
                             uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length}...`;
                         }
@@ -298,6 +571,21 @@
                         uploadStep++;
                         // Continue with other updates even if one fails
                     }
+                }
+            }
+
+            // Store newly uploaded images in cache
+            if (newlyUploadedImages.length > 0) {
+                // Add the new images to our cache
+                newlyUploadedImages.forEach((img) => {
+                    cachedLocalImages[img.id] = img;
+                });
+
+                // Store in session storage
+                try {
+                    sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cachedLocalImages));
+                } catch (error) {
+                    console.error('Error storing images in session storage:', error);
                 }
             }
 
@@ -337,8 +625,15 @@
 
                 // Only refresh if all operations completed successfully
                 if (allProcessingComplete) {
+                    // If we have cached images, start CDN status check after refresh
+                    if (newlyUploadedImages.length > 0) {
+                        showToast.info(
+                            'Images uploaded. You will see them immediately after refresh while Sanity processes them.'
+                        );
+                    }
+
                     // Wait a bit longer to ensure server has time to process the final requests
-                    refreshAfterDelay(3500);
+                    refreshAfterDelay(1500);
                 } else {
                     showToast.error(
                         'Some uploads may not have completed successfully. Please check and try again if needed.'
@@ -510,7 +805,8 @@
                     ...img,
                     url: newBlobUrl,
                     thumbnailUrl: newBlobUrl,
-                    fullSizeUrl: newBlobUrl
+                    fullSizeUrl: newBlobUrl,
+                    isFromCache: true // Mark as coming from cache for styling
                 };
             }
             return img;
@@ -612,6 +908,34 @@
         showToast.info('Upload process was canceled');
 
         refreshAfterDelay(1000);
+    }
+
+    // Function to clean up stale cached images that have been in the cache too long
+    function cleanupStaleCache() {
+        const now = Date.now();
+        const FIVE_MINUTES_MS = 5 * 60 * 1000;
+        let cacheCleaned = false;
+
+        for (const [id, cachedImage] of Object.entries(cachedLocalImages)) {
+            // Clean up images older than 5 minutes
+            const uploadTime = cachedImage.uploadedAt || 0;
+            if (uploadTime > 0 && now - uploadTime > FIVE_MINUTES_MS) {
+                console.log(
+                    `Cleaning up stale cached image ${id} (uploaded ${Math.round((now - uploadTime) / 1000 / 60)} minutes ago)`
+                );
+                delete cachedLocalImages[id];
+                cacheCleaned = true;
+            }
+        }
+
+        // Update session storage if we cleaned anything
+        if (cacheCleaned) {
+            try {
+                sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cachedLocalImages));
+            } catch (error) {
+                console.error('Error updating image cache in session storage:', error);
+            }
+        }
     }
 </script>
 
