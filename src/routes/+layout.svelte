@@ -3,6 +3,7 @@
     import './styles.scss';
     import Header from '$lib/components/Header.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
+    import AdminEasterEgg from '$lib/components/AdminEasterEgg.svelte';
 </script>
 
 <!-- No title set in the layout - this allows page components to set their own titles -->
@@ -15,6 +16,7 @@
     </main>
 
     <Toaster />
+    <AdminEasterEgg />
 </div>
 
 <style>
