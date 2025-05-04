@@ -1,19 +1,19 @@
 <script>
     export let data;
-    const { contact } = data;
+    const { aboutMe } = data;
 </script>
 
 <svelte:head>
-    <title>{contact?.title || 'Contact'} | Photography Portfolio</title>
+    <title>{aboutMe?.title || 'About Me'} | Photography Portfolio</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl px-4 py-16">
-    <h1 class="font-didot mb-12 text-center text-4xl">{contact.title}</h1>
+    <h1 class="font-didot mb-12 text-center text-4xl">{aboutMe.title}</h1>
 
-    <p class="mb-6 text-center">{contact.mainContent}</p>
+    <p class="mb-6 text-center">{aboutMe.mainContent}</p>
 
     <p class="text-center">
-        <a href="mailto:{contact.email}" class="link link--zoomies">{contact.email}</a>
+        <a href="mailto:{aboutMe.email}" class="link link--zoomies">{aboutMe.email}</a>
     </p>
 </div>
 

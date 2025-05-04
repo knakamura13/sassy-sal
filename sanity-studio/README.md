@@ -29,9 +29,7 @@ This will start the Sanity Studio locally at http://localhost:3333.
 
 The website content is organized into several schema types:
 
-- **About**: Information about the photographer, including the "My Approach" section
-- **Contact**: Contact information including email and main content
-- **Pricing**: Pricing tiers and packages information
+- **About Me**: Information about the photographer and contact information
 - **Gallery**: Photo gallery organized by categories
 
 ## Making Changes
@@ -40,9 +38,7 @@ The website content is organized into several schema types:
 
 Schema definitions are located in the `schemaTypes/` directory. Each schema type has its own file:
 
-- `aboutType.ts` - About page schema
-- `contactType.ts` - Contact page schema
-- `pricingType.ts` - Pricing page schema
+- `aboutType.ts` - About Me page schema
 - `categoryType.ts` - Gallery category schema
 - `galleryImageType.ts` - Gallery image schema
 

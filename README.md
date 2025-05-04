@@ -23,8 +23,7 @@ A simple website builder for photographers, built with SvelteKit and Sanity CMS.
     - Client-side image uploads with progress indicators
     - Toast notifications for user feedback
 - SEO optimized page structure
-- Contact and about pages
-- Pricing information page
+- About Me page
 - API routes for backend functionality
 
 ## Prerequisites
@@ -156,9 +155,6 @@ A checklist of planned improvements and modifications for future development, ar
 
 - [ ] **Navigation Updates**
 
-    - Remove "Pricing" route/page (`/src/routes/pricing/`)
-    - Remove "About" route/page (`/src/routes/about/`)
-    - Rename "Contact" route to "About Me" (`/src/routes/contact/` → `/src/routes/about-me/`)
     - **Implementation Context**:
         - Update `navLinks` array in `src/lib/components/Header.svelte`
         - Rename/remove directories in the routes folder structure
@@ -170,7 +166,6 @@ A checklist of planned improvements and modifications for future development, ar
     - Remove the header element
     - Modify sub-header to span full page content width
     - **Implementation Context**:
-        - Modify the existing Contact page layout when renaming to About Me
         - Keep contact form functionality while removing specified sections
         - Adjust padding and width constraints on the sub-header element
 

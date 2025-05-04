@@ -2,10 +2,10 @@ import { publicClient } from '$lib/sanityClient';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {
-    // Fetch contact page data from Sanity
-    const contact = await publicClient.fetch(`*[_type == "contact"][0]`);
+    // Fetch about me page data from Sanity
+    const aboutMe = await publicClient.fetch(`*[_type == "aboutMe"][0]`);
 
     return {
-        contact
+        aboutMe
     };
 }; 

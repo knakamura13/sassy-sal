@@ -8,9 +8,7 @@
 
     const navLinks = [
         { label: 'Work', href: '/' },
-        { label: 'Pricing', href: '/pricing' },
-        { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' }
+        { label: 'About Me', href: '/about-me' }
     ];
 
     let isMenuOpen = false;
