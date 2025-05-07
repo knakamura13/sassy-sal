@@ -151,20 +151,4 @@ export default {
 
 ## Future Features/Changes
 
-A checklist of planned improvements and modifications for future development, arranged from simplest to most complex:
-
 - [ ] **About Me Page Redesign**
-
-    - Modify sub-header to span full page content width
-    - **Implementation Context**:
-        - Keep contact form functionality while removing specified sections
-        - Adjust padding and width constraints on the sub-header element
-
-- [ ] **Home Page Layout**
-    - Maintain consistent spacing between category thumbnails across all screen sizes
-    - Only thumbnail image size should scale with screen width
-    - Ensure proper grid layout for portrait-oriented thumbnail images to prevent excess horizontal spacing
-    - **Implementation Context**:
-        - Modify CSS grid in `src/routes/+page.svelte` where category thumbnails are rendered
-        - Consider using fixed `gap` values instead of responsive ones
-        - Use fixed-aspect ratio containers with `object-fit: cover` for images

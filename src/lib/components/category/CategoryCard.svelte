@@ -313,7 +313,7 @@
 
 <a
     href={String(categoryId).startsWith('temp-') ? '#' : isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
-    class="category-card relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg"
+    class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg"
     class:pointer-events-none={String(categoryId).startsWith('temp-')}
 >
     <div
@@ -327,7 +327,7 @@
         {/if}
         {#if !isLoading}
             {#if currentDisplayedUrl}
-                <div class="h-full w-full transition-all duration-300 hover:brightness-110 hover:contrast-[1.05]">
+                <div class="h-full w-full">
                     <img
                         src={currentDisplayedUrl}
                         alt={categoryName}
@@ -371,7 +371,9 @@
         {/if}
 
         <!-- Category name -->
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-4 text-white">
+        <div
+            class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-4 text-white transition-opacity duration-300 group-hover:opacity-0"
+        >
             <h2 class="text-right text-2xl font-medium tracking-wide">{categoryName}</h2>
         </div>
 
