@@ -69,8 +69,8 @@
     <title>{aboutMe?.title || 'About Me'} | Photography Portfolio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-screen-lg px-4 py-16 pb-32">
-    <h1 class="font-didot mb-12 text-center text-4xl">{aboutMe.title}</h1>
+<div class="container flex flex-col gap-12 mx-auto max-w-screen-lg px-4 py-16 pb-32">
+    <h1 class="font-didot text-center text-4xl mb-4">{aboutMe.title}</h1>
 
     <div class="flex flex-col items-center gap-8 md:flex-row md:items-start">
         {#if aboutMe.profileImage}
@@ -88,91 +88,89 @@
         </div>
     </div>
 
+    {#if aboutMe.contactForm.formHeader}
+        <h3 class="text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
+    {/if}
+
     <!-- Contact Form Section -->
     {#if aboutMe.contactForm}
-        <div class="mt-20">
-            {#if aboutMe.contactForm.formHeader}
-                <h3 class="mb-8 text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
+        <form class="w-full" on:submit|preventDefault={handleSubmit}>
+            {#if formSuccess}
+                <div class="alert alert-success mb-6 p-4">
+                    Thank you for your message! I'll get back to you soon.
+                </div>
             {/if}
 
-            <form class="mx-auto" on:submit|preventDefault={handleSubmit}>
-                {#if formSuccess}
-                    <div class="alert alert-success mb-6 p-4">
-                        Thank you for your message! I'll get back to you soon.
-                    </div>
-                {/if}
-
-                {#if formError}
-                    <div class="alert alert-error mb-6 p-4">
-                        {formError}
-                    </div>
-                {/if}
-
-                <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="form-control">
-                        <input
-                            type="text"
-                            placeholder={(aboutMe.contactForm.formFields?.namePlaceholder || 'Your name') + ' *'}
-                            class="input w-full bg-transparent"
-                            bind:value={formData.name}
-                            required
-                        />
-                    </div>
-
-                    <div class="form-control">
-                        <input
-                            type="email"
-                            placeholder={(aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email') + ' *'}
-                            class="input w-full bg-transparent"
-                            bind:value={formData.email}
-                            required
-                        />
-                    </div>
-
-                    <div class="form-control">
-                        <input
-                            type="tel"
-                            placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
-                            class="input w-full bg-transparent"
-                            bind:value={formData.phone}
-                        />
-                    </div>
-
-                    <div class="form-control">
-                        <input
-                            type="text"
-                            placeholder={aboutMe.contactForm.formFields?.referralPlaceholder ||
-                                'How did you hear about me?'}
-                            class="input w-full bg-transparent"
-                            bind:value={formData.referral}
-                        />
-                    </div>
+            {#if formError}
+                <div class="alert alert-error mb-6 p-4">
+                    {formError}
                 </div>
+            {/if}
 
-                <div class="form-control mb-2">
-                    <textarea
-                        placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') +
-                            ' *'}
-                        class="textarea min-h-[150px] w-full bg-transparent"
-                        bind:value={formData.message}
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="form-control">
+                    <input
+                        type="text"
+                        placeholder={(aboutMe.contactForm.formFields?.namePlaceholder || 'Your name') + ' *'}
+                        class="input w-full bg-transparent"
+                        bind:value={formData.name}
                         required
-                    ></textarea>
+                    />
                 </div>
 
                 <div class="form-control">
-                    <button type="submit" class="btn btn-primary" disabled={formSubmitting}>
-                        {formSubmitting ? 'Sending...' : aboutMe.contactForm.submitButtonText || 'Submit Message'}
-                    </button>
-
-                    <div class="mt-2 text-sm">* Required fields</div>
+                    <input
+                        type="email"
+                        placeholder={(aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email') + ' *'}
+                        class="input w-full bg-transparent"
+                        bind:value={formData.email}
+                        required
+                    />
                 </div>
-            </form>
-        </div>
+
+                <div class="form-control">
+                    <input
+                        type="tel"
+                        placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
+                        class="input w-full bg-transparent"
+                        bind:value={formData.phone}
+                    />
+                </div>
+
+                <div class="form-control">
+                    <input
+                        type="text"
+                        placeholder={aboutMe.contactForm.formFields?.referralPlaceholder ||
+                            'How did you hear about me?'}
+                        class="input w-full bg-transparent"
+                        bind:value={formData.referral}
+                    />
+                </div>
+            </div>
+
+            <div class="form-control col-span-2 mt-4">
+                <textarea
+                    placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') +
+                        ' *'}
+                    class="textarea min-h-[150px] w-full bg-transparent"
+                    bind:value={formData.message}
+                    required
+                ></textarea>
+            </div>
+
+            <div class="flex flex-col gap-1 form-control mt-1">
+                <button type="submit" class="btn btn-primary mr-0 md:mr-auto" disabled={formSubmitting}>
+                    {formSubmitting ? 'Sending...' : aboutMe.contactForm.submitButtonText || 'Submit Message'}
+                </button>
+
+                <div class="text-sm">* Required fields</div>
+            </div>
+        </form>
     {/if}
 
-    <div class="mt-16 text-center">
+    <div class="text-center">
         {#if aboutMe.footerTagline}
-            <h4 class="mb-4 text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
+            <h4 class="text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
         {/if}
 
         {#if aboutMe.email}
@@ -195,7 +193,10 @@
         }
     }
 
-    :global(.prose p) {
+    :global(.prose h2) {
+      margin-bottom: 1rem;
+    }
+    :global(.prose p:not(:last-of-type)) {
         margin-bottom: 1rem;
     }
 
