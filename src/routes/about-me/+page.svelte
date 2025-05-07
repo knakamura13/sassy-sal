@@ -91,11 +91,17 @@
         </div>
     {/if}
 
-    {#if aboutMe.email}
-        <p class="mt-6 text-center">
-            <a href="mailto:{aboutMe.email}" class="link link--zoomies">{aboutMe.email}</a>
-        </p>
-    {/if}
+    <div class="mt-16 text-center">
+        {#if aboutMe.footerTagline}
+            <h4 class="mb-4 text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
+        {/if}
+
+        {#if aboutMe.email}
+            <p class="text-center">
+                <a href="mailto:{aboutMe.email}" class="link link--zoomies">{aboutMe.email}</a>
+            </p>
+        {/if}
+    </div>
 </div>
 
 <style lang="scss">

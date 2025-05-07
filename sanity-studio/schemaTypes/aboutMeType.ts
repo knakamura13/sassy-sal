@@ -84,6 +84,12 @@ export default {
             ]
         },
         {
+            name: 'footerTagline',
+            title: 'Footer Tagline',
+            description: 'Text displayed above the email at the bottom of the page (e.g., "Lifestyle, headshot, engagement, and event photography.")',
+            type: 'string'
+        },
+        {
             name: 'email',
             title: 'Email Address',
             description: 'Email address of the about me page',
