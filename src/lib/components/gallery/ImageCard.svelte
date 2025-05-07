@@ -276,7 +276,7 @@
 
 <div class="image-card group w-full">
     <div
-        class="relative overflow-hidden rounded bg-gray-100 transition-all duration-300 hover:shadow-lg"
+        class="relative overflow-hidden bg-gray-100 transition-all duration-300 hover:shadow-lg"
         data-has-url={!!currentDisplayedUrl}
     >
         <!-- Image with progressive loading -->
@@ -344,7 +344,7 @@
             {:else}
                 <!-- Fallback when no image is available -->
                 <div
-                    class="flex min-h-[200px] w-full items-center justify-center rounded bg-gray-100 {isFromCache
+                    class="flex min-h-[200px] w-full items-center justify-center bg-gray-100 {isFromCache
                         ? 'border-2 border-amber-400'
                         : ''}"
                 >
@@ -354,11 +354,11 @@
 
             {#if isAdmin}
                 <div
-                    class="absolute right-0 top-0 z-10 flex space-x-1 rounded-bl-md bg-gray-900 bg-opacity-60 p-1 shadow-lg"
+                    class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg"
                 >
                     <button
                         type="button"
-                        class="aspect-square h-10 w-10 rounded p-1 text-white hover:bg-gray-600"
+                        class="aspect-square h-10 w-10 p-1 text-white hover:bg-gray-600"
                         on:click|stopPropagation={handleEdit}
                         aria-label="Edit category"
                     >
@@ -366,7 +366,7 @@
                     </button>
                     <button
                         type="button"
-                        class="aspect-square h-10 w-10 rounded p-1 text-white hover:bg-red-600"
+                        class="aspect-square h-10 w-10 p-1 text-white hover:bg-red-600"
                         on:click|stopPropagation={handleRemove}
                         aria-label="Remove category"
                     >
