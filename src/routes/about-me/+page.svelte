@@ -37,12 +37,12 @@
             {/if}
 
             <form class="mx-auto max-w-2xl">
-                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div class="form-control">
                         <input
                             type="text"
                             placeholder={aboutMe.contactForm.formFields?.namePlaceholder || 'Your name'}
-                            class="input w-full"
+                            class="input w-full bg-transparent"
                             required
                         />
                     </div>
@@ -51,7 +51,7 @@
                         <input
                             type="email"
                             placeholder={aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email'}
-                            class="input w-full"
+                            class="input w-full bg-transparent"
                             required
                         />
                     </div>
@@ -60,7 +60,7 @@
                         <input
                             type="tel"
                             placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
-                            class="input w-full"
+                            class="input w-full bg-transparent"
                         />
                     </div>
 
@@ -69,21 +69,21 @@
                             type="text"
                             placeholder={aboutMe.contactForm.formFields?.referralPlaceholder ||
                                 'How did you hear about me?'}
-                            class="input w-full"
+                            class="input w-full bg-transparent"
                         />
                     </div>
                 </div>
 
-                <div class="form-control mb-6">
+                <div class="form-control mb-2">
                     <textarea
                         placeholder={aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?'}
-                        class="textarea min-h-[150px] w-full"
+                        class="textarea min-h-[150px] w-full bg-transparent"
                         required
                     ></textarea>
                 </div>
 
                 <div class="form-control">
-                    <button type="submit" class="btn btn-primary mx-auto">
+                    <button type="submit" class="btn btn-primary">
                         {aboutMe.contactForm.submitButtonText || 'Submit Message'}
                     </button>
                 </div>
@@ -125,7 +125,6 @@
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #ddd;
-        border-radius: 0.25rem;
         transition: border-color 0.2s ease;
 
         &:focus {
@@ -134,13 +133,20 @@
         }
     }
 
+    /* Clean, simplified approach to autofill styling */
+    input:-webkit-autofill,
+    textarea:-webkit-autofill {
+        -webkit-text-fill-color: black !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.9) inset !important;
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.9) inset !important;
+    }
+
     .btn {
         display: block;
         padding: 0.75rem 2rem;
         background-color: vars.$secondary-color;
         color: white;
         border: none;
-        border-radius: 0.25rem;
         font-weight: 500;
         cursor: pointer;
         transition: background-color 0.2s ease;
