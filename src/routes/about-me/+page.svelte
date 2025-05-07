@@ -69,7 +69,7 @@
     <title>{aboutMe?.title || 'About Me'} | Photography Portfolio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-[1400px] px-4 py-16">
+<div class="container mx-auto max-w-screen-lg px-4 py-16 pb-32">
     <h1 class="font-didot mb-12 text-center text-4xl">{aboutMe.title}</h1>
 
     <div class="flex flex-col items-center gap-8 md:flex-row md:items-start">
@@ -92,10 +92,10 @@
     {#if aboutMe.contactForm}
         <div class="mt-20">
             {#if aboutMe.contactForm.formHeader}
-                <h3 class="mb-8 text-center text-2xl font-light">{aboutMe.contactForm.formHeader}</h3>
+                <h3 class="mb-8 text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
             {/if}
 
-            <form class="mx-auto max-w-2xl" on:submit|preventDefault={handleSubmit}>
+            <form class="mx-auto" on:submit|preventDefault={handleSubmit}>
                 {#if formSuccess}
                     <div class="alert alert-success mb-6 p-4">
                         Thank you for your message! I'll get back to you soon.
