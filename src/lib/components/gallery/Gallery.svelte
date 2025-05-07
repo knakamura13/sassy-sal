@@ -945,7 +945,7 @@
     }}
 />
 
-<div class="gallery-container m-auto max-w-screen-md py-6 pb-24">
+<div class="gallery-container m-auto max-w-[1400px] py-6 pb-24">
     <div class="grid w-full grid-cols-1 gap-6">
         {#if $adminMode && isModified}
             <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />

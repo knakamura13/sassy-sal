@@ -11,7 +11,7 @@
 <div class="app-wrapper flex flex-col">
     <Header />
 
-    <main class="main-content flex-1">
+    <main class="main-content mx-auto w-full max-w-[1400px] flex-1">
         <slot />
     </main>
 

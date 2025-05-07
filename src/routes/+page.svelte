@@ -658,7 +658,7 @@
     <title>SallyJK Photography</title>
 </svelte:head>
 
-<div class="page min-h-[100vh] !px-[6vw] !pb-[240px] !pt-[60px]" id="home">
+<div class="page mx-auto min-h-[100vh] max-w-[1400px] !px-[6vw] !pb-[240px] !pt-[60px]" id="home">
     {#if $adminMode}
         <!-- Draggable category grid for admin mode -->
         <div

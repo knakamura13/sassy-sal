@@ -153,29 +153,12 @@ export default {
 
 A checklist of planned improvements and modifications for future development, arranged from simplest to most complex:
 
-- [ ] **Navigation Updates**
-
-    - **Implementation Context**:
-        - Update `navLinks` array in `src/lib/components/Header.svelte`
-        - Rename/remove directories in the routes folder structure
-        - Update any internal links referencing these pages
-
 - [ ] **About Me Page Redesign**
 
-    - Remove "My Approach" section and its content
-    - Remove the header element
     - Modify sub-header to span full page content width
     - **Implementation Context**:
         - Keep contact form functionality while removing specified sections
         - Adjust padding and width constraints on the sub-header element
-
-- [ ] **Content Width Standardization**
-
-    - Adjust main content max-width on all pages to match the wider header component
-    - **Implementation Context**:
-        - Header currently uses `max-w-[1400px]` in `src/lib/components/Header.svelte`
-        - Update content container max-width in layout templates to match this value
-        - Apply consistent padding across all page layouts
 
 - [ ] **Home Page Layout**
     - Maintain consistent spacing between category thumbnails across all screen sizes

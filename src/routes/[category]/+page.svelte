@@ -341,7 +341,7 @@
 </svelte:head>
 
 <div class="category-page relative min-h-[100vh]">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto max-w-[1400px] px-4 py-8">
         {#if category}
             <div class="category-header mb-4">
                 <h1 class="mt-2 w-full text-center text-3xl font-medium text-[#3f4a49]">

@@ -23,7 +23,7 @@
     }
 </script>
 
-<div class="admin-actions m-auto flex w-full max-w-screen-md justify-end space-x-4 {className}">
+<div class="admin-actions m-auto flex w-full max-w-[1400px] justify-end space-x-4 {className}">
     <AlertDialog.Root bind:open={showDiscardDialog}>
         <AlertDialog.Trigger asChild let:builder>
             <Button variant="destructive" size="default" disabled={isSaving} builders={[builder]}>
