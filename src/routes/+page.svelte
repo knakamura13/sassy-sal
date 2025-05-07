@@ -658,11 +658,11 @@
     <title>SallyJK Photography</title>
 </svelte:head>
 
-<div class="page mx-auto min-h-[100vh] max-w-[1400px] !px-[6vw] !pb-[240px] !pt-[60px]" id="home">
+<div class="page mx-auto min-h-[100vh] max-w-[1400px] !pb-[240px] !pt-[60px]" id="home">
     {#if $adminMode}
         <!-- Draggable category grid for admin mode -->
         <div
-            class="grid auto-rows-min grid-cols-1 gap-10 md:grid-cols-2 lg:gap-20"
+            class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2"
             use:dndzone={{
                 items: filteredCategories.map((category) => ({
                     ...category,
@@ -675,25 +675,23 @@
             on:finalize={handleDndFinalize}
         >
             {#each filteredCategories as category (String(category.id) + '-' + updateCounter)}
-                <div class="category-item">
-                    <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
-                        <CategoryCard
-                            {category}
-                            isAdmin={$adminMode}
-                            on:remove={handleRemoveCategory}
-                            on:update={handleUpdateCategory}
-                        />
-                    </AspectRatio>
-                </div>
+                <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
+                    <CategoryCard
+                        {category}
+                        isAdmin={$adminMode}
+                        on:remove={handleRemoveCategory}
+                        on:update={handleUpdateCategory}
+                    />
+                </AspectRatio>
             {/each}
 
             <CategoryUploadPlaceholder on:addCategory={handleAddCategory} />
         </div>
     {:else}
         <!-- Regular non-draggable grid for non-admin mode -->
-        <div class="grid auto-rows-min grid-cols-1 gap-10 md:grid-cols-2 lg:gap-20">
+        <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
             {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
-                <AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
+                <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
                     <CategoryCard
                         {category}
                         isAdmin={$adminMode}

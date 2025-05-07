@@ -143,10 +143,8 @@
     }
 </script>
 
-<AspectRatio ratio={3 / 4} class="!m-auto !aspect-[3/4] max-h-[770px] bg-muted">
-    <div
-        class="category-card !m-auto block h-full max-h-[770px] w-full border-2 border-dashed border-gray-300 transition-all duration-300"
-    >
+<AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
+    <div class="category-card block h-full w-full border-2 border-dashed border-gray-300 transition-all duration-300">
         <button
             type="button"
             class="flex h-full w-full cursor-pointer flex-col items-center justify-center p-4 transition-colors hover:bg-gray-100"
