@@ -112,7 +112,7 @@
                     <div class="form-control">
                         <input
                             type="text"
-                            placeholder={aboutMe.contactForm.formFields?.namePlaceholder || 'Your name'}
+                            placeholder={(aboutMe.contactForm.formFields?.namePlaceholder || 'Your name') + ' *'}
                             class="input w-full bg-transparent"
                             bind:value={formData.name}
                             required
@@ -122,7 +122,7 @@
                     <div class="form-control">
                         <input
                             type="email"
-                            placeholder={aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email'}
+                            placeholder={(aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email') + ' *'}
                             class="input w-full bg-transparent"
                             bind:value={formData.email}
                             required
@@ -151,7 +151,8 @@
 
                 <div class="form-control mb-2">
                     <textarea
-                        placeholder={aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?'}
+                        placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') +
+                            ' *'}
                         class="textarea min-h-[150px] w-full bg-transparent"
                         bind:value={formData.message}
                         required
@@ -162,6 +163,8 @@
                     <button type="submit" class="btn btn-primary" disabled={formSubmitting}>
                         {formSubmitting ? 'Sending...' : aboutMe.contactForm.submitButtonText || 'Submit Message'}
                     </button>
+
+                    <div class="mt-2 text-sm">* Required fields</div>
                 </div>
             </form>
         </div>
@@ -220,7 +223,7 @@
     .btn {
         display: block;
         padding: 0.75rem 2rem;
-        background-color: vars.$secondary-color;
+        background-color: vars.$primary-color;
         color: white;
         border: none;
         font-weight: 500;
