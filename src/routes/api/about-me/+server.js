@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
 /**
- * Handle POST requests to /api/contact
+ * Handle POST requests to /api/about-me
  */
 export async function POST({ request }) {
     try {

@@ -26,7 +26,7 @@
         formError = null;
 
         try {
-            const response = await fetch('/api/contact', {
+            const response = await fetch('/api/about-me', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -69,8 +69,8 @@
     <title>{aboutMe?.title || 'About Me'} | Photography Portfolio</title>
 </svelte:head>
 
-<div class="container flex flex-col gap-12 mx-auto max-w-screen-lg px-4 py-16 pb-32">
-    <h1 class="font-didot text-center text-4xl mb-4">{aboutMe.title}</h1>
+<div class="container mx-auto flex max-w-screen-lg flex-col gap-12 px-4 py-16 pb-32">
+    <h1 class="font-didot mb-4 text-center text-4xl">{aboutMe.title}</h1>
 
     <div class="flex flex-col items-center gap-8 md:flex-row md:items-start">
         {#if aboutMe.profileImage}
@@ -96,9 +96,7 @@
     {#if aboutMe.contactForm}
         <form class="w-full" on:submit|preventDefault={handleSubmit}>
             {#if formSuccess}
-                <div class="alert alert-success mb-6 p-4">
-                    Thank you for your message! I'll get back to you soon.
-                </div>
+                <div class="alert alert-success mb-6 p-4">Thank you for your message! I'll get back to you soon.</div>
             {/if}
 
             {#if formError}
@@ -150,15 +148,14 @@
 
             <div class="form-control col-span-2 mt-4">
                 <textarea
-                    placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') +
-                        ' *'}
+                    placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') + ' *'}
                     class="textarea min-h-[150px] w-full bg-transparent"
                     bind:value={formData.message}
                     required
                 ></textarea>
             </div>
 
-            <div class="flex flex-col gap-1 form-control mt-1">
+            <div class="form-control mt-1 flex flex-col gap-1">
                 <button type="submit" class="btn btn-primary mr-0 md:mr-auto" disabled={formSubmitting}>
                     {formSubmitting ? 'Sending...' : aboutMe.contactForm.submitButtonText || 'Submit Message'}
                 </button>
@@ -194,7 +191,7 @@
     }
 
     :global(.prose h2) {
-      margin-bottom: 1rem;
+        margin-bottom: 1rem;
     }
     :global(.prose p:not(:last-of-type)) {
         margin-bottom: 1rem;
