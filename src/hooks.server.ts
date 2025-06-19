@@ -43,32 +43,23 @@ export const handle: Handle = async ({ event, resolve }) => {
     response.headers.set(
         'Content-Security-Policy',
         `default-src 'self'; ` +
-        `base-uri 'self'; ` +
-        `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https: http:; ` +
-        `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
-        `img-src 'self' data: https://cdn.sanity.io; ` +
-        `font-src 'self' https://fonts.gstatic.com; ` +
-        `connect-src 'self' https://*.sanity.io; ` +
-        `frame-ancestors 'none';`
+            `base-uri 'self'; ` +
+            `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https: http:; ` +
+            `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
+            `img-src 'self' data: blob: https://cdn.sanity.io; ` +
+            `font-src 'self' https://fonts.gstatic.com; ` +
+            `connect-src 'self' https://*.sanity.io; ` +
+            `frame-ancestors 'none';`
     );
 
     // 2. HTTP Strict Transport Security (HSTS)
-    response.headers.set(
-        'Strict-Transport-Security',
-        'max-age=31536000; includeSubDomains; preload'
-    );
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
     // 3. Cross-Origin Opener Policy (COOP)
-    response.headers.set(
-        'Cross-Origin-Opener-Policy',
-        'same-origin'
-    );
+    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
 
     // 4. X-Frame-Options (XFO) to prevent clickjacking
-    response.headers.set(
-        'X-Frame-Options',
-        'DENY'
-    );
+    response.headers.set('X-Frame-Options', 'DENY');
 
     // Additional security headers
     response.headers.set('X-Content-Type-Options', 'nosniff');
