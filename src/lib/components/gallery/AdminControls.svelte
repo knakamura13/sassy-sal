@@ -5,6 +5,7 @@
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
     export let isSaving: boolean = false;
+    export let hasFailedUploads: boolean = false;
     export let className: string = '';
 
     const dispatch = createEventDispatcher();
@@ -19,6 +20,12 @@
     function saveChanges() {
         if (!isSaving) {
             dispatch('save');
+        }
+    }
+
+    function retryUploads() {
+        if (!isSaving) {
+            dispatch('retry');
         }
     }
 </script>
@@ -43,6 +50,22 @@
             </AlertDialog.Footer>
         </AlertDialog.Content>
     </AlertDialog.Root>
+
+    {#if hasFailedUploads}
+        <Button
+            variant="outline"
+            size="default"
+            disabled={isSaving}
+            on:click={retryUploads}
+            class="flex items-center border-orange-500 text-orange-600 hover:bg-orange-50"
+        >
+            {#if isSaving}
+                Retrying...
+            {:else}
+                Retry Failed Uploads
+            {/if}
+        </Button>
+    {/if}
 
     <Button variant="default" size="default" disabled={isSaving} on:click={saveChanges} class="flex items-center">
         {#if isSaving}

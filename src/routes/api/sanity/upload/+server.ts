@@ -14,17 +14,39 @@ export async function POST({ request }) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Upload to Sanity
-        const asset = await uploadSanityAsset('image', buffer, {
+        // Upload to Sanity with timeout handling
+        const uploadPromise = uploadSanityAsset('image', buffer, {
             filename: file.name,
             contentType: file.type
         });
 
+        // Add a timeout to prevent hanging requests
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Upload timeout after 60 seconds')), 60000);
+        });
+
+        const asset = await Promise.race([uploadPromise, timeoutPromise]);
+
         return json({ success: true, asset });
     } catch (error) {
         console.error('Error uploading file to Sanity:', error);
-        return json({
-            error: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
+
+        // Provide more specific error messages
+        let errorMessage = 'Unknown error';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+            if (error.message.includes('timeout')) {
+                errorMessage = 'Upload timed out. Please check your connection and try again.';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                errorMessage = 'Network error during upload. Please check your connection and try again.';
+            }
+        }
+
+        return json(
+            {
+                error: errorMessage
+            },
+            { status: 500 }
+        );
     }
-} 
+}

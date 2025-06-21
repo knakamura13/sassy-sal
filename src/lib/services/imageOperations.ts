@@ -25,15 +25,19 @@ export class ImageOperationsService {
     private uploadStartTime = 0;
     private uploadedFileSizeBytes = 0;
     private totalFileSizeBytes = 0;
+    private failedUploads: { image: Image; error: string }[] = [];
 
     // Function to handle saving changes
-    async saveChanges(options: SaveChangesOptions): Promise<{ success: boolean; newImages: Image[] }> {
+    async saveChanges(
+        options: SaveChangesOptions
+    ): Promise<{ success: boolean; newImages: Image[]; failedUploads: { image: Image; error: string }[] }> {
         if (this.isSaving) {
-            return { success: false, newImages: [] };
+            return { success: false, newImages: [], failedUploads: [] };
         }
 
         this.isSaving = true;
         this.isCanceled = false;
+        this.failedUploads = []; // Reset failed uploads
 
         let allProcessingComplete = false;
         const newlyUploadedImages: Image[] = [];
@@ -94,6 +98,11 @@ export class ImageOperationsService {
                         );
                     } catch (error) {
                         console.error('Error deleting image:', error);
+                        this.failedUploads.push({
+                            image,
+                            error: `Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`
+                        });
+                        uploadStep++;
                         // Continue with other deletions even if one fails
                     }
                 }
@@ -167,7 +176,15 @@ export class ImageOperationsService {
 
                         uploadStep++;
                     } catch (err) {
+                        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
                         console.error('Error adding image:', err);
+
+                        // Track this as a failed upload
+                        this.failedUploads.push({
+                            image,
+                            error: `Failed to upload: ${errorMessage}`
+                        });
+
                         uploadStep++;
                         // Continue with other uploads even if one fails
                     }
@@ -244,7 +261,15 @@ export class ImageOperationsService {
 
                         uploadStep++;
                     } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                         console.error('Error updating image:', error);
+
+                        // Track this as a failed upload
+                        this.failedUploads.push({
+                            image,
+                            error: `Failed to update: ${errorMessage}`
+                        });
+
                         uploadStep++;
                         // Continue with other updates even if one fails
                     }
@@ -264,22 +289,34 @@ export class ImageOperationsService {
                 progressCallbacks?.onProgress(uploadStep, uploadTotal, 100, 'Upload process canceled.', 'Canceled');
                 progressCallbacks?.onCancel();
             } else {
+                const hasFailures = this.failedUploads.length > 0;
+                const successCount = uploadTotal - this.failedUploads.length;
+
+                let finalMessage = 'All images processed successfully!';
+                if (hasFailures) {
+                    finalMessage = `${successCount} of ${uploadTotal} images processed successfully. ${this.failedUploads.length} failed.`;
+                }
+
                 progressCallbacks?.onProgress(
                     uploadStep,
                     uploadTotal,
                     100,
-                    'All images processed successfully!',
-                    'Complete'
+                    finalMessage,
+                    hasFailures ? 'Partial Success' : 'Complete'
                 );
-                progressCallbacks?.onComplete(true, newlyUploadedImages);
+                progressCallbacks?.onComplete(!hasFailures, newlyUploadedImages);
             }
 
-            return { success: !this.isCanceled && allProcessingComplete, newImages: newlyUploadedImages };
+            return {
+                success: !this.isCanceled && allProcessingComplete && this.failedUploads.length === 0,
+                newImages: newlyUploadedImages,
+                failedUploads: this.failedUploads
+            };
         } catch (error) {
             console.error('Error saving changes:', error);
             showToast.error('Error saving changes. Please try again.');
             progressCallbacks?.onComplete(false, []);
-            return { success: false, newImages: [] };
+            return { success: false, newImages: [], failedUploads: this.failedUploads };
         } finally {
             this.isSaving = false;
         }

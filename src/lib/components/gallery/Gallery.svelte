@@ -29,6 +29,7 @@
     let isModified = false;
     let isSaving = false;
     let isReorderingImages = false;
+    let hasFailedUploads = false;
 
     // Service instances
     let cacheManager: CDNCacheManager;
@@ -244,6 +245,7 @@
 
                     if (success && !isCanceled) {
                         isModified = false;
+                        hasFailedUploads = false;
                         showToast.success('Changes saved successfully');
 
                         // Revoke any blob URLs before refreshing
@@ -268,6 +270,28 @@
 
                         // Wait a bit longer to ensure server has time to process the final requests
                         refreshAfterDelay(1500);
+                    } else if (result.failedUploads && result.failedUploads.length > 0) {
+                        // Handle partial success - some uploads failed
+                        hasFailedUploads = true;
+                        const networkErrors = result.failedUploads.filter(
+                            (failure) =>
+                                failure.error.includes('Failed to fetch') ||
+                                failure.error.includes('NetworkError') ||
+                                failure.error.includes('ERR_NETWORK_CHANGED')
+                        );
+
+                        if (networkErrors.length > 0) {
+                            showToast.error(
+                                `${networkErrors.length} image(s) failed to upload due to network issues. Please check your connection and try again.`
+                            );
+                        } else {
+                            showToast.error(
+                                `${result.failedUploads.length} image(s) failed to upload. Please try again.`
+                            );
+                        }
+
+                        // Log detailed error information for debugging
+                        console.error('Failed uploads:', result.failedUploads);
                     }
                 },
                 onCancel: () => {
@@ -469,6 +493,14 @@
         isCanceled = true;
         imageOperationsService?.cancelUpload();
     }
+
+    // Function to retry failed uploads
+    async function retryFailedUploads() {
+        if (!imageOperationsService || isSaving) return;
+
+        showToast.info('Retrying failed uploads...');
+        await saveChanges();
+    }
 </script>
 
 <svelte:window
@@ -490,7 +522,13 @@
 <div class="gallery-container m-auto max-w-[1400px] py-6 pb-24">
     <div class="grid w-full grid-cols-1 gap-6">
         {#if $adminMode && isModified}
-            <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
+            <AdminControls
+                {isSaving}
+                {hasFailedUploads}
+                on:save={saveChanges}
+                on:discard={discardChanges}
+                on:retry={retryFailedUploads}
+            />
         {/if}
 
         {#each sortedImages as image (image.id)}
@@ -518,7 +556,13 @@
 
         <!-- Show Admin Controls at the bottom of the Gallery as well -->
         {#if $adminMode && isModified}
-            <AdminControls {isSaving} on:save={saveChanges} on:discard={discardChanges} />
+            <AdminControls
+                {isSaving}
+                {hasFailedUploads}
+                on:save={saveChanges}
+                on:discard={discardChanges}
+                on:retry={retryFailedUploads}
+            />
         {/if}
     </div>
 

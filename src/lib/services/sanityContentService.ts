@@ -769,34 +769,63 @@ export const updateImage = async (
 };
 
 /**
- * Upload a file to Sanity
+ * Upload a file to Sanity with retry logic for network errors
  * @param {File} file - The file to upload
+ * @param {number} maxRetries - Maximum number of retry attempts
  * @returns {Promise<Object>} - The uploaded asset
  */
-export const uploadFile = async (file: File): Promise<any> => {
+export const uploadFile = async (file: File, maxRetries: number = 3): Promise<any> => {
     try {
         // Check if we're in a browser environment where File is available
         if (!isBrowser) {
             throw new Error('File upload is only available in browser environment');
         }
 
-        // Create form data to send the file
-        const formData = new FormData();
-        formData.append('file', file);
+        const attemptUpload = async (attempt: number): Promise<any> => {
+            try {
+                // Create form data to send the file
+                const formData = new FormData();
+                formData.append('file', file);
 
-        // Send to server endpoint for upload
-        const response = await fetch('/api/sanity/upload', {
-            method: 'POST',
-            body: formData
-        });
+                // Send to server endpoint for upload
+                const response = await fetch('/api/sanity/upload', {
+                    method: 'POST',
+                    body: formData
+                });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to upload file');
-        }
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to upload file');
+                }
 
-        const result = await response.json();
-        return result.asset;
+                const result = await response.json();
+                return result.asset;
+            } catch (error) {
+                // Check if this is a network error that we should retry
+                const isNetworkError =
+                    error instanceof TypeError &&
+                    (error.message.includes('Failed to fetch') ||
+                        error.message.includes('NetworkError') ||
+                        error.message.includes('ERR_NETWORK_CHANGED'));
+
+                if (isNetworkError && attempt < maxRetries) {
+                    // Exponential backoff: wait 1s, 2s, 4s for retries
+                    const delay = Math.pow(2, attempt - 1) * 1000;
+                    console.warn(
+                        `Network error uploading ${file.name}, retrying in ${delay}ms (attempt ${attempt}/${maxRetries}):`,
+                        error.message
+                    );
+
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                    return attemptUpload(attempt + 1);
+                }
+
+                // If it's not a network error or we've exhausted retries, throw the error
+                throw error;
+            }
+        };
+
+        return await attemptUpload(1);
     } catch (error) {
         console.error('Error uploading file to Sanity:', error);
         throw error;
