@@ -125,18 +125,18 @@ export const client = createClient({
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
-    useCdn: true, // Use CDN for better performance on client-side
+    useCdn: false, // Use CDN for better performance on client-side
     // Add browser-specific options only when in browser context
     ...(isBrowser
         ? {
-            // Browser-specific options
-            useProjectHostname: true, // Use the API hostname for the project instead of api.sanity.io
-            perspective: 'published', // Always fetch the published version in browser context
-            ignoreBrowserTokenWarning: true // Silence browser warnings about using token in browser
-        }
+              // Browser-specific options
+              useProjectHostname: true, // Use the API hostname for the project instead of api.sanity.io
+              perspective: 'published', // Always fetch the published version in browser context
+              ignoreBrowserTokenWarning: true // Silence browser warnings about using token in browser
+          }
         : {
-            // Server-specific options if needed
-        })
+              // Server-specific options if needed
+          })
 } as SanityClientConfig);
 
 /**
@@ -155,10 +155,10 @@ export function urlFor(source: any): ImageUrlBuilder {
         // Create a minimal mock implementation that won't cause TypeScript errors
         return {
             url: () => '',
-            width: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            height: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            format: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            auto: () => ({ url: () => '' } as unknown as ImageUrlBuilder)
+            width: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            height: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            format: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            auto: () => ({ url: () => '' }) as unknown as ImageUrlBuilder
         } as unknown as ImageUrlBuilder;
     }
 
@@ -169,10 +169,10 @@ export function urlFor(source: any): ImageUrlBuilder {
         // Create a minimal mock implementation that won't cause TypeScript errors
         return {
             url: () => '',
-            width: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            height: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            format: () => ({ url: () => '' } as unknown as ImageUrlBuilder),
-            auto: () => ({ url: () => '' } as unknown as ImageUrlBuilder)
+            width: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            height: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            format: () => ({ url: () => '' }) as unknown as ImageUrlBuilder,
+            auto: () => ({ url: () => '' }) as unknown as ImageUrlBuilder
         } as unknown as ImageUrlBuilder;
     }
 }
@@ -220,14 +220,14 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
                     order: category.order || 0,
                     thumbnail: category.thumbnail
                         ? {
-                            data: {
-                                attributes: {
-                                    url: thumbnailUrl,
-                                    placeholderUrl: placeholderUrl,
-                                    fullSizeUrl: fullSizeUrl
-                                }
-                            }
-                        }
+                              data: {
+                                  attributes: {
+                                      url: thumbnailUrl,
+                                      placeholderUrl: placeholderUrl,
+                                      fullSizeUrl: fullSizeUrl
+                                  }
+                              }
+                          }
                         : null
                 }
             };
@@ -273,7 +273,9 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
           }
         }`;
 
-        const category: SanityCategory & { images: SanityGalleryImage[] } = await client.fetch(query, { identifier: nameOrId });
+        const category: SanityCategory & { images: SanityGalleryImage[] } = await client.fetch(query, {
+            identifier: nameOrId
+        });
 
         if (!category) {
             return null;
@@ -305,14 +307,14 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                 order: category.order || 0,
                 thumbnail: category.thumbnail
                     ? {
-                        data: {
-                            attributes: {
-                                url: thumbnailUrl,
-                                placeholderUrl: placeholderUrl,
-                                fullSizeUrl: fullSizeUrl
-                            }
-                        }
-                    }
+                          data: {
+                              attributes: {
+                                  url: thumbnailUrl,
+                                  placeholderUrl: placeholderUrl,
+                                  fullSizeUrl: fullSizeUrl
+                              }
+                          }
+                      }
                     : null,
                 images: {
                     data: category.images.map((image) => {
@@ -418,12 +420,12 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
                 order: createdCategory.order || 0,
                 thumbnail: createdCategory.thumbnail
                     ? {
-                        data: {
-                            attributes: {
-                                url: getImageUrls(createdCategory.thumbnail).medium
-                            }
-                        }
-                    }
+                          data: {
+                              attributes: {
+                                  url: getImageUrls(createdCategory.thumbnail).medium
+                              }
+                          }
+                      }
                     : null
             }
         };
@@ -447,16 +449,19 @@ export const deleteCategory = async (
 ): Promise<null> => {
     try {
         // First find all gallery images that reference this category
-        const imagesToDelete: string[] = await client.fetch(`*[_type == "galleryImage" && references($categoryId)]._id`, {
-            categoryId: id
-        });
+        const imagesToDelete: string[] = await client.fetch(
+            `*[_type == "galleryImage" && references($categoryId)]._id`,
+            {
+                categoryId: id
+            }
+        );
 
         const totalSteps = imagesToDelete.length + 1; // +1 for the category itself
         let currentStep = 0;
 
         // Update progress to show we're starting
         if (progressCallback) {
-            progressCallback(currentStep, totalSteps, "Starting category deletion...");
+            progressCallback(currentStep, totalSteps, 'Starting category deletion...');
         }
 
         // Delete each referenced image via server endpoint
@@ -493,16 +498,12 @@ export const deleteCategory = async (
             }
 
             // Add a small delay to ensure all requests are processed
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         // Now delete the category itself via server endpoint
         if (progressCallback) {
-            progressCallback(
-                totalSteps - 1,
-                totalSteps,
-                "Deleting category..."
-            );
+            progressCallback(totalSteps - 1, totalSteps, 'Deleting category...');
         }
 
         const response = await fetch('/api/sanity', {
@@ -523,11 +524,7 @@ export const deleteCategory = async (
 
         // Final progress update
         if (progressCallback) {
-            progressCallback(
-                totalSteps,
-                totalSteps,
-                "Category deleted successfully!"
-            );
+            progressCallback(totalSteps, totalSteps, 'Category deleted successfully!');
         }
 
         return null;
@@ -580,12 +577,12 @@ export const updateCategory = async (id: string, data: CategoryData): Promise<{ 
                 order: updatedCategory.order || 0,
                 thumbnail: updatedCategory.thumbnail
                     ? {
-                        data: {
-                            attributes: {
-                                url: getImageUrls(updatedCategory.thumbnail).medium
-                            }
-                        }
-                    }
+                          data: {
+                              attributes: {
+                                  url: getImageUrls(updatedCategory.thumbnail).medium
+                              }
+                          }
+                      }
                     : null
             }
         };
@@ -701,7 +698,10 @@ export const deleteImage = async (id: string): Promise<null> => {
  * @param {Object} data - Updated image data
  * @returns {Promise<Object>} - The updated image
  */
-export const updateImage = async (id: string, data: { order?: number; image?: File }): Promise<{ data: FormattedImage }> => {
+export const updateImage = async (
+    id: string,
+    data: { order?: number; image?: File }
+): Promise<{ data: FormattedImage }> => {
     try {
         const updates: Partial<SanityGalleryImage> = {
             order: data.order !== undefined ? data.order : undefined
@@ -807,4 +807,4 @@ declare global {
     interface Window {
         process: any;
     }
-} 
+}

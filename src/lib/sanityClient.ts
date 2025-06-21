@@ -11,8 +11,8 @@ export const publicClient = createClient({
     projectId,
     dataset,
     apiVersion,
-    useCdn: true, // Use CDN for better performance on public data
-    perspective: 'published', // Only fetch published documents, not drafts
+    useCdn: false, // Use CDN for better performance on public data
+    perspective: 'published' // Only fetch published documents, not drafts
 });
 
 // Create image URL builder
@@ -22,4 +22,4 @@ const builder = imageUrlBuilder(publicClient);
 export const urlFor = (source: any) => {
     if (!source) return '';
     return builder.image(source);
-}; 
+};
