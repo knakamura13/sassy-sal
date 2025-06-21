@@ -28,4 +28,4 @@ export async function deleteSanityDocument(id: string) {
 
 export async function uploadSanityAsset(type: 'file' | 'image', buffer: Buffer, options: any) {
     return serverClient.assets.upload(type, buffer, options);
-} 
+}
