@@ -20,9 +20,16 @@ export async function POST({ request }) {
             contentType: file.type
         });
 
+        // Import server-side retry configuration
+        const { getUploadRetryConfig } = await import('$lib/config/uploadConfig');
+        const config = getUploadRetryConfig();
+
         // Add a timeout to prevent hanging requests
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Upload timeout after 60 seconds')), 60000);
+            setTimeout(
+                () => reject(new Error(`Upload timeout after ${config.timeoutMs / 1000} seconds`)),
+                config.timeoutMs
+            );
         });
 
         const asset = await Promise.race([uploadPromise, timeoutPromise]);
