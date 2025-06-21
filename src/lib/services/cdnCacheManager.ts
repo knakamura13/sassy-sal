@@ -15,15 +15,11 @@ export class CDNCacheManager {
         this.useCdn = useCdn;
         this.cacheKey = `sanity-image-cache-${categoryId}`;
 
-        // Debug logging to help diagnose the issue
-        console.log(`CDNCacheManager initialized for category ${categoryId} with useCdn: ${useCdn}`);
-
         // If CDN is disabled, clear any existing cached data to prevent stale data issues
         if (!this.useCdn) {
             try {
                 const existingCache = sessionStorage.getItem(this.cacheKey);
                 if (existingCache) {
-                    console.log(`CDN disabled - clearing existing cached data for category ${categoryId}`);
                     sessionStorage.removeItem(this.cacheKey);
                 }
             } catch (error) {
@@ -34,9 +30,7 @@ export class CDNCacheManager {
 
     // Load cached images from session storage
     loadCachedImages(): Image[] {
-        console.log(`loadCachedImages called - cacheInitialized: ${this.cacheInitialized}, useCdn: ${this.useCdn}`);
         if (this.cacheInitialized || !this.useCdn) {
-            console.log(`Returning early - either cache already initialized or CDN disabled`);
             return [];
         }
 
@@ -61,7 +55,6 @@ export class CDNCacheManager {
                         isFromCache: true
                     };
 
-                    console.log(`Added cached image ${id} to display while waiting for CDN`);
                     addedImages.push(imageToAdd);
                 }
 
@@ -123,8 +116,6 @@ export class CDNCacheManager {
             return;
         }
 
-        console.log(`Checking CDN availability for ${imageIds.length} images...`);
-
         // Count to track how many images we're checking
         let pendingChecks = 0;
 
@@ -134,12 +125,6 @@ export class CDNCacheManager {
 
             // Skip if no URLs to check
             if (!cachedImage) return;
-
-            // Log what we're working with for debugging
-            console.log(`Image ${id} checking... 
-            cdnUrl: ${cachedImage.cdnUrl || 'none'}
-            fullSizeUrl: ${cachedImage.fullSizeUrl || 'none'}
-            url: ${cachedImage.url || 'none'}`);
 
             // Build possible URLs to check (in Sanity's format)
             const possibleUrls: string[] = [];
@@ -156,7 +141,6 @@ export class CDNCacheManager {
 
             // Check if we have any valid URLs to test
             if (possibleUrls.length === 0) {
-                console.log(`No valid URLs to check for image ${id}`);
                 return;
             }
 
@@ -170,7 +154,6 @@ export class CDNCacheManager {
                 if (urlIndex >= possibleUrls.length) {
                     // All URLs failed, log and decrement counter
                     pendingChecks--;
-                    console.log(`Image ${id} not yet available from Sanity CDN, will retry`);
                     return;
                 }
 
@@ -185,7 +168,6 @@ export class CDNCacheManager {
                 const img = new Image();
                 img.onload = () => {
                     pendingChecks--;
-                    console.log(`Image ${id} now available from Sanity CDN (URL: ${urlToCheck})`);
 
                     // Dispatch a custom event to notify parent components
                     this.dispatchImageReady(id, urlToCheck);
@@ -210,7 +192,6 @@ export class CDNCacheManager {
 
         // If no more images to check, cleanup
         if (pendingChecks === 0 && Object.keys(this.cachedLocalImages).length === 0) {
-            console.log('All images confirmed available from CDN, cleaning up');
             if (this.checkCdnStatusInterval) {
                 clearInterval(this.checkCdnStatusInterval);
                 this.checkCdnStatusInterval = null;
@@ -247,9 +228,6 @@ export class CDNCacheManager {
             // Clean up images older than 5 minutes
             const uploadTime = cachedImage.uploadedAt || 0;
             if (uploadTime > 0 && now - uploadTime > FIVE_MINUTES_MS) {
-                console.log(
-                    `Cleaning up stale cached image ${id} (uploaded ${Math.round((now - uploadTime) / 1000 / 60)} minutes ago)`
-                );
                 delete this.cachedLocalImages[id];
                 cacheCleaned = true;
             }

@@ -467,8 +467,6 @@ export const deleteCategory = async (
 
         // Delete each referenced image via server endpoint
         if (imagesToDelete.length > 0) {
-            console.log(`Deleting ${imagesToDelete.length} gallery images for category ${id}`);
-
             // Delete images one by one
             for (const imageId of imagesToDelete) {
                 const response = await fetch('/api/sanity', {

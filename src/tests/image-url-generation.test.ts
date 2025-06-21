@@ -21,13 +21,6 @@ describe('Image URL Generation', () => {
             expect(urls.medium, 'Should have medium URL').toBeDefined();
             expect(urls.large, 'Should have large URL').toBeDefined();
             expect(urls.responsive, 'Should have responsive URLs').toBeDefined();
-
-            console.log('✅ getImageUrls working correctly');
-            console.log(`📋 Sample URLs generated:`, {
-                placeholder: urls.placeholder.substring(0, 80) + '...',
-                medium: urls.medium.substring(0, 80) + '...',
-                large: urls.large.substring(0, 80) + '...'
-            });
         } catch (error) {
             console.error('❌ Error in getImageUrls:', error);
             throw error;
@@ -53,9 +46,6 @@ describe('Image URL Generation', () => {
             const url = urlBuilder.url();
             expect(url, 'Generated URL should be a string').toBeDefined();
             expect(typeof url, 'URL should be a string').toBe('string');
-
-            console.log('✅ urlFor function working correctly');
-            console.log(`📋 Generated URL: ${url.substring(0, 100)}...`);
         } catch (error) {
             console.error('❌ Error in urlFor:', error);
             throw error;
@@ -73,8 +63,6 @@ describe('Image URL Generation', () => {
             const nullResult = urlFor(null);
             expect(nullResult, 'urlFor should handle null').toBeDefined();
             expect(nullResult.url(), 'Should return empty string for null').toBe('');
-
-            console.log('✅ urlFor handles null/undefined gracefully');
         } catch (error) {
             console.error('❌ Error handling null/undefined in urlFor:', error);
             throw error;
@@ -102,13 +90,6 @@ describe('Image URL Generation', () => {
             expect(urls.responsive.small, 'Small URL should contain width parameter').toContain('w=');
             expect(urls.responsive.medium, 'Medium URL should contain width parameter').toContain('w=');
             expect(urls.responsive.large, 'Large URL should contain width parameter').toContain('w=');
-
-            console.log('✅ Responsive URLs generated correctly');
-            console.log(`📋 Responsive URLs:`, {
-                small: urls.responsive.small.substring(0, 60) + '...',
-                medium: urls.responsive.medium.substring(0, 60) + '...',
-                large: urls.responsive.large.substring(0, 60) + '...'
-            });
         } catch (error) {
             console.error('❌ Error generating responsive URLs:', error);
             throw error;

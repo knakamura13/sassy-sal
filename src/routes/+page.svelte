@@ -259,8 +259,6 @@
 
                         // Only update if the order has changed
                         if (originalOrder !== newOrder) {
-                            console.log();
-
                             try {
                                 // Create a promise for this update
                                 const updatePromise = updateCategory(String(serverCategory.id), {
@@ -268,7 +266,6 @@
                                     order: newOrder
                                 })
                                     .then((result) => {
-                                        console.log();
                                         return result;
                                     })
                                     .catch(() => {
@@ -280,8 +277,6 @@
                             } catch (error) {
                                 console.error(error);
                             }
-                        } else {
-                            console.log();
                         }
                     } else {
                     }
@@ -483,7 +478,6 @@
 
         try {
             const newCategory = event.detail;
-            console.log('Adding new category:', newCategory);
 
             if (!$adminMode) {
                 isAddingCategory = false;
@@ -510,18 +504,14 @@
                 }
             };
 
-            console.log('Created temporary category with ID:', tempId);
-
             // Add temporary category to the UI immediately
             categories = [...categories, tempCategory];
             updateCounter++; // Force re-render
 
             try {
                 // Now save to server
-                console.log('Saving category to Sanity...');
                 const response = await addCategory(newCategory);
                 const savedCategory = (response as any)?.data ? (response as any).data : response;
-                console.log('Category saved to Sanity:', savedCategory);
 
                 // Wait for the save to complete
                 await new Promise((resolve) => setTimeout(resolve, 500));
@@ -529,7 +519,6 @@
                 // After successful save, replace the temporary category with the real one
                 categories = categories.map((cat) => {
                     if (cat.id === tempId) {
-                        console.log(`Replacing temp category ${tempId} with saved category ${savedCategory.id}`);
                         return savedCategory;
                     }
                     return cat;

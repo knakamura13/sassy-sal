@@ -16,8 +16,6 @@
 
     // Check if CDN is enabled via environment variable
     const useCdn = import.meta.env.VITE_USE_CDN === 'true';
-    console.log(`Gallery.svelte - VITE_USE_CDN raw value:`, import.meta.env.VITE_USE_CDN);
-    console.log(`Gallery.svelte - useCdn computed value:`, useCdn);
 
     // Props for category support
     export let images: Image[] = [];
@@ -139,9 +137,7 @@
             localImages = [...localImages];
 
             // Force image re-rendering in children
-            tick().then(() => {
-                console.log(`UI updated for image ${imageId}`);
-            });
+            tick().then(() => {});
         }
     }
 
