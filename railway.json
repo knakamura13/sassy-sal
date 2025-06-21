@@ -3,9 +3,6 @@
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 10
     },
-    "build": {
-        "builder": "NIXPACKS"
-    },
     "environments": {
         "production": {
             "variables": {
