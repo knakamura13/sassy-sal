@@ -1,0 +1,18 @@
+{
+    "deploy": {
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    },
+    "build": {
+        "builder": "NIXPACKS"
+    },
+    "environments": {
+        "production": {
+            "variables": {
+                "MAX_REQUEST_SIZE": "50mb",
+                "REQUEST_BODY_SIZE_LIMIT": "52428800",
+                "BODY_SIZE_LIMIT": "50mb"
+            }
+        }
+    }
+}
