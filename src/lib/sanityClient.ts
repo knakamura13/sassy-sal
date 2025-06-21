@@ -5,7 +5,7 @@ import imageUrlBuilder from '@sanity/image-url';
 const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
 const dataset = import.meta.env.VITE_SANITY_DATASET;
 const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
-const useCdn = Boolean(import.meta.env.VITE_USE_CDN) || false;
+const useCdn = import.meta.env.VITE_USE_CDN === 'true';
 
 // Create Sanity client (public, read-only)
 export const publicClient = createClient({

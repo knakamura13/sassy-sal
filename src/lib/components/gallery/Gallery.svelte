@@ -15,7 +15,9 @@
     import UploadProgressDialog from './UploadProgressDialog.svelte';
 
     // Check if CDN is enabled via environment variable
-    const useCdn = Boolean(import.meta.env.VITE_USE_CDN) || false;
+    const useCdn = import.meta.env.VITE_USE_CDN === 'true';
+    console.log(`Gallery.svelte - VITE_USE_CDN raw value:`, import.meta.env.VITE_USE_CDN);
+    console.log(`Gallery.svelte - useCdn computed value:`, useCdn);
 
     // Props for category support
     export let images: Image[] = [];

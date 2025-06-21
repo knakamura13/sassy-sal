@@ -8,7 +8,7 @@ import { getImageUrls } from './imageConfig';
 const SANITY_PROJECT_ID = import.meta.env.VITE_SANITY_PROJECT_ID;
 const SANITY_DATASET = import.meta.env.VITE_SANITY_DATASET || 'production';
 const SANITY_API_VERSION = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
-const useCdn = Boolean(import.meta.env.VITE_USE_CDN) || false;
+const useCdn = import.meta.env.VITE_USE_CDN === 'true';
 
 // Determine if we're in browser or server environment
 const isBrowser = typeof window !== 'undefined';

@@ -14,11 +14,29 @@ export class CDNCacheManager {
         this.categoryId = categoryId;
         this.useCdn = useCdn;
         this.cacheKey = `sanity-image-cache-${categoryId}`;
+
+        // Debug logging to help diagnose the issue
+        console.log(`CDNCacheManager initialized for category ${categoryId} with useCdn: ${useCdn}`);
+
+        // If CDN is disabled, clear any existing cached data to prevent stale data issues
+        if (!this.useCdn) {
+            try {
+                const existingCache = sessionStorage.getItem(this.cacheKey);
+                if (existingCache) {
+                    console.log(`CDN disabled - clearing existing cached data for category ${categoryId}`);
+                    sessionStorage.removeItem(this.cacheKey);
+                }
+            } catch (error) {
+                console.error('Error clearing cached data:', error);
+            }
+        }
     }
 
     // Load cached images from session storage
     loadCachedImages(): Image[] {
+        console.log(`loadCachedImages called - cacheInitialized: ${this.cacheInitialized}, useCdn: ${this.useCdn}`);
         if (this.cacheInitialized || !this.useCdn) {
+            console.log(`Returning early - either cache already initialized or CDN disabled`);
             return [];
         }
 
