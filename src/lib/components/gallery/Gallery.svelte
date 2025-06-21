@@ -14,6 +14,9 @@
     import ImagePreview from './ImagePreview.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';
 
+    // Check if CDN is enabled via environment variable
+    const useCdn = Boolean(import.meta.env.VITE_USE_CDN) || false;
+
     // Props for category support
     export let images: Image[] = [];
     export let categoryId: string = '';
@@ -56,7 +59,7 @@
 
     // Function to load cached images from session storage
     function loadCachedImages() {
-        if (cacheInitialized) return;
+        if (cacheInitialized || !useCdn) return;
 
         try {
             const cacheData = sessionStorage.getItem(IMAGE_CACHE_KEY);
@@ -106,18 +109,20 @@
 
     // Clear image cache for a specific image once it's available from Sanity CDN
     function clearCachedImage(imageId: string) {
-        if (cachedLocalImages[imageId]) {
-            delete cachedLocalImages[imageId];
-            try {
-                sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cachedLocalImages));
-            } catch (error) {
-                console.error('Error updating image cache in session storage:', error);
-            }
+        if (!useCdn || !cachedLocalImages[imageId]) return;
+
+        delete cachedLocalImages[imageId];
+        try {
+            sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cachedLocalImages));
+        } catch (error) {
+            console.error('Error updating image cache in session storage:', error);
         }
     }
 
     // Check if the Sanity CDN versions are ready by testing image URLs
     function startCdnStatusCheck() {
+        if (!useCdn) return;
+
         // Clear any existing interval
         if (checkCdnStatusInterval) {
             clearInterval(checkCdnStatusInterval);
@@ -132,6 +137,8 @@
 
     // Function to check CDN availability for cached images
     function checkCdnAvailability() {
+        if (!useCdn) return;
+
         const imageIds = Object.keys(cachedLocalImages);
         if (imageIds.length === 0) {
             // No cached images to check, clear the interval
@@ -258,19 +265,21 @@
 
     // Initialize with provided category images
     onMount(() => {
-        // Load any cached images
-        loadCachedImages();
+        // Load any cached images (only if CDN is enabled)
+        if (useCdn) {
+            loadCachedImages();
 
-        // Start checking for CDN status if we have cached images
-        if (Object.keys(cachedLocalImages).length > 0) {
-            // Immediately check if images are already available
-            checkCdnAvailability();
+            // Start checking for CDN status if we have cached images
+            if (Object.keys(cachedLocalImages).length > 0) {
+                // Immediately check if images are already available
+                checkCdnAvailability();
 
-            // Then keep checking every 5 seconds
-            checkCdnStatusInterval = setInterval(checkCdnAvailability, 5000);
+                // Then keep checking every 5 seconds
+                checkCdnStatusInterval = setInterval(checkCdnAvailability, 5000);
 
-            // Add a forced cleanup of very old cached images (more than 5 minutes old)
-            cleanupStaleCache();
+                // Add a forced cleanup of very old cached images (more than 5 minutes old)
+                cleanupStaleCache();
+            }
         }
 
         // Initialize with order values and create deep copies
@@ -480,7 +489,7 @@
                         // Add the image in Sanity
                         const uploadResult = await addImage(imageData);
 
-                        // Create a copy of this image that we can cache
+                        // Create a copy of this image that we can cache (only if CDN is enabled)
                         if (uploadResult?.data?.id) {
                             const uploadedImage = {
                                 ...image,
@@ -489,15 +498,17 @@
                                 url: image.url,
                                 thumbnailUrl: image.thumbnailUrl || image.url,
                                 fullSizeUrl: image.fullSizeUrl || image.url,
-                                // Store the CDN URLs for checking availability
-                                cdnUrl: uploadResult.data.attributes?.image?.data?.attributes?.url,
+                                // Store the CDN URLs for checking availability (only if CDN is enabled)
+                                ...(useCdn && { cdnUrl: uploadResult.data.attributes?.image?.data?.attributes?.url }),
                                 // Store additional metadata
                                 uploadedAt: new Date().getTime(),
                                 categoryId
                             };
 
-                            // Add to the list of uploaded images for session storage
-                            newlyUploadedImages.push(uploadedImage);
+                            // Add to the list of uploaded images for session storage (only if CDN is enabled)
+                            if (useCdn) {
+                                newlyUploadedImages.push(uploadedImage);
+                            }
                         }
 
                         // Update upload statistics
@@ -535,20 +546,22 @@
                             const fileSizeFormatted = formatFileSize(fileSize);
                             uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length} with new file (${fileSizeFormatted})...`;
 
-                            // Store the update in cache
-                            const updatedImage = {
-                                ...image,
-                                // Keep local URLs for immediate display until CDN is ready
-                                url: URL.createObjectURL(image.file),
-                                thumbnailUrl: URL.createObjectURL(image.file),
-                                fullSizeUrl: URL.createObjectURL(image.file),
-                                // Store additional metadata
-                                updatedAt: new Date().getTime(),
-                                categoryId
-                            };
+                            // Store the update in cache (only if CDN is enabled)
+                            if (useCdn) {
+                                const updatedImage = {
+                                    ...image,
+                                    // Keep local URLs for immediate display until CDN is ready
+                                    url: URL.createObjectURL(image.file),
+                                    thumbnailUrl: URL.createObjectURL(image.file),
+                                    fullSizeUrl: URL.createObjectURL(image.file),
+                                    // Store additional metadata
+                                    updatedAt: new Date().getTime(),
+                                    categoryId
+                                };
 
-                            // Add to cache
-                            newlyUploadedImages.push(updatedImage);
+                                // Add to cache
+                                newlyUploadedImages.push(updatedImage);
+                            }
                         } else {
                             uploadMessage = `Updating image ${i + 1} of ${imagesToUpdate.length}...`;
                         }
@@ -572,8 +585,8 @@
                 }
             }
 
-            // Store newly uploaded images in cache
-            if (newlyUploadedImages.length > 0) {
+            // Store newly uploaded images in cache (only if CDN is enabled)
+            if (useCdn && newlyUploadedImages.length > 0) {
                 // Add the new images to our cache
                 newlyUploadedImages.forEach((img) => {
                     cachedLocalImages[img.id] = img;
@@ -623,8 +636,8 @@
 
                 // Only refresh if all operations completed successfully
                 if (allProcessingComplete) {
-                    // If we have cached images, start CDN status check after refresh
-                    if (newlyUploadedImages.length > 0) {
+                    // If we have cached images, start CDN status check after refresh (only if CDN is enabled)
+                    if (useCdn && newlyUploadedImages.length > 0) {
                         showToast.info(
                             'Images uploaded. You will see them immediately after refresh while Sanity processes them.'
                         );
@@ -898,6 +911,8 @@
 
     // Function to clean up stale cached images that have been in the cache too long
     function cleanupStaleCache() {
+        if (!useCdn) return;
+
         const now = Date.now();
         const FIVE_MINUTES_MS = 5 * 60 * 1000;
         let cacheCleaned = false;
