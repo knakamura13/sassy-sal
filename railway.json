@@ -1,7 +1,13 @@
 {
+    "$schema": "https://railway.com/railway.schema.json",
     "deploy": {
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 10
+    },
+    "build": {
+        "builder": "RAILPACK",
+        "buildCommand": "yarn build",
+        "watchPaths": ["/src/**", "/static/**", "/package.json", "/yarn.lock"]
     },
     "environments": {
         "production": {
@@ -11,5 +17,19 @@
                 "BODY_SIZE_LIMIT": "50mb"
             }
         }
+    },
+    "regions": ["us-west1"],
+    "resources": {
+        "memoryGB": 8
+    },
+    "healthcheck": {
+        "path": "/",
+        "timeoutSeconds": 300
+    },
+    "services": {
+        "enabled": true
+    },
+    "cron": {
+        "enabled": false
     }
 }
