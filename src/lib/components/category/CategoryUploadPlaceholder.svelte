@@ -2,7 +2,7 @@
     import { createEventDispatcher } from 'svelte';
 
     import { AspectRatio } from '$lib/components/ui/aspect-ratio';
-    import NewCategoryDialog from './NewCategoryDialog.svelte';
+    import CategoryDialog from './CategoryDialog.svelte';
 
     // Define the data structure that will be sent to Sanity
     interface CategoryData {
@@ -33,6 +33,6 @@
             <span class="font-medium text-gray-500">Add Category</span>
         </button>
 
-        <NewCategoryDialog bind:open on:addCategory={handleAddCategory} />
+        <CategoryDialog bind:open mode="create" on:addCategory={handleAddCategory} />
     </div>
 </AspectRatio>

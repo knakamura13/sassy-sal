@@ -2,7 +2,7 @@
     import { createEventDispatcher, onMount } from 'svelte';
 
     import { showToast } from '$lib/utils';
-    import EditCategoryDialog from './EditCategoryDialog.svelte';
+    import CategoryDialog from './CategoryDialog.svelte';
 
     // Define Sanity Category type locally
     interface SanityCategory {
@@ -307,4 +307,4 @@
 </a>
 
 <!-- Edit Dialog -->
-<EditCategoryDialog bind:open={editDialogOpen} {category} {currentDisplayedUrl} on:update={handleUpdate} />
+<CategoryDialog bind:open={editDialogOpen} mode="edit" {category} {currentDisplayedUrl} on:update={handleUpdate} />
