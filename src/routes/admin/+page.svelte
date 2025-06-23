@@ -47,6 +47,7 @@
                     class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter password"
                     required
+                    autocomplete="current-password"
                 />
                 {#if errorMessage}
                     <p class="mt-1 text-sm text-red-500">{errorMessage}</p>

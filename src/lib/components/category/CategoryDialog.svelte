@@ -330,6 +330,7 @@
                 class="font-garamond"
                 required
                 disabled={isUploading}
+                autocomplete="off"
             />
         </div>
 
@@ -360,6 +361,7 @@
                 placeholder="Set password (leave empty for public access)"
                 class="font-garamond"
                 disabled={isUploading}
+                autocomplete="new-password"
             />
             <p class="text-xs text-gray-500">
                 Leave empty to make the category publicly accessible, or set a password to protect it.

@@ -113,6 +113,7 @@
                         class="input w-full bg-transparent"
                         bind:value={formData.name}
                         required
+                        autocomplete="name"
                     />
                 </div>
 
@@ -123,6 +124,7 @@
                         class="input w-full bg-transparent"
                         bind:value={formData.email}
                         required
+                        autocomplete="email"
                     />
                 </div>
 
@@ -132,6 +134,7 @@
                         placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
                         class="input w-full bg-transparent"
                         bind:value={formData.phone}
+                        autocomplete="tel"
                     />
                 </div>
 
@@ -142,6 +145,7 @@
                             'How did you hear about me?'}
                         class="input w-full bg-transparent"
                         bind:value={formData.referral}
+                        autocomplete="off"
                     />
                 </div>
             </div>

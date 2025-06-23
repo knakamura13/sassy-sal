@@ -78,51 +78,64 @@ export class ImageOperationsService {
             if (imagesToRemove.length > 0) {
                 progressCallbacks?.onProgress(uploadStep, uploadTotal, 0, 'Deleting images...', 'Deleting');
 
-                for (const image of imagesToRemove) {
-                    if (this.isCanceled) break;
+                const deletionPromises = imagesToRemove.map(async (image) => {
+                    if (this.isCanceled) return { status: 'skipped', image };
 
                     try {
                         await deleteImage(image.id);
-
-                        // Remove from cache if present
                         cacheManager?.clearCachedImage(image.id);
-
-                        uploadStep++;
-                        const percentage = Math.round((uploadStep / uploadTotal) * 100);
-                        progressCallbacks?.onProgress(
-                            uploadStep,
-                            uploadTotal,
-                            percentage,
-                            `Deleting image ${uploadStep} of ${imagesToRemove.length}...`,
-                            'Deleting'
-                        );
+                        return { status: 'fulfilled', image };
                     } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                         console.error('Error deleting image:', error);
+                        return { status: 'rejected', image, reason: errorMessage };
+                    }
+                });
+
+                const results = await Promise.allSettled(deletionPromises);
+
+                results.forEach((result) => {
+                    if (this.isCanceled) return;
+
+                    if (
+                        result.status === 'rejected' ||
+                        (result.status === 'fulfilled' && result.value.status === 'rejected')
+                    ) {
+                        const image = result.status === 'fulfilled' ? result.value.image : (result as any).image;
+                        const reason = result.status === 'fulfilled' ? result.value.reason : result.reason;
                         this.failedUploads.push({
                             image,
-                            error: `Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`
+                            error: `Failed to delete: ${reason}`
                         });
-                        uploadStep++;
-                        // Continue with other deletions even if one fails
                     }
-                }
+                    uploadStep++;
+                    const percentage = Math.round((uploadStep / uploadTotal) * 100);
+                    progressCallbacks?.onProgress(
+                        uploadStep,
+                        uploadTotal,
+                        percentage,
+                        `Processed image deletions...`,
+                        'Deleting'
+                    );
+                });
             }
 
             // Process additions
             if (imagesToAdd.length > 0 && !this.isCanceled) {
-                progressCallbacks?.onProgress(uploadStep, uploadTotal, 0, 'Uploading new images...', 'Uploading');
+                progressCallbacks?.onProgress(
+                    uploadStep,
+                    uploadTotal,
+                    Math.round((uploadStep / uploadTotal) * 100),
+                    'Uploading new images...',
+                    'Uploading'
+                );
 
-                for (let i = 0; i < imagesToAdd.length; i++) {
-                    if (this.isCanceled) break;
-
-                    const image = imagesToAdd[i];
+                const uploadPromises = imagesToAdd.map(async (image, i) => {
                     if (!image.file) {
-                        uploadStep++;
-                        continue;
+                        return { status: 'skipped', image };
                     }
 
                     try {
-                        // Prepare image data for API
                         const imageData = {
                             order: Number(typeof image.order === 'number' ? image.order : image.order || 0),
                             image: image.file,
@@ -132,40 +145,18 @@ export class ImageOperationsService {
                         const fileSize = image.file.size;
                         const fileSizeFormatted = this.formatFileSize(fileSize);
 
+                        // This progress update is for initiating the upload
                         progressCallbacks?.onProgress(
-                            uploadStep,
+                            uploadStep + i,
                             uploadTotal,
-                            Math.round((uploadStep / uploadTotal) * 100),
-                            `Uploading image ${i + 1} of ${imagesToAdd.length} (${fileSizeFormatted})...`,
+                            Math.round(((uploadStep + i) / uploadTotal) * 100),
+                            `Starting upload for image ${i + 1} of ${imagesToAdd.length} (${fileSizeFormatted})...`,
                             'Uploading'
                         );
 
-                        // Add the image in Sanity
                         const uploadResult = await addImage(imageData);
 
-                        // Create a copy of this image that we can cache (only if CDN is enabled)
-                        if (uploadResult?.data?.id) {
-                            const uploadedImage = {
-                                ...image,
-                                id: uploadResult.data.id,
-                                // Keep local URLs for immediate display until CDN is ready
-                                url: image.url,
-                                thumbnailUrl: image.thumbnailUrl || image.url,
-                                fullSizeUrl: image.fullSizeUrl || image.url,
-                                // Store the CDN URLs for checking availability (only if CDN is enabled)
-                                ...(useCdn && { cdnUrl: uploadResult.data.attributes?.image?.data?.attributes?.url }),
-                                // Store additional metadata
-                                uploadedAt: new Date().getTime(),
-                                categoryId
-                            };
-
-                            // Add to the list of uploaded images for session storage (only if CDN is enabled)
-                            if (useCdn) {
-                                newlyUploadedImages.push(uploadedImage);
-                            }
-                        }
-
-                        // Update upload statistics
+                        // Update stats upon successful upload
                         this.uploadedFileSizeBytes += fileSize;
                         this.updateUploadSpeed();
                         progressCallbacks?.onFileProgress(
@@ -174,81 +165,110 @@ export class ImageOperationsService {
                             this.getUploadSpeed()
                         );
 
-                        uploadStep++;
+                        if (uploadResult?.data?.id) {
+                            const uploadedImage = {
+                                ...image,
+                                id: uploadResult.data.id,
+                                url: image.url,
+                                thumbnailUrl: image.thumbnailUrl || image.url,
+                                fullSizeUrl: image.fullSizeUrl || image.url,
+                                ...(useCdn && {
+                                    cdnUrl: uploadResult.data.attributes?.image?.data?.attributes?.url
+                                }),
+                                uploadedAt: new Date().getTime(),
+                                categoryId
+                            };
+                            if (useCdn) {
+                                newlyUploadedImages.push(uploadedImage);
+                            }
+                        }
+
+                        return { status: 'fulfilled', image };
                     } catch (err) {
                         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
                         console.error('Error adding image:', err);
+                        return { status: 'rejected', image, reason: errorMessage };
+                    }
+                });
 
-                        // Track this as a failed upload
+                const results = await Promise.allSettled(uploadPromises);
+
+                results.forEach((result) => {
+                    if (
+                        result.status === 'rejected' ||
+                        (result.status === 'fulfilled' && result.value.status === 'rejected')
+                    ) {
+                        const image = result.status === 'fulfilled' ? result.value.image : (result as any).image;
+                        const reason = result.status === 'fulfilled' ? result.value.reason : result.reason;
                         this.failedUploads.push({
                             image,
-                            error: `Failed to upload: ${errorMessage}`
+                            error: `Failed to upload: ${reason}`
                         });
-
-                        uploadStep++;
-                        // Continue with other uploads even if one fails
                     }
-                }
+                    uploadStep++;
+                    const percentage = Math.round((uploadStep / uploadTotal) * 100);
+                    progressCallbacks?.onProgress(
+                        uploadStep,
+                        uploadTotal,
+                        percentage,
+                        `Processed image ${uploadStep} of ${uploadTotal}...`,
+                        'Uploading'
+                    );
+                });
             }
 
             // Process updates
             if (imagesToUpdate.length > 0 && !this.isCanceled) {
-                progressCallbacks?.onProgress(uploadStep, uploadTotal, 0, 'Updating images...', 'Updating');
+                progressCallbacks?.onProgress(
+                    uploadStep,
+                    uploadTotal,
+                    Math.round((uploadStep / uploadTotal) * 100),
+                    'Updating images...',
+                    'Updating'
+                );
 
-                for (let i = 0; i < imagesToUpdate.length; i++) {
-                    if (this.isCanceled) break;
-
-                    const image = imagesToUpdate[i];
+                const updatePromises = imagesToUpdate.map(async (image, i) => {
                     try {
-                        // Prepare update data
                         const updateData: any = {
                             order: Number(typeof image.order === 'number' ? image.order : image.order || 0)
                         };
 
-                        // Include file if present
                         if (image.file) {
                             updateData.image = image.file;
                             const fileSize = image.file.size;
                             const fileSizeFormatted = this.formatFileSize(fileSize);
 
                             progressCallbacks?.onProgress(
-                                uploadStep,
+                                uploadStep + i,
                                 uploadTotal,
-                                Math.round((uploadStep / uploadTotal) * 100),
+                                Math.round(((uploadStep + i) / uploadTotal) * 100),
                                 `Updating image ${i + 1} of ${imagesToUpdate.length} with new file (${fileSizeFormatted})...`,
                                 'Updating'
                             );
 
-                            // Store the update in cache (only if CDN is enabled)
                             if (useCdn) {
                                 const updatedImage = {
                                     ...image,
-                                    // Keep local URLs for immediate display until CDN is ready
                                     url: URL.createObjectURL(image.file),
                                     thumbnailUrl: URL.createObjectURL(image.file),
                                     fullSizeUrl: URL.createObjectURL(image.file),
-                                    // Store additional metadata
                                     updatedAt: new Date().getTime(),
                                     categoryId
                                 };
-
-                                // Add to cache
                                 newlyUploadedImages.push(updatedImage);
                             }
                         } else {
                             progressCallbacks?.onProgress(
-                                uploadStep,
+                                uploadStep + i,
                                 uploadTotal,
-                                Math.round((uploadStep / uploadTotal) * 100),
-                                `Updating image ${i + 1} of ${imagesToUpdate.length}...`,
+                                Math.round(((uploadStep + i) / uploadTotal) * 100),
+                                `Updating image meta ${i + 1} of ${imagesToUpdate.length}...`,
                                 'Updating'
                             );
                         }
 
-                        // Update the image
                         await updateImage(image.id, updateData);
 
-                        // Update upload statistics if we uploaded a file
                         if (image.file) {
                             this.uploadedFileSizeBytes += image.file.size;
                             this.updateUploadSpeed();
@@ -259,21 +279,38 @@ export class ImageOperationsService {
                             );
                         }
 
-                        uploadStep++;
+                        return { status: 'fulfilled', image };
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                         console.error('Error updating image:', error);
+                        return { status: 'rejected', image, reason: errorMessage };
+                    }
+                });
 
-                        // Track this as a failed upload
+                const results = await Promise.allSettled(updatePromises);
+
+                results.forEach((result) => {
+                    if (
+                        result.status === 'rejected' ||
+                        (result.status === 'fulfilled' && result.value.status === 'rejected')
+                    ) {
+                        const image = result.status === 'fulfilled' ? result.value.image : (result as any).image;
+                        const reason = result.status === 'fulfilled' ? result.value.reason : result.reason;
                         this.failedUploads.push({
                             image,
-                            error: `Failed to update: ${errorMessage}`
+                            error: `Failed to update: ${reason}`
                         });
-
-                        uploadStep++;
-                        // Continue with other updates even if one fails
                     }
-                }
+                    uploadStep++;
+                    const percentage = Math.round((uploadStep / uploadTotal) * 100);
+                    progressCallbacks?.onProgress(
+                        uploadStep,
+                        uploadTotal,
+                        percentage,
+                        `Processed image update ${uploadStep} of ${uploadTotal}...`,
+                        'Updating'
+                    );
+                });
             }
 
             // Store newly uploaded images in cache (only if CDN is enabled)

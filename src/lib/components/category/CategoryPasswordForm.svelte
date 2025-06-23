@@ -57,6 +57,7 @@
                     placeholder="Enter password"
                     disabled={loading}
                     class="w-full"
+                    autocomplete="current-password"
                 />
             </div>
 

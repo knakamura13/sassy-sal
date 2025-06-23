@@ -74,6 +74,7 @@
                     required
                     class="mb-2 w-full rounded-md border bg-transparent p-2 focus:outline-none"
                     disabled={loading}
+                    autocomplete="current-password"
                 />
                 {#if errorMessage}
                     <p class="mb-2 text-sm text-red-500">{errorMessage}</p>
