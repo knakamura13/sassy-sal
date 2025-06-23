@@ -6,7 +6,7 @@
     },
     "build": {
         "builder": "RAILPACK",
-        "buildCommand": "yarn build",
+        "buildCommand": "yarn install --immutable && yarn build",
         "watchPaths": ["/src/**", "/static/**", "/package.json", "/yarn.lock"]
     },
     "environments": {
