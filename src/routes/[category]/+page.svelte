@@ -393,7 +393,7 @@
                 {/if}
             </div>
 
-            {#if requiresPassword}
+            {#if requiresPassword && !$adminMode}
                 <!-- Password form -->
                 <CategoryPasswordForm
                     categoryName={category.attributes.name}
