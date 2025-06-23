@@ -1,9 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { getCategories } from '$lib/services/sanity/categoryService';
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async () => {
     const categories = await getCategories();
-    const adminSession = cookies.get('admin_session');
-    const admin = adminSession === 'authenticated';
-    return { categories, admin };
+    return { categories };
 };

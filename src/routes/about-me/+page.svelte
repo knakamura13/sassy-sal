@@ -4,11 +4,24 @@
 
     import { PortableText } from '@portabletext/svelte';
     import { urlFor } from '$lib/utils/image';
+    import { adminMode } from '$lib/stores/adminStore';
+
+    // Set admin mode based on server-side authentication from layout
+    $: if (data.admin) {
+        adminMode.set(true);
+    } else {
+        adminMode.set(false);
+    }
 
     // Form state
     let formSubmitting = false;
     let formSuccess = false;
     let formError = null;
+
+    // Title editing state
+    let isEditingTitle = false;
+    let editedTitle = '';
+    let titleUpdateLoading = false;
 
     // Form data
     let formData = {
@@ -18,6 +31,60 @@
         referral: '',
         message: ''
     };
+
+    // Handle title edit start
+    function startEditingTitle() {
+        isEditingTitle = true;
+        editedTitle = aboutMe.title;
+    }
+
+    // Handle title edit cancel
+    function cancelEditingTitle() {
+        isEditingTitle = false;
+        editedTitle = '';
+    }
+
+    // Handle title update
+    async function updateTitle() {
+        if (!editedTitle.trim() || editedTitle === aboutMe.title) {
+            cancelEditingTitle();
+            return;
+        }
+
+        titleUpdateLoading = true;
+
+        try {
+            const response = await fetch('/api/sanity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'updateAboutMe',
+                    data: {
+                        id: aboutMe._id,
+                        updates: {
+                            title: editedTitle.trim()
+                        }
+                    }
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                // Update the local aboutMe object
+                aboutMe.title = editedTitle.trim();
+                isEditingTitle = false;
+                editedTitle = '';
+            } else {
+                console.error('Failed to update title');
+            }
+        } catch (error) {
+            console.error('Error updating title:', error);
+        } finally {
+            titleUpdateLoading = false;
+        }
+    }
 
     // Handle form submission
     async function handleSubmit() {
@@ -70,7 +137,65 @@
 </svelte:head>
 
 <div class="container mx-auto flex max-w-screen-lg flex-col gap-12 px-4 py-16 pb-32">
-    <h1 class="font-didot mb-4 text-center text-4xl">{aboutMe.title}</h1>
+    <div class="relative flex items-center justify-center gap-3">
+        {#if isEditingTitle}
+            <input
+                type="text"
+                bind:value={editedTitle}
+                class="title-input font-didot border-b-2 border-gray-300 bg-transparent text-center text-4xl focus:border-blue-500 focus:outline-none"
+                on:keydown={(e) => {
+                    if (e.key === 'Enter') {
+                        updateTitle();
+                    } else if (e.key === 'Escape') {
+                        cancelEditingTitle();
+                    }
+                }}
+                on:blur={updateTitle}
+                autofocus
+            />
+            <button
+                type="button"
+                on:click={updateTitle}
+                disabled={titleUpdateLoading}
+                class="admin-icon checkmark-icon"
+                aria-label="Save title"
+            >
+                {#if titleUpdateLoading}
+                    <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                    </svg>
+                {:else}
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                {/if}
+            </button>
+        {:else}
+            <h1 class="font-didot mb-4 text-center text-4xl">{aboutMe.title}</h1>
+            {#if $adminMode}
+                <button
+                    type="button"
+                    on:click={startEditingTitle}
+                    class="admin-icon pencil-icon"
+                    aria-label="Edit title"
+                >
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                    </svg>
+                </button>
+            {/if}
+        {/if}
+    </div>
 
     <div class="flex flex-col items-center gap-8 md:flex-row md:items-start">
         {#if aboutMe.profileImage}
@@ -250,6 +375,64 @@
             background-color: rgba(220, 53, 69, 0.1);
             border: 1px solid rgba(220, 53, 69, 0.3);
             color: #dc3545;
+        }
+    }
+
+    .admin-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: absolute;
+        top: 0;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        &.pencil-icon {
+            right: -3rem;
+        }
+
+        &.checkmark-icon {
+            right: -3rem;
+            background-color: rgba(34, 197, 94, 0.8);
+
+            &:hover {
+                background-color: rgba(34, 197, 94, 1);
+            }
+        }
+    }
+
+    .title-input {
+        min-width: 300px;
+        max-width: 80vw;
+    }
+
+    @media (max-width: 768px) {
+        .admin-icon {
+            &.pencil-icon,
+            &.checkmark-icon {
+                right: -2rem;
+                padding: 0.375rem;
+            }
+        }
+
+        .title-input {
+            font-size: 2rem;
+            min-width: 250px;
         }
     }
 </style>

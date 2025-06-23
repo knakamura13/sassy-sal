@@ -1,9 +1,5 @@
 import { json } from '@sveltejs/kit';
-import {
-    createSanityDocument,
-    updateSanityDocument,
-    deleteSanityDocument
-} from '$lib/server/sanityServerClient';
+import { createSanityDocument, updateSanityDocument, deleteSanityDocument } from '$lib/server/sanityServerClient';
 
 export async function POST({ request }) {
     try {
@@ -40,6 +36,11 @@ export async function POST({ request }) {
                 await deleteSanityDocument(data.imageId);
                 return json({ success: true });
 
+            case 'updateAboutMe':
+                const { id: aboutMeId, updates: aboutMeUpdates } = data;
+                const updatedAboutMe = await updateSanityDocument(aboutMeId, aboutMeUpdates);
+                return json({ success: true, data: updatedAboutMe });
+
             default:
                 return json({ error: 'Invalid operation' }, { status: 400 });
         }
@@ -47,4 +48,4 @@ export async function POST({ request }) {
         console.error('Error in Sanity API endpoint:', error);
         return json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
     }
-} 
+}
