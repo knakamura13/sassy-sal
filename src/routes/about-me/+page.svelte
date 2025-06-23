@@ -18,10 +18,25 @@
     let formSuccess = false;
     let formError = null;
 
-    // Title editing state
-    let isEditingTitle = false;
-    let editedTitle = '';
-    let titleUpdateLoading = false;
+    // Generic editing state
+    let isEditing = {
+        title: false,
+        formHeader: false,
+        footerTagline: false,
+        email: false
+    };
+    let editedValues = {
+        title: '',
+        formHeader: '',
+        footerTagline: '',
+        email: ''
+    };
+    let updateLoading = {
+        title: false,
+        formHeader: false,
+        footerTagline: false,
+        email: false
+    };
 
     // Form data
     let formData = {
@@ -34,24 +49,24 @@
 
     // Handle title edit start
     function startEditingTitle() {
-        isEditingTitle = true;
-        editedTitle = aboutMe.title;
+        isEditing.title = true;
+        editedValues.title = aboutMe.title;
     }
 
     // Handle title edit cancel
     function cancelEditingTitle() {
-        isEditingTitle = false;
-        editedTitle = '';
+        isEditing.title = false;
+        editedValues.title = '';
     }
 
     // Handle title update
     async function updateTitle() {
-        if (!editedTitle.trim() || editedTitle === aboutMe.title) {
+        if (!editedValues.title.trim() || editedValues.title === aboutMe.title) {
             cancelEditingTitle();
             return;
         }
 
-        titleUpdateLoading = true;
+        updateLoading.title = true;
 
         try {
             const response = await fetch('/api/sanity', {
@@ -64,7 +79,7 @@
                     data: {
                         id: aboutMe._id,
                         updates: {
-                            title: editedTitle.trim()
+                            title: editedValues.title.trim()
                         }
                     }
                 })
@@ -73,16 +88,166 @@
             if (response.ok) {
                 const result = await response.json();
                 // Update the local aboutMe object
-                aboutMe.title = editedTitle.trim();
-                isEditingTitle = false;
-                editedTitle = '';
+                aboutMe.title = editedValues.title.trim();
+                isEditing.title = false;
+                editedValues.title = '';
             } else {
                 console.error('Failed to update title');
             }
         } catch (error) {
             console.error('Error updating title:', error);
         } finally {
-            titleUpdateLoading = false;
+            updateLoading.title = false;
+        }
+    }
+
+    // Handle form header editing
+    function startEditingFormHeader() {
+        isEditing.formHeader = true;
+        editedValues.formHeader = aboutMe.contactForm.formHeader || '';
+    }
+
+    function cancelEditingFormHeader() {
+        isEditing.formHeader = false;
+        editedValues.formHeader = '';
+    }
+
+    async function updateFormHeader() {
+        if (editedValues.formHeader === (aboutMe.contactForm.formHeader || '')) {
+            cancelEditingFormHeader();
+            return;
+        }
+
+        updateLoading.formHeader = true;
+
+        try {
+            const response = await fetch('/api/sanity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'updateAboutMe',
+                    data: {
+                        id: aboutMe._id,
+                        updates: {
+                            'contactForm.formHeader': editedValues.formHeader.trim()
+                        }
+                    }
+                })
+            });
+
+            if (response.ok) {
+                aboutMe.contactForm.formHeader = editedValues.formHeader.trim();
+                isEditing.formHeader = false;
+                editedValues.formHeader = '';
+            } else {
+                console.error('Failed to update form header');
+            }
+        } catch (error) {
+            console.error('Error updating form header:', error);
+        } finally {
+            updateLoading.formHeader = false;
+        }
+    }
+
+    // Handle footer tagline editing
+    function startEditingFooterTagline() {
+        isEditing.footerTagline = true;
+        editedValues.footerTagline = aboutMe.footerTagline || '';
+    }
+
+    function cancelEditingFooterTagline() {
+        isEditing.footerTagline = false;
+        editedValues.footerTagline = '';
+    }
+
+    async function updateFooterTagline() {
+        if (editedValues.footerTagline === (aboutMe.footerTagline || '')) {
+            cancelEditingFooterTagline();
+            return;
+        }
+
+        updateLoading.footerTagline = true;
+
+        try {
+            const response = await fetch('/api/sanity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'updateAboutMe',
+                    data: {
+                        id: aboutMe._id,
+                        updates: {
+                            footerTagline: editedValues.footerTagline.trim()
+                        }
+                    }
+                })
+            });
+
+            if (response.ok) {
+                aboutMe.footerTagline = editedValues.footerTagline.trim();
+                isEditing.footerTagline = false;
+                editedValues.footerTagline = '';
+            } else {
+                console.error('Failed to update footer tagline');
+            }
+        } catch (error) {
+            console.error('Error updating footer tagline:', error);
+        } finally {
+            updateLoading.footerTagline = false;
+        }
+    }
+
+    // Handle email editing
+    function startEditingEmail() {
+        isEditing.email = true;
+        editedValues.email = aboutMe.email || '';
+    }
+
+    function cancelEditingEmail() {
+        isEditing.email = false;
+        editedValues.email = '';
+    }
+
+    async function updateEmail() {
+        if (editedValues.email === (aboutMe.email || '')) {
+            cancelEditingEmail();
+            return;
+        }
+
+        updateLoading.email = true;
+
+        try {
+            const response = await fetch('/api/sanity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'updateAboutMe',
+                    data: {
+                        id: aboutMe._id,
+                        updates: {
+                            email: editedValues.email.trim()
+                        }
+                    }
+                })
+            });
+
+            if (response.ok) {
+                aboutMe.email = editedValues.email.trim();
+                isEditing.email = false;
+                editedValues.email = '';
+            } else {
+                console.error('Failed to update email');
+            }
+        } catch (error) {
+            console.error('Error updating email:', error);
+        } finally {
+            updateLoading.email = false;
         }
     }
 
@@ -138,10 +303,10 @@
 
 <div class="container mx-auto flex max-w-screen-lg flex-col gap-12 px-4 py-16 pb-32">
     <div class="relative flex items-center justify-center gap-3">
-        {#if isEditingTitle}
+        {#if isEditing.title}
             <input
                 type="text"
-                bind:value={editedTitle}
+                bind:value={editedValues.title}
                 class="title-input font-didot border-b-2 border-gray-300 bg-transparent text-center text-4xl focus:border-blue-500 focus:outline-none"
                 on:keydown={(e) => {
                     if (e.key === 'Enter') {
@@ -156,11 +321,11 @@
             <button
                 type="button"
                 on:click={updateTitle}
-                disabled={titleUpdateLoading}
+                disabled={updateLoading.title}
                 class="admin-icon checkmark-icon"
                 aria-label="Save title"
             >
-                {#if titleUpdateLoading}
+                {#if updateLoading.title}
                     <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                             stroke-linecap="round"
@@ -213,8 +378,71 @@
         </div>
     </div>
 
-    {#if aboutMe.contactForm.formHeader}
-        <h3 class="text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
+    {#if aboutMe.contactForm.formHeader || $adminMode}
+        <div class="relative flex items-center justify-center gap-3">
+            {#if isEditing.formHeader}
+                <input
+                    type="text"
+                    bind:value={editedValues.formHeader}
+                    class="form-header-input border-b-2 border-gray-300 bg-transparent text-center text-xl font-light focus:border-blue-500 focus:outline-none"
+                    on:keydown={(e) => {
+                        if (e.key === 'Enter') {
+                            updateFormHeader();
+                        } else if (e.key === 'Escape') {
+                            cancelEditingFormHeader();
+                        }
+                    }}
+                    on:blur={updateFormHeader}
+                    placeholder="Contact form header"
+                    autofocus
+                />
+                <button
+                    type="button"
+                    on:click={updateFormHeader}
+                    disabled={updateLoading.formHeader}
+                    class="admin-icon checkmark-icon"
+                    aria-label="Save form header"
+                >
+                    {#if updateLoading.formHeader}
+                        <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                        </svg>
+                    {:else}
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    {/if}
+                </button>
+            {:else}
+                {#if aboutMe.contactForm.formHeader}
+                    <h3 class="text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
+                {:else if $adminMode}
+                    <h3 class="text-center text-xl font-light italic text-gray-400">Add contact form header</h3>
+                {/if}
+                {#if $adminMode}
+                    <button
+                        type="button"
+                        on:click={startEditingFormHeader}
+                        class="admin-icon pencil-icon"
+                        aria-label="Edit form header"
+                    >
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                        </svg>
+                    </button>
+                {/if}
+            {/if}
+        </div>
     {/if}
 
     <!-- Contact Form Section -->
@@ -295,14 +523,150 @@
     {/if}
 
     <div class="text-center">
-        {#if aboutMe.footerTagline}
-            <h4 class="text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
+        {#if aboutMe.footerTagline || $adminMode}
+            <div class="relative mb-4 flex items-center justify-center gap-3">
+                {#if isEditing.footerTagline}
+                    <input
+                        type="text"
+                        bind:value={editedValues.footerTagline}
+                        class="footer-tagline-input border-b-2 border-gray-300 bg-transparent text-center text-lg font-light text-gray-600 focus:border-blue-500 focus:outline-none"
+                        on:keydown={(e) => {
+                            if (e.key === 'Enter') {
+                                updateFooterTagline();
+                            } else if (e.key === 'Escape') {
+                                cancelEditingFooterTagline();
+                            }
+                        }}
+                        on:blur={updateFooterTagline}
+                        placeholder="Footer tagline"
+                        autofocus
+                    />
+                    <button
+                        type="button"
+                        on:click={updateFooterTagline}
+                        disabled={updateLoading.footerTagline}
+                        class="admin-icon checkmark-icon"
+                        aria-label="Save footer tagline"
+                    >
+                        {#if updateLoading.footerTagline}
+                            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                        {:else}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                        {/if}
+                    </button>
+                {:else}
+                    {#if aboutMe.footerTagline}
+                        <h4 class="text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
+                    {:else if $adminMode}
+                        <h4 class="text-lg font-light italic text-gray-400">Add footer tagline</h4>
+                    {/if}
+                    {#if $adminMode}
+                        <button
+                            type="button"
+                            on:click={startEditingFooterTagline}
+                            class="admin-icon pencil-icon"
+                            aria-label="Edit footer tagline"
+                        >
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                            </svg>
+                        </button>
+                    {/if}
+                {/if}
+            </div>
         {/if}
 
-        {#if aboutMe.email}
-            <p class="text-center">
-                <a href="mailto:{aboutMe.email}" class="link link--zoomies">{aboutMe.email}</a>
-            </p>
+        {#if aboutMe.email || $adminMode}
+            <div class="relative flex items-center justify-center gap-3">
+                {#if isEditing.email}
+                    <input
+                        type="email"
+                        bind:value={editedValues.email}
+                        class="email-input border-b-2 border-gray-300 bg-transparent text-center focus:border-blue-500 focus:outline-none"
+                        on:keydown={(e) => {
+                            if (e.key === 'Enter') {
+                                updateEmail();
+                            } else if (e.key === 'Escape') {
+                                cancelEditingEmail();
+                            }
+                        }}
+                        on:blur={updateEmail}
+                        placeholder="your.email@domain.com"
+                        autofocus
+                    />
+                    <button
+                        type="button"
+                        on:click={updateEmail}
+                        disabled={updateLoading.email}
+                        class="admin-icon checkmark-icon"
+                        aria-label="Save email"
+                    >
+                        {#if updateLoading.email}
+                            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                        {:else}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                        {/if}
+                    </button>
+                {:else}
+                    {#if aboutMe.email}
+                        <p class="text-center">
+                            <a href="mailto:{aboutMe.email}" class="link link--zoomies">{aboutMe.email}</a>
+                        </p>
+                    {:else if $adminMode}
+                        <p class="text-center italic text-gray-400">Add email address</p>
+                    {/if}
+                    {#if $adminMode}
+                        <button
+                            type="button"
+                            on:click={startEditingEmail}
+                            class="admin-icon pencil-icon"
+                            aria-label="Edit email"
+                        >
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                            </svg>
+                        </button>
+                    {/if}
+                {/if}
+            </div>
         {/if}
     </div>
 </div>
@@ -421,6 +785,21 @@
         max-width: 80vw;
     }
 
+    .form-header-input {
+        min-width: 250px;
+        max-width: 70vw;
+    }
+
+    .footer-tagline-input {
+        min-width: 250px;
+        max-width: 70vw;
+    }
+
+    .email-input {
+        min-width: 200px;
+        max-width: 60vw;
+    }
+
     @media (max-width: 768px) {
         .admin-icon {
             &.pencil-icon,
@@ -433,6 +812,17 @@
         .title-input {
             font-size: 2rem;
             min-width: 250px;
+        }
+
+        .form-header-input,
+        .footer-tagline-input {
+            min-width: 200px;
+            font-size: 1rem;
+        }
+
+        .email-input {
+            min-width: 180px;
+            font-size: 0.9rem;
         }
     }
 </style>
