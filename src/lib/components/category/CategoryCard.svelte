@@ -56,17 +56,31 @@
 
     // Progressive loading logic
     $: {
+        // Reset URLs first to avoid stale values
+        placeholderUrl = '';
+        thumbnailUrl = '';
+        fullSizeUrl = '';
+
         // Extract URLs from the category data
         if (categoryThumbnail?.data?.attributes) {
             const attrs = categoryThumbnail.data.attributes;
             placeholderUrl = attrs.placeholderUrl || '';
             thumbnailUrl = attrs.url || '';
             fullSizeUrl = attrs.fullSizeUrl || attrs.url || '';
+        } else if (typeof categoryThumbnail === 'string') {
+            // Handle direct URL (like blob URLs for optimistic rendering)
+            thumbnailUrl = categoryThumbnail;
+            fullSizeUrl = categoryThumbnail;
+            placeholderUrl = '';
         }
 
-        // Set initial display URL to placeholder if available
+        // Set initial display URL to placeholder if available, otherwise to thumbnail URL for blob URLs
         if (placeholderUrl && !currentDisplayedUrl) {
             currentDisplayedUrl = placeholderUrl;
+        } else if (thumbnailUrl && thumbnailUrl.startsWith('blob:') && !currentDisplayedUrl) {
+            // For blob URLs, set directly to avoid the preload step which might fail
+            currentDisplayedUrl = thumbnailUrl;
+            isLoading = false;
         }
     }
 
@@ -81,6 +95,15 @@
         try {
             if (!categoryThumbnail) {
                 usePlaceholderBackground();
+                return;
+            }
+
+            // For blob URLs, skip preloading and use directly
+            if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+                currentDisplayedUrl = thumbnailUrl;
+                thumbnailLoaded = true;
+                fullSizeLoaded = true;
+                isLoading = false;
                 return;
             }
 

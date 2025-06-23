@@ -143,7 +143,11 @@
         imagePreview = '';
         errorMessage = '';
         selectedFiles = [];
-        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        // Only revoke blob URLs that aren't being used by the optimistic category rendering
+        previewUrls.forEach((url) => {
+            // Small delay to ensure blob URL isn't needed for initial render
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        });
         previewUrls = [];
         orderValue = 0;
         isUploading = false;
@@ -275,26 +279,30 @@
                 // Store data before dialog closes (to avoid it being cleared by reactive resetForm)
                 const categoryNameForToast = categoryName.trim();
                 const thumbnailFile = selectedFile;
-                const thumbnailPreview = imagePreview;
+                let thumbnailPreview = imagePreview;
 
-                // Close dialog BEFORE dispatching the event
+                // Create a fresh blob URL if we have a file but no preview URL
+                if (thumbnailFile && !thumbnailPreview) {
+                    thumbnailPreview = URL.createObjectURL(thumbnailFile);
+                }
+
+                // Dispatch the fast creation event with separate thumbnail data immediately
+                dispatch('addCategoryFast', {
+                    categoryData,
+                    thumbnailFile: thumbnailFile || undefined,
+                    thumbnailPreview: thumbnailPreview || undefined
+                });
+
+                // Show feedback using stored name
+                showToast.success(`Creating category "${categoryNameForToast}"...`);
+
+                // Close dialog AFTER dispatching the event
                 open = false;
 
-                // Wait for dialog to close
+                // Reset form after a short delay to ensure blob URL is accessible
                 setTimeout(() => {
-                    // Dispatch the fast creation event with separate thumbnail data
-                    dispatch('addCategoryFast', {
-                        categoryData,
-                        thumbnailFile: thumbnailFile || undefined,
-                        thumbnailPreview: thumbnailPreview || undefined
-                    });
-
-                    // Show feedback using stored name
-                    showToast.success(`Creating category "${categoryNameForToast}"...`);
-
-                    // Reset form after everything is done
                     resetForm();
-                }, 200);
+                }, 500);
             }
         } catch (error: any) {
             if (isEditMode) {
