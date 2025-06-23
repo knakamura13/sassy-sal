@@ -14,6 +14,7 @@
     interface CategoryData {
         name: string;
         order: number;
+        password?: string;
         thumbnail?: File;
     }
 
@@ -32,6 +33,7 @@
     // Form field state
     let categoryName = '';
     let orderValue = 0;
+    let categoryPassword = '';
 
     // File upload state
     let selectedFile: File | null = null;
@@ -76,6 +78,7 @@
 
     function resetForm() {
         categoryName = '';
+        categoryPassword = '';
         selectedFile = null;
         imagePreview = '';
         errorMessage = '';
@@ -117,6 +120,10 @@
                 name: categoryName.trim(),
                 order: Number(orderValue) || 0
             };
+
+            if (categoryPassword.trim()) {
+                categoryData.password = categoryPassword.trim();
+            }
 
             if (selectedFile) {
                 categoryData.thumbnail = selectedFile;
@@ -189,6 +196,21 @@
                             Categories are displayed in ascending order (lower numbers first)
                         </p>
                     {/if}
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="categoryPassword" class="font-garamond">Password Protection</Label>
+                    <Input
+                        type="password"
+                        id="categoryPassword"
+                        bind:value={categoryPassword}
+                        placeholder="Set password (leave empty for public access)"
+                        class="font-garamond"
+                        disabled={isUploading}
+                    />
+                    <p class="text-xs text-gray-500">
+                        Leave empty to make the category publicly accessible, or set a password to protect it.
+                    </p>
                 </div>
 
                 <div class="space-y-2">

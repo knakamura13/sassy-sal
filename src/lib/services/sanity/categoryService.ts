@@ -98,6 +98,11 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
             order: categoryData.order || 0
         };
 
+        // Add password if provided
+        if (categoryData.password && categoryData.password.trim()) {
+            category.password = categoryData.password.trim();
+        }
+
         // If there's a thumbnail file, upload it first via separate endpoint
         if (categoryData.thumbnail) {
             const thumbnailAsset = await uploadFile(categoryData.thumbnail);
@@ -254,8 +259,18 @@ export const updateCategory = async (id: string, data: CategoryData): Promise<{ 
         // Filter out undefined values
         const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, value]) => value !== undefined));
 
+        // Create the patch operation
+        let patchOperation = client.patch(id).set(cleanUpdates);
+
+        // Handle password removal separately if needed
+        if (categoryData.password !== undefined && !categoryData.password.trim()) {
+            patchOperation = patchOperation.unset(['password']);
+        } else if (categoryData.password !== undefined && categoryData.password.trim()) {
+            patchOperation = patchOperation.set({ password: categoryData.password.trim() });
+        }
+
         // Update the document
-        const updatedCategory: SanityCategory = await client.patch(id).set(cleanUpdates).commit();
+        const updatedCategory: SanityCategory = await patchOperation.commit();
 
         // Transform the response to match expected format
         const transformedCategory = transformCategory(updatedCategory);

@@ -85,10 +85,12 @@ export interface FormattedImage {
 export interface CategoryData {
     name: string;
     order?: number;
+    password?: string;
     thumbnail?: File;
     data?: {
         name: string;
         order?: number;
+        password?: string;
         thumbnail?: File;
     };
 }
