@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { dndzone } from 'svelte-dnd-action';
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
 
@@ -85,9 +84,6 @@
     let progressTotal = writable(0);
     let progressMessage = writable('');
     let progressPercentage = writable(0);
-
-    // Flag to check if categories are currently being reordered
-    let isReordering = false;
 
     // On component mount, try to load categories from localStorage if available
     onMount(() => {
@@ -183,150 +179,6 @@
         adminMode.set(true);
     } else {
         adminMode.set(false);
-    }
-
-    // Handles drag and drop reordering of categories
-    async function handleDndConsider(e: CustomEvent<{ items: Array<Category & { id: string }> }>) {
-        const { items } = e.detail;
-        // We don't need to maintain a separate dndCategories variable
-        // Just update the items in the event
-    }
-
-    // Handles when the user has completed a drag and drop operation
-    async function handleDndFinalize(e: CustomEvent<{ items: Array<Category & { id: string }> }>) {
-        const { items } = e.detail;
-
-        // Prevent multiple reordering operations
-        if (isReordering) return;
-        isReordering = true;
-
-        try {
-            // Create updated categories with new order values
-            const updatedCategories = items.map((item: Category & { id: string }, index: number) => {
-                const category = { ...item };
-                // Update the order attribute
-                category.attributes.order = index;
-                return category;
-            });
-
-            // Important: Update the local state immediately to prevent snapping back
-            // This also saves to localStorage through updateCategoriesAndRender
-            updateCategoriesAndRender(updatedCategories);
-
-            // Update orders in the backend
-            if ($adminMode) {
-                // First, try to get the latest categories from server, but fallback to local if server issues
-                let serverCategories = [];
-                let useLocalCategoriesAsBackup = false;
-                try {
-                    serverCategories = await getCategories();
-
-                    // If we get an empty array when we expect categories, something went wrong
-                    if (serverCategories.length === 0 && categories.length > 0) {
-                        serverCategories = categories;
-                        useLocalCategoriesAsBackup = true;
-                    }
-                } catch (error) {
-                    showToast.info('Could not connect to server. Changes have been saved locally.');
-                    serverCategories = categories;
-                    useLocalCategoriesAsBackup = true;
-                }
-
-                // Get the category data from the server response (which includes IDs)
-                const updatePromises = [];
-
-                // Loop through our updatedCategories and update them on the server
-                for (let i = 0; i < updatedCategories.length; i++) {
-                    const category = updatedCategories[i];
-                    const newOrder = i; // New order is just the index in the array
-
-                    // Find the corresponding category in the server data
-                    // Clean any string conversion issues with the ID
-                    const categoryId = String(category.id).replace(/"/g, '');
-
-                    // Find the matching server category
-                    let serverCategory: FormattedCategory | Category | undefined;
-                    if (useLocalCategoriesAsBackup) {
-                        // Use local data if server fetch failed
-                        serverCategory = categories.find((c) => String(c.id) === categoryId);
-                    } else {
-                        // Use server data if available
-                        serverCategory = (serverCategories as any[]).find((c) => String(c.id) === categoryId);
-                    }
-
-                    if (serverCategory) {
-                        const originalOrder = serverCategory.attributes.order;
-
-                        // Only update if the order has changed
-                        if (originalOrder !== newOrder) {
-                            try {
-                                // Create a promise for this update
-                                const updatePromise = updateCategory(String(serverCategory.id), {
-                                    name: serverCategory.attributes.name,
-                                    order: newOrder
-                                })
-                                    .then((result) => {
-                                        return result;
-                                    })
-                                    .catch(() => {
-                                        // Don't throw, just log the error - we've already updated locally
-                                        return null;
-                                    });
-
-                                updatePromises.push(updatePromise);
-                            } catch (error) {
-                                console.error(error);
-                            }
-                        }
-                    } else {
-                    }
-                }
-
-                if (updatePromises.length === 0) {
-                    showToast.info('Categories reordered and saved locally');
-                } else {
-                    // Wait for all updates to complete
-                    try {
-                        await Promise.all(updatePromises);
-                        showToast.success('Categories reordered and saved');
-                    } catch (error) {
-                        showToast.info('Categories reordered locally, but some server updates failed');
-                    }
-
-                    // Refresh categories from server after updates
-                    try {
-                        const refreshedCategories = await getCategories();
-
-                        if (refreshedCategories && refreshedCategories.length > 0) {
-                            // Combine server data with our local order
-                            const combinedCategories = (refreshedCategories as any[]).map((serverCat) => {
-                                // Find matching local category to get its order
-                                const localCat = categories.find((c) => String(c.id) === String(serverCat.id));
-                                if (localCat) {
-                                    return {
-                                        ...serverCat,
-                                        attributes: {
-                                            ...serverCat.attributes,
-                                            order: localCat.attributes.order
-                                        }
-                                    };
-                                }
-                                return serverCat;
-                            });
-
-                            // Update our local state with the combined data
-                            updateCategoriesAndRender(combinedCategories);
-                        }
-                    } catch (error) {
-                        // No need to show an error - we're still displaying the correct order locally
-                    }
-                }
-            }
-        } catch (error) {
-            showToast.error('An error occurred during reordering, but changes were saved locally');
-        } finally {
-            isReordering = false;
-        }
     }
 
     // Handles category deletion with confirmation
@@ -649,20 +501,8 @@
 
 <div class="page mx-auto min-h-[100vh] max-w-[1400px] !pb-[240px] !pt-[60px]" id="home">
     {#if $adminMode}
-        <!-- Draggable category grid for admin mode -->
-        <div
-            class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2"
-            use:dndzone={{
-                items: filteredCategories.map((category) => ({
-                    ...category,
-                    id: String(category.id)
-                })),
-                flipDurationMs: 300,
-                type: 'categories'
-            }}
-            on:consider={handleDndConsider}
-            on:finalize={handleDndFinalize}
-        >
+        <!-- Admin category grid -->
+        <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
             {#each filteredCategories as category (String(category.id) + '-' + updateCounter)}
                 <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
                     <CategoryCard
@@ -754,15 +594,5 @@
         margin: 0;
         padding: 0;
         font-family: 'Garamond Libre', serif;
-    }
-
-    /* Style for draggable categories */
-    :global(.category-item) {
-        transition: transform 0.2s ease;
-        cursor: move;
-    }
-
-    :global(.category-item:hover) {
-        z-index: 10;
     }
 </style>

@@ -7,17 +7,17 @@ A simple website builder for photographers, built with SvelteKit and Sanity CMS.
 - Responsive home page with categories and image galleries
 - Dynamic category pages with custom routing (slug route)
 - Modern UI with Tailwind CSS and Shadcn components
-- Drag-and-drop image management with svelte-dnd-action
+- Image management with upload functionality
 - Optimistic UI updates for smoother user experience
 - Sanity CMS backend integration
     - Type-safe content modeling with GROQ queries
     - Real-time content updates with @sanity/client
     - Image pipeline with hotspot handling and CDN optimization
     - Server-side and client-side Sanity clients
-    - Drag-and-drop image management with custom Svelte components
+    - File drag-and-drop image uploads with custom Svelte components
 - Admin features
     - Password-protected admin login
-    - Drag-and-drop category reorganization
+    - Category management interface
     - Category management with atomic updates
     - Optimistic UI updates with local state management
     - Client-side image uploads with progress indicators
