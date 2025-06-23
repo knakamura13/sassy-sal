@@ -77,14 +77,23 @@
         // Set initial display URL to placeholder if available, otherwise to thumbnail URL for blob URLs
         if (placeholderUrl && !currentDisplayedUrl) {
             currentDisplayedUrl = placeholderUrl;
-        } else if (thumbnailUrl && thumbnailUrl.startsWith('blob:') && !currentDisplayedUrl) {
+        } else if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
             // For blob URLs, set directly to avoid the preload step which might fail
-            currentDisplayedUrl = thumbnailUrl;
-            isLoading = false;
+            // Only set if we don't already have this URL to prevent re-triggering
+            if (currentDisplayedUrl !== thumbnailUrl) {
+                currentDisplayedUrl = thumbnailUrl;
+                isLoading = false;
+                thumbnailLoaded = true;
+                fullSizeLoaded = true;
+            }
         }
     }
 
     onMount(async () => {
+        // Don't run loadImage if we already have a blob URL set via reactive statements
+        if (thumbnailUrl && thumbnailUrl.startsWith('blob:') && currentDisplayedUrl) {
+            return;
+        }
         await loadImage();
     });
 
