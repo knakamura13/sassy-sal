@@ -72,7 +72,7 @@ export class ImageOperationsService {
 
         try {
             // Import Sanity services
-            const { addImage, deleteImage, updateImage } = await import('$lib/services/sanityContentService');
+            const { addImage, deleteImage, updateImage } = await import('$lib/services/sanity/imageService');
 
             // Process deletions first
             if (imagesToRemove.length > 0) {

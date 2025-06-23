@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
 
-    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/sanityContentService';
+    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/sanity/categoryService';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { adminMode } from '$lib/stores/adminStore';
     import { AspectRatio } from '$lib/components/ui/aspect-ratio';

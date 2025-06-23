@@ -3,7 +3,7 @@
     import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
 
     import { adminMode } from '$lib/stores/adminStore';
-    import { client } from '$lib/services/sanityContentService';
+    import { client } from '$lib/services/sanity/client';
     import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { getImageUrls, urlForBuilder } from '$lib/services/imageConfig';
     import { goto, invalidateAll } from '$app/navigation';

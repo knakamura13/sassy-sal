@@ -3,7 +3,7 @@
 
     import { AspectRatio } from '$lib/components/ui/aspect-ratio';
     import { Button } from '$lib/components/ui/button';
-    import { getCategories } from '$lib/services/sanityContentService';
+    import { getCategories } from '$lib/services/sanity/categoryService';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
     import { showToast } from '$lib/utils';

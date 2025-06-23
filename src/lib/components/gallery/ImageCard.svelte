@@ -4,7 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
-    import { uploadFile } from '$lib/services/sanityContentService';
+    import { uploadFile } from '$lib/services/sanity/uploadService';
     import Dialog from '$lib/components/Dialog.svelte';
     import type { Image } from '$lib/stores/imageStore';
 
@@ -353,9 +353,7 @@
             {/if}
 
             {#if isAdmin}
-                <div
-                    class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg"
-                >
+                <div class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg">
                     <button
                         type="button"
                         class="aspect-square h-10 w-10 p-1 text-white hover:bg-gray-600"

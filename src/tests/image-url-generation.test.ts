@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getImageUrls } from '$lib/services/imageConfig';
-import { urlFor } from '$lib/services/sanityContentService';
+import { urlFor } from '$lib/services/sanity/client';
 
 describe('Image URL Generation', () => {
     it('should generate image URLs from Sanity image objects', () => {

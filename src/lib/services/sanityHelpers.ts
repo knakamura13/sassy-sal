@@ -1,5 +1,5 @@
 // Helper functions for working with Sanity queries
-import { client } from './sanityContentService';
+import { client } from './sanity/client';
 import { getImageUrls, getMediumUrl, getPlaceholderUrl, getResponsiveUrls } from './imageConfig';
 
 /**
@@ -72,7 +72,9 @@ export const getCategoryByName = async (name: string): Promise<any | null> => {
     }
   }`;
 
-    return client.fetch(query, { name }).then((category: any) => (category ? formatCategoryWithImages(category) : null));
+    return client
+        .fetch(query, { name })
+        .then((category: any) => (category ? formatCategoryWithImages(category) : null));
 };
 
 /**
@@ -248,15 +250,15 @@ export const formatCategory = (category: SanityCategory | null): FormattedCatego
             order: category.order || 0,
             thumbnail: category.thumbnail
                 ? {
-                    data: {
-                        attributes: {
-                            url: getMediumUrl(category.thumbnail),
-                            placeholderSrc: getPlaceholderUrl(category.thumbnail),
-                            width: 400,
-                            height: 400,
-                        }
-                    }
-                }
+                      data: {
+                          attributes: {
+                              url: getMediumUrl(category.thumbnail),
+                              placeholderSrc: getPlaceholderUrl(category.thumbnail),
+                              width: 400,
+                              height: 400
+                          }
+                      }
+                  }
                 : null
         }
     };
@@ -314,14 +316,14 @@ export const formatImage = (image: SanityGalleryImage | null): FormattedImage | 
             },
             category: image.category
                 ? {
-                    data: {
-                        id: image.category._id,
-                        attributes: {
-                            name: image.category.name
-                        }
-                    }
-                }
+                      data: {
+                          id: image.category._id,
+                          attributes: {
+                              name: image.category.name
+                          }
+                      }
+                  }
                 : null
         }
     };
-}; 
+};

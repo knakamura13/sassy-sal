@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getCategoryWithImages } from '$lib/services/sanityContentService';
+import { getCategoryWithImages } from '$lib/services/sanity/categoryService';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
     try {

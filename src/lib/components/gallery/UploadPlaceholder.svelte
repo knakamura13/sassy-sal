@@ -64,7 +64,7 @@
         isLoadingImages = true;
         try {
             // Dynamic import to avoid SSR issues
-            const { getCategoryWithImages } = await import('$lib/services/sanityContentService');
+            const { getCategoryWithImages } = await import('$lib/services/sanity/categoryService');
             const categoryResponse = (await getCategoryWithImages(categoryId)) as CategoryResponse;
 
             // Calculate the highest order value from images
