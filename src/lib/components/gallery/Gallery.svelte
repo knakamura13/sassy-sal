@@ -11,6 +11,7 @@
     import CategoryNavigation from './CategoryNavigation.svelte';
     import ImageCard from './ImageCard.svelte';
     import ImagePreview from './ImagePreview.svelte';
+    import MasonryImageLayout from './MasonryImageLayout.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';
     import UploadProgressDialog from './UploadProgressDialog.svelte';
 
@@ -529,24 +530,14 @@
             />
         {/if}
 
-        {#each sortedImages as image (image.id)}
-            <div
-                class="gallery-item w-full"
-                on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
-                on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
-                role="button"
-                tabindex="0"
-                aria-label={image.title || 'View image'}
-            >
-                <ImageCard
-                    {image}
-                    isCategory={true}
-                    isAdmin={$adminMode}
-                    on:remove={() => handleRemoveImage(image.id)}
-                    on:update={handleUpdateImage}
-                />
-            </div>
-        {/each}
+        <MasonryImageLayout
+            images={sortedImages}
+            isAdmin={$adminMode}
+            isCategory={true}
+            on:imageClick={(e) => handleImageClick(e.detail)}
+            on:removeImage={(e) => handleRemoveImage(e.detail)}
+            on:updateImage={handleUpdateImage}
+        />
 
         {#if $adminMode}
             <UploadPlaceholder on:addImages={(e) => handleAddImages(e.detail)} {categoryId} />
