@@ -26,5 +26,12 @@ export default {
         hotspot: true,
       },
     },
+    {
+      name: 'password',
+      title: 'Password Protection',
+      description: 'Set a password to protect this category. Leave empty for public access.',
+      type: 'string',
+      validation: (Rule: any) => Rule.min(6).warning('Password should be at least 6 characters long for security'),
+    },
   ],
 }

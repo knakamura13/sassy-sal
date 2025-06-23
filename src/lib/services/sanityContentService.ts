@@ -47,6 +47,7 @@ interface SanityCategory {
     name: string;
     order?: number;
     thumbnail?: SanityImage;
+    password?: string;
 }
 
 interface SanityGalleryImage {
@@ -66,6 +67,7 @@ interface FormattedCategory {
     attributes: {
         name: string;
         order: number;
+        password?: string;
         thumbnail: {
             data: {
                 attributes: {
@@ -189,7 +191,8 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
       _id,
       name,
       order,
-      thumbnail
+      thumbnail,
+      password
     }`;
 
         const categories: SanityCategory[] = await client.fetch(query);
@@ -219,6 +222,7 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
                 attributes: {
                     name: category.name,
                     order: category.order || 0,
+                    password: category.password,
                     thumbnail: category.thumbnail
                         ? {
                               data: {
@@ -256,6 +260,7 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
           name,
           order,
           thumbnail,
+          password,
           "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
             _id,
             order,
@@ -267,6 +272,7 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
           name,
           order,
           thumbnail,
+          password,
           "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
             _id,
             order,
@@ -306,6 +312,7 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
             attributes: {
                 name: category.name,
                 order: category.order || 0,
+                password: category.password,
                 thumbnail: category.thumbnail
                     ? {
                           data: {

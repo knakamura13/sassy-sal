@@ -6,8 +6,9 @@
     import { client } from '$lib/services/sanityContentService';
     import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { getImageUrls, urlForBuilder } from '$lib/services/imageConfig';
-    import { goto } from '$app/navigation';
+    import { goto, invalidateAll } from '$app/navigation';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
+    import CategoryPasswordForm from '$lib/components/category/CategoryPasswordForm.svelte';
     import type { Image } from '$lib/stores/imageStore';
 
     // Define the type for Sanity image URL builder
@@ -73,6 +74,7 @@
         category?: SanityCategory;
         admin?: boolean;
         isFallback?: boolean;
+        requiresPassword?: boolean;
     };
 
     // Set admin mode from URL parameter
@@ -86,6 +88,11 @@
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
+
+    // Password protection state
+    let requiresPassword = data?.requiresPassword || false;
+    let passwordError = '';
+    let passwordLoading = false;
 
     // Check if this category is in our deleted list
     onMount(() => {
@@ -326,6 +333,40 @@
         }
     }
 
+    // Handle password submission
+    async function handlePasswordSubmit(event: CustomEvent<{ password: string }>) {
+        passwordLoading = true;
+        passwordError = '';
+
+        try {
+            const response = await fetch('/api/category-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categoryName: category?.attributes.name,
+                    password: event.detail.password
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Password correct - reload the page to get the full data
+                await invalidateAll();
+                requiresPassword = false;
+            } else {
+                passwordError = result.error || 'Incorrect password';
+            }
+        } catch (error) {
+            console.error('Error verifying password:', error);
+            passwordError = 'Error verifying password. Please try again.';
+        } finally {
+            passwordLoading = false;
+        }
+    }
+
     // Retry loading the page
     function retryLoading() {
         window.location.reload();
@@ -352,48 +393,58 @@
                 {/if}
             </div>
 
-            {#if isFallback}
-                <div class="mb-6 border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                    clip-rule="evenodd"
-                                />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
-                                We had trouble loading the full category data. You're seeing limited information.
-                            </p>
-                            <button
-                                class="mt-2 text-sm font-medium text-yellow-700 underline hover:text-yellow-600"
-                                on:click={retryLoading}
-                            >
-                                Try again
-                            </button>
+            {#if requiresPassword}
+                <!-- Password form -->
+                <CategoryPasswordForm
+                    categoryName={category.attributes.name}
+                    error={passwordError}
+                    loading={passwordLoading}
+                    on:submit={handlePasswordSubmit}
+                />
+            {:else}
+                {#if isFallback}
+                    <div class="mb-6 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    We had trouble loading the full category data. You're seeing limited information.
+                                </p>
+                                <button
+                                    class="mt-2 text-sm font-medium text-yellow-700 underline hover:text-yellow-600"
+                                    on:click={retryLoading}
+                                >
+                                    Try again
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {/if}
+                {/if}
 
-            {#if loadingImageUrls}
-                <!-- loading state... -->
-            {/if}
+                {#if loadingImageUrls}
+                    <!-- loading state... -->
+                {/if}
 
-            {#if !galleryImages.length}
-                <div class="col-span-full py-8 text-center">
-                    <p class="mb-4 text-lg text-gray-600">No images in this category yet.</p>
-                </div>
-            {/if}
+                {#if !galleryImages.length}
+                    <div class="col-span-full py-8 text-center">
+                        <p class="mb-4 text-lg text-gray-600">No images in this category yet.</p>
+                    </div>
+                {/if}
 
-            <Gallery
-                images={galleryImages}
-                categoryId={String(category.id)}
-                categoryOrder={category.attributes.order}
-            />
+                <Gallery
+                    images={galleryImages}
+                    categoryId={String(category.id)}
+                    categoryOrder={category.attributes.order}
+                />
+            {/if}
         {:else}
             <div class="py-12 text-center">
                 <h1 class="text-2xl font-medium text-gray-800">Category not found</h1>

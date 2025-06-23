@@ -13,6 +13,7 @@
         attributes: {
             name: string;
             order: number;
+            password?: string;
             thumbnail?: {
                 data?: {
                     attributes?: {
@@ -51,6 +52,7 @@
     let editDialogOpen = false;
     let editName = '';
     let editOrder = 0;
+    let editPassword = '';
     let selectedFile: File | null = null;
     let imagePreview = '';
     let isUploading = false;
@@ -179,6 +181,7 @@
         e.preventDefault();
         editName = categoryName;
         editOrder = categoryOrder;
+        editPassword = category.attributes.password || '';
         imagePreview = currentDisplayedUrl || '';
         editDialogOpen = true;
     }
@@ -226,6 +229,7 @@
     function resetForm() {
         editName = categoryName;
         editOrder = categoryOrder;
+        editPassword = category.attributes.password || '';
         selectedFile = null;
         imagePreview = currentDisplayedUrl;
         isUploading = false;
@@ -249,10 +253,11 @@
 
         try {
             // Prepare the update data
-            const updateData: { data: { name: string; order: number; thumbnail?: File } } = {
+            const updateData: { data: { name: string; order: number; password?: string; thumbnail?: File } } = {
                 data: {
                     name: editName.trim(),
-                    order: Number(editOrder) || 0
+                    order: Number(editOrder) || 0,
+                    password: editPassword.trim() || undefined
                 }
             };
 
@@ -370,18 +375,35 @@
             </div>
         {/if}
 
+        <!-- Password protection indicator -->
+        {#if category.attributes.password && !isAdmin}
+            <div class="absolute left-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                </svg>
+            </div>
+        {/if}
+
         <!-- Category name -->
         <div
             class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-4 text-white transition-opacity duration-300 group-hover:opacity-0"
         >
-            <h2 class="text-right text-2xl font-medium tracking-wide">{categoryName}</h2>
+            <h2 class="text-right text-2xl font-medium tracking-wide">
+                {categoryName}
+                {#if category.attributes.password && !isAdmin}
+                    <span class="ml-2 text-lg">🔒</span>
+                {/if}
+            </h2>
         </div>
 
         <!-- Admin Controls Overlay -->
         {#if isAdmin}
-            <div
-                class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg"
-            >
+            <div class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg">
                 <button
                     type="button"
                     class="aspect-square h-10 w-10 p-1 text-white hover:bg-gray-600"
@@ -417,6 +439,19 @@
             <div class="space-y-2">
                 <Label for="category-order">Order</Label>
                 <Input id="category-order" type="number" bind:value={editOrder} placeholder="Display order" min="0" />
+            </div>
+
+            <div class="space-y-2">
+                <Label for="category-password">Password Protection</Label>
+                <Input
+                    id="category-password"
+                    type="password"
+                    bind:value={editPassword}
+                    placeholder="Set password (leave empty for public access)"
+                />
+                <p class="text-xs text-gray-500">
+                    Leave empty to make the category publicly accessible, or set a password to protect it.
+                </p>
             </div>
 
             <div class="space-y-2">

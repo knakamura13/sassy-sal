@@ -4,7 +4,7 @@ import { getCategoryWithImages, getCategories } from '$lib/services/sanityConten
 import { getImageUrls } from '$lib/services/imageConfig';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
+export const load: PageServerLoad = async ({ params, url, setHeaders, cookies }) => {
     // Default to non-admin mode during SSR/prerendering
     const admin = typeof document === 'undefined' ? false : url.searchParams.get('admin') === 'true';
     const categoryParam = params.category;
@@ -34,6 +34,28 @@ export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
         }
 
         const category = categoryResponse.data;
+
+        // Check if category is password protected
+        const isPasswordProtected = !!category.attributes.password;
+        const cookieKey = `category_auth_${categoryParam.toLowerCase()}`;
+        const hasValidAuth = cookies.get(cookieKey) === 'true';
+
+        // If password protected and no valid auth, return minimal data for password prompt
+        if (isPasswordProtected && !hasValidAuth && !admin) {
+            return {
+                category: {
+                    id: category.id,
+                    attributes: {
+                        name: category.attributes.name,
+                        order: category.attributes.order,
+                        thumbnail: category.attributes.thumbnail,
+                        images: { data: [] } // Don't return images for password-protected categories
+                    }
+                },
+                admin,
+                requiresPassword: true
+            };
+        }
 
         // Ensure images data is properly structured, even if empty
         if (!category.attributes.images) {
@@ -65,7 +87,7 @@ export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
             });
         }
 
-        return { category, admin };
+        return { category, admin, requiresPassword: false };
     } catch (err: any) {
         // Handle errors
         if (err.status === 404) {
@@ -86,4 +108,4 @@ export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
         console.error('Error loading category:', err);
         throw error(500, 'Failed to load category');
     }
-} 
+};
