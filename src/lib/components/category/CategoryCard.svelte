@@ -199,7 +199,7 @@
 
 <a
     href={String(categoryId).startsWith('temp-') ? '#' : isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
-    class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg"
+    class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
     class:pointer-events-none={String(categoryId).startsWith('temp-')}
 >
     <div

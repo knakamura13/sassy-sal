@@ -50,6 +50,11 @@
 
     const dispatch = createEventDispatcher<{
         addCategory: CategoryData;
+        addCategoryFast: {
+            categoryData: Omit<CategoryData, 'thumbnail'>;
+            thumbnailFile?: File;
+            thumbnailPreview?: string;
+        };
         update: { id: string | number; data: any };
     }>();
 
@@ -257,8 +262,8 @@
                     }, 2000);
                 }
             } else {
-                // Create mode
-                const categoryData: CategoryData = {
+                // Create mode - fast creation with optimistic thumbnail rendering
+                const categoryData: Omit<CategoryData, 'thumbnail'> = {
                     name: categoryName.trim(),
                     order: Number(orderValue) || 0
                 };
@@ -267,20 +272,22 @@
                     categoryData.password = categoryPassword.trim();
                 }
 
-                if (selectedFile) {
-                    categoryData.thumbnail = selectedFile;
-                }
-
-                // Store category name before dialog closes (to avoid it being cleared by reactive resetForm)
+                // Store data before dialog closes (to avoid it being cleared by reactive resetForm)
                 const categoryNameForToast = categoryName.trim();
+                const thumbnailFile = selectedFile;
+                const thumbnailPreview = imagePreview;
 
                 // Close dialog BEFORE dispatching the event
                 open = false;
 
                 // Wait for dialog to close
                 setTimeout(() => {
-                    // Then dispatch the event
-                    dispatch('addCategory', categoryData);
+                    // Dispatch the fast creation event with separate thumbnail data
+                    dispatch('addCategoryFast', {
+                        categoryData,
+                        thumbnailFile: thumbnailFile || undefined,
+                        thumbnailPreview: thumbnailPreview || undefined
+                    });
 
                     // Show feedback using stored name
                     showToast.success(`Creating category "${categoryNameForToast}"...`);

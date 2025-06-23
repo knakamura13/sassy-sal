@@ -84,7 +84,107 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
 };
 
 /**
- * Add a new category
+ * Add a new category (fast - without thumbnail)
+ * @param {Omit<CategoryData, 'thumbnail'>} categoryData - Category data without thumbnail
+ * @returns {Promise<{ data: FormattedCategory }>} - The created category
+ */
+export const addCategoryFast = async (
+    categoryData: Omit<CategoryData, 'thumbnail'>
+): Promise<{ data: FormattedCategory }> => {
+    try {
+        // Prepare the category data without the thumbnail for fast creation
+        const category: Partial<SanityCategory> = {
+            _type: 'category',
+            name: categoryData.name,
+            order: categoryData.order || 0
+        };
+
+        // Add password if provided
+        if (categoryData.password && categoryData.password.trim()) {
+            category.password = categoryData.password.trim();
+        }
+
+        // Call our server endpoint to create the category
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'createCategory',
+                data: category
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create category');
+        }
+
+        const result = await response.json();
+        const createdCategory: SanityCategory = result.data;
+
+        // Transform the response to match expected format
+        const transformedCategory = transformCategory(createdCategory);
+
+        return { data: transformedCategory };
+    } catch (error) {
+        console.error('Error adding category to Sanity:', error);
+        throw error;
+    }
+};
+
+/**
+ * Upload thumbnail for an existing category
+ * @param {string} categoryId - The category ID
+ * @param {File} thumbnailFile - The thumbnail file to upload
+ * @returns {Promise<{ data: FormattedCategory }>} - The updated category
+ */
+export const uploadCategoryThumbnail = async (
+    categoryId: string,
+    thumbnailFile: File
+): Promise<{ data: FormattedCategory }> => {
+    try {
+        // Upload the thumbnail file first
+        const thumbnailAsset = await uploadFile(thumbnailFile);
+
+        // Update the category with the new thumbnail via server endpoint
+        const response = await fetch('/api/sanity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                operation: 'updateCategory',
+                data: {
+                    id: categoryId,
+                    updates: {
+                        thumbnail: createSanityImageFromAsset(thumbnailAsset._id)
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update category thumbnail');
+        }
+
+        const result = await response.json();
+        const updatedCategory: SanityCategory = result.data;
+
+        // Transform the response to match expected format
+        const transformedCategory = transformCategory(updatedCategory);
+
+        return { data: transformedCategory };
+    } catch (error) {
+        console.error('Error uploading thumbnail for category:', error);
+        throw error;
+    }
+};
+
+/**
+ * Add a new category (legacy - with thumbnail upload)
  * @param {CategoryData} categoryData - Category data to add
  * @returns {Promise<{ data: FormattedCategory }>} - The created category
  */

@@ -12,13 +12,30 @@
         thumbnail?: File;
     }
 
-    const dispatch = createEventDispatcher<{ addCategory: CategoryData }>();
+    const dispatch = createEventDispatcher<{
+        addCategory: CategoryData;
+        addCategoryFast: {
+            categoryData: Omit<CategoryData, 'thumbnail'>;
+            thumbnailFile?: File;
+            thumbnailPreview?: string;
+        };
+    }>();
 
     // Dialog state
     let open = false;
 
     function handleAddCategory(event: CustomEvent<CategoryData>) {
         dispatch('addCategory', event.detail);
+    }
+
+    function handleAddCategoryFast(
+        event: CustomEvent<{
+            categoryData: Omit<CategoryData, 'thumbnail'>;
+            thumbnailFile?: File;
+            thumbnailPreview?: string;
+        }>
+    ) {
+        dispatch('addCategoryFast', event.detail);
     }
 </script>
 
@@ -33,6 +50,11 @@
             <span class="font-medium text-gray-500">Add Category</span>
         </button>
 
-        <CategoryDialog bind:open mode="create" on:addCategory={handleAddCategory} />
+        <CategoryDialog
+            bind:open
+            mode="create"
+            on:addCategory={handleAddCategory}
+            on:addCategoryFast={handleAddCategoryFast}
+        />
     </div>
 </AspectRatio>

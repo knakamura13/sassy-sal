@@ -2,7 +2,14 @@
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
 
-    import { addCategory, deleteCategory, getCategories, updateCategory } from '$lib/services/sanity/categoryService';
+    import {
+        addCategory,
+        addCategoryFast,
+        uploadCategoryThumbnail,
+        deleteCategory,
+        getCategories,
+        updateCategory
+    } from '$lib/services/sanity/categoryService';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { adminMode } from '$lib/stores/adminStore';
     import { AspectRatio } from '$lib/components/ui/aspect-ratio';
@@ -322,7 +329,166 @@
         $categoryNameToDelete = '';
     }
 
-    // Handles adding a new category
+    // Handles adding a new category with fast creation (decoupled thumbnail upload)
+    async function handleAddCategoryFast(event: CustomEvent) {
+        // Prevent multiple simultaneous operations
+        if (isAddingCategory) return;
+        isAddingCategory = true;
+
+        try {
+            const { categoryData, thumbnailFile, thumbnailPreview } = event.detail;
+
+            if (!$adminMode) {
+                isAddingCategory = false;
+                return;
+            }
+
+            // Create a stable blob URL from the file for optimistic rendering
+            let optimisticThumbnailUrl = thumbnailPreview;
+            if (thumbnailFile && !thumbnailPreview) {
+                optimisticThumbnailUrl = URL.createObjectURL(thumbnailFile);
+            }
+
+            // Create a temporary local category with unique ID and optimistic thumbnail
+            const tempId = `temp-${Date.now()}`;
+            const tempCategory: Category = {
+                id: tempId,
+                attributes: {
+                    name: categoryData.name,
+                    order: categoryData.order,
+                    description: '',
+                    thumbnail: optimisticThumbnailUrl
+                        ? {
+                              data: {
+                                  attributes: {
+                                      url: optimisticThumbnailUrl
+                                  }
+                              }
+                          }
+                        : undefined
+                }
+            };
+
+            // Add temporary category to the UI immediately for instant feedback
+            categories = [...categories, tempCategory];
+            updateCounter++; // Force re-render
+
+            try {
+                // Step 1: Create category without thumbnail (fast)
+                const response = await addCategoryFast(categoryData);
+                const savedCategory = (response as any)?.data ? (response as any).data : response;
+
+                // Replace the temporary category with the real one immediately
+                categories = categories.map((cat) => {
+                    if (cat.id === tempId) {
+                        return {
+                            ...savedCategory,
+                            attributes: {
+                                ...savedCategory.attributes,
+                                // Keep the optimistic thumbnail until upload completes
+                                thumbnail: optimisticThumbnailUrl
+                                    ? {
+                                          data: {
+                                              attributes: {
+                                                  url: optimisticThumbnailUrl
+                                              }
+                                          }
+                                      }
+                                    : savedCategory.attributes.thumbnail
+                            }
+                        };
+                    }
+                    return cat;
+                });
+                updateCounter++;
+
+                // Show success immediately
+                showToast.success('Category created successfully!');
+
+                // Step 2: Upload thumbnail in background if provided
+                if (thumbnailFile && savedCategory.id) {
+                    // Don't await this - let it happen in the background
+                    uploadCategoryThumbnail(String(savedCategory.id), thumbnailFile)
+                        .then((thumbnailResponse) => {
+                            const updatedCategory = (thumbnailResponse as any)?.data
+                                ? (thumbnailResponse as any).data
+                                : thumbnailResponse;
+
+                            // Update the category with the real thumbnail
+                            categories = categories.map((cat) => {
+                                if (cat.id === savedCategory.id) {
+                                    return updatedCategory;
+                                }
+                                return cat;
+                            });
+                            updateCounter++;
+
+                            // Clean up the blob URL now that we have the real thumbnail
+                            if (optimisticThumbnailUrl && optimisticThumbnailUrl.startsWith('blob:')) {
+                                URL.revokeObjectURL(optimisticThumbnailUrl);
+                            }
+
+                            // Save to localStorage
+                            try {
+                                localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+                                const orderMap: Record<string, number> = {};
+                                categories.forEach((cat) => {
+                                    if (cat.id && cat.attributes && cat.attributes.order !== undefined) {
+                                        orderMap[String(cat.id)] = cat.attributes.order;
+                                    }
+                                });
+                                localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
+                            } catch (e) {
+                                console.error('Error saving to localStorage:', e);
+                            }
+
+                            console.log('Thumbnail uploaded successfully');
+                        })
+                        .catch((error) => {
+                            console.error('Error uploading thumbnail:', error);
+                            showToast.error('Category created but thumbnail upload failed');
+
+                            // Clean up the blob URL on error too
+                            if (optimisticThumbnailUrl && optimisticThumbnailUrl.startsWith('blob:')) {
+                                URL.revokeObjectURL(optimisticThumbnailUrl);
+                            }
+                        });
+                } else {
+                    // No thumbnail to upload, save to localStorage now
+                    try {
+                        localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+                        const orderMap: Record<string, number> = {};
+                        categories.forEach((cat) => {
+                            if (cat.id && cat.attributes && cat.attributes.order !== undefined) {
+                                orderMap[String(cat.id)] = cat.attributes.order;
+                            }
+                        });
+                        localStorage.setItem(CATEGORIES_ORDER_KEY, JSON.stringify(orderMap));
+                    } catch (e) {
+                        console.error('Error saving to localStorage:', e);
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving category to Sanity:', error);
+                showToast.error('Failed to create category');
+
+                // Remove the temporary category on error
+                categories = categories.filter((cat) => cat.id !== tempId);
+                updateCounter++;
+            }
+        } catch (error) {
+            console.error('Error in handleAddCategoryFast:', error);
+            showToast.error('Failed to add category');
+
+            // Remove any temporary categories if there was a critical error
+            categories = categories.filter((cat) => !String(cat.id).startsWith('temp-'));
+            updateCounter++; // Force re-render
+        } finally {
+            isAddingCategory = false;
+        }
+    }
+
+    // Handles adding a new category (legacy method with synchronous thumbnail upload)
     async function handleAddCategory(event: CustomEvent) {
         // Prevent multiple simultaneous operations
         if (isAddingCategory) return;
@@ -514,7 +680,7 @@
                 </AspectRatio>
             {/each}
 
-            <CategoryUploadPlaceholder on:addCategory={handleAddCategory} />
+            <CategoryUploadPlaceholder on:addCategory={handleAddCategory} on:addCategoryFast={handleAddCategoryFast} />
         </div>
     {:else}
         <!-- Regular non-draggable grid for non-admin mode -->
