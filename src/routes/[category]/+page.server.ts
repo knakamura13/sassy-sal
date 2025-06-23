@@ -5,8 +5,8 @@ import { getImageUrls } from '$lib/services/imageConfig';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, setHeaders, cookies }) => {
-    // Default to non-admin mode during SSR/prerendering
-    const admin = typeof document === 'undefined' ? false : url.searchParams.get('admin') === 'true';
+    // Check for admin mode from URL search params
+    const admin = url.searchParams.get('admin') === 'true';
     const categoryParam = params.category;
 
     try {
@@ -37,11 +37,9 @@ export const load: PageServerLoad = async ({ params, url, setHeaders, cookies })
 
         // Check if category is password protected
         const isPasswordProtected = !!category.attributes.password;
-        const cookieKey = `category_auth_${categoryParam.toLowerCase()}`;
-        const hasValidAuth = cookies.get(cookieKey) === 'true';
 
-        // If password protected and no valid auth, return minimal data for password prompt
-        if (isPasswordProtected && !hasValidAuth && !admin) {
+        // If password protected and not admin, always require password prompt
+        if (isPasswordProtected && !admin) {
             return {
                 category: {
                     id: category.id,

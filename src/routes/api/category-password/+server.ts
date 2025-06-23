@@ -27,23 +27,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
         // Check if provided password matches
         if (category.attributes.password === password) {
-            // Set authentication cookie for this category
-            const cookieKey = `category_auth_${categoryName.toLowerCase()}`;
-            cookies.set(cookieKey, 'true', {
-                path: '/',
-                maxAge: 60 * 60 * 24 * 7, // 7 days
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict'
-            });
-
             return json({ success: true });
         } else {
             return json({ success: false, error: 'Incorrect password' }, { status: 401 });
         }
     } catch (err: any) {
-        console.error('Error verifying category password:', err);
-
         if (err.status) {
             throw err;
         }

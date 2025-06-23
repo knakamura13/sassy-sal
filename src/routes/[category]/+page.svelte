@@ -6,7 +6,7 @@
     import { client } from '$lib/services/sanity/client';
     import { deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { getImageUrls, urlForBuilder } from '$lib/services/imageConfig';
-    import { goto, invalidateAll } from '$app/navigation';
+    import { goto } from '$app/navigation';
     import Gallery from '$lib/components/gallery/Gallery.svelte';
     import CategoryPasswordForm from '$lib/components/category/CategoryPasswordForm.svelte';
     import type { Image } from '$lib/stores/imageStore';
@@ -63,6 +63,7 @@
             name: string;
             description?: string;
             order?: number;
+            thumbnail?: any;
             images?: {
                 data: SanityImage[];
             };
@@ -195,7 +196,7 @@
 
     // Update the image transformation to include responsive URLs
     $: {
-        galleryImages = categoryImages.map((image) => {
+        galleryImages = categoryImages.map((image, index) => {
             // Extract title from different possible locations
             const title = image.attributes?.title || image.title || 'Untitled';
 
@@ -262,8 +263,8 @@
                         ? image.attributes.image.data.attributes.order
                         : 0;
 
-            return {
-                id: String(image.id),
+            const galleryImage = {
+                id: String(image._id || image.id),
                 title,
                 url,
                 alt,
@@ -279,6 +280,8 @@
                       }
                     : undefined
             };
+
+            return galleryImage;
         });
     }
 
@@ -353,14 +356,49 @@
             const result = await response.json();
 
             if (result.success) {
-                // Password correct - reload the page to get the full data
-                await invalidateAll();
-                requiresPassword = false;
+                // Password correct - fetch the full category data directly
+                try {
+                    const categoryData = await client.fetch(
+                        `*[_type == "category" && name == $categoryName][0] {
+                            _id,
+                            name,
+                            description,
+                            order,
+                            thumbnail,
+                            password,
+                            "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
+                                _id,
+                                order,
+                                image
+                            }
+                        }`,
+                        { categoryName: category?.attributes.name }
+                    );
+
+                    if (categoryData) {
+                        // Update the category data with the full information
+                        category = {
+                            id: categoryData._id,
+                            attributes: {
+                                name: categoryData.name,
+                                description: categoryData.description,
+                                order: categoryData.order,
+                                thumbnail: categoryData.thumbnail,
+                                images: {
+                                    data: categoryData.images || []
+                                }
+                            }
+                        };
+                        requiresPassword = false;
+                    } else {
+                    }
+                } catch (fetchError) {
+                    passwordError = 'Error loading category data. Please try again.';
+                }
             } else {
                 passwordError = result.error || 'Incorrect password';
             }
         } catch (error) {
-            console.error('Error verifying password:', error);
             passwordError = 'Error verifying password. Please try again.';
         } finally {
             passwordLoading = false;
