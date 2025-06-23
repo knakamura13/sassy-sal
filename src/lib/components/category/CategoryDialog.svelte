@@ -271,6 +271,9 @@
                     categoryData.thumbnail = selectedFile;
                 }
 
+                // Store category name before dialog closes (to avoid it being cleared by reactive resetForm)
+                const categoryNameForToast = categoryName.trim();
+
                 // Close dialog BEFORE dispatching the event
                 open = false;
 
@@ -279,8 +282,8 @@
                     // Then dispatch the event
                     dispatch('addCategory', categoryData);
 
-                    // Show feedback
-                    showToast.success(`Creating category "${categoryName}"...`);
+                    // Show feedback using stored name
+                    showToast.success(`Creating category "${categoryNameForToast}"...`);
 
                     // Reset form after everything is done
                     resetForm();
