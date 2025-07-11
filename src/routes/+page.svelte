@@ -7,8 +7,7 @@
         addCategoryFast,
         uploadCategoryThumbnail,
         deleteCategory,
-        getCategories,
-        updateCategory
+        getCategories
     } from '$lib/services/sanity/categoryService';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { adminMode } from '$lib/stores/adminStore';
@@ -584,21 +583,24 @@
 
             if ($adminMode) {
                 try {
-                    // Fetch latest categories to find the category
-                    const allCategories = await getCategories();
-                    const categoryToUpdate = (allCategories as any[]).find((cat) => {
-                        return `${cat.id}` === `${id}`;
+                    console.log('[DEBUG] Calling server-side API for category update', { id, data });
+
+                    // Call our server-side API endpoint instead of the client-side Sanity service
+                    const response = await fetch(`/api/categories/${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
                     });
 
-                    if (!categoryToUpdate) {
-                        throw new Error('Category not found');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP ${response.status}`);
                     }
 
-                    // Use the category id (ensure it's a string for Sanity)
-                    const categoryId = String(id);
-
-                    // Send update to Sanity
-                    const _ = await updateCategory(categoryId, data);
+                    const result = await response.json();
+                    console.log('[DEBUG] Server-side update successful', result);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat) => {
@@ -620,17 +622,17 @@
                     try {
                         const refreshedCategories = await getCategories();
                         if (refreshedCategories && refreshedCategories.length > 0) {
-                            // Find the updated category to check its thumbnail
-                            const updatedCategory = (refreshedCategories as any[]).find(
-                                (cat) => String(cat.id) === String(id)
-                            );
-
                             updateCategoriesAndRender(refreshedCategories);
                         }
                     } catch (refreshError) {
                         // Already updated local state, so continue silently
+                        console.warn('[DEBUG] Failed to refresh categories after update:', refreshError);
                     }
+
+                    showToast.success('Category updated successfully');
                 } catch (updateError: any) {
+                    console.error('[DEBUG] Error updating category via API:', updateError);
+                    
                     // Special handling for 404 errors (category not found)
                     if (
                         updateError.status === 404 ||

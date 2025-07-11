@@ -342,63 +342,34 @@
         passwordError = '';
 
         try {
-            const response = await fetch('/api/category-password', {
+            console.log('[DEBUG] Submitting password for category:', category?.attributes.name);
+
+            // Call our server-side API endpoint to fetch the full category data
+            const response = await fetch(`/api/category-password/${encodeURIComponent(category?.attributes.name || '')}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    categoryName: category?.attributes.name,
                     password: event.detail.password
                 })
             });
 
             const result = await response.json();
+            console.log('[DEBUG] Password verification result:', result);
 
-            if (result.success) {
-                // Password correct - fetch the full category data directly
-                try {
-                    const categoryData = await client.fetch(
-                        `*[_type == "category" && name == $categoryName][0] {
-                            _id,
-                            name,
-                            description,
-                            order,
-                            thumbnail,
-                            password,
-                            "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
-                                _id,
-                                order,
-                                image
-                            }
-                        }`,
-                        { categoryName: category?.attributes.name }
-                    );
-
-                    if (categoryData) {
-                        // Update the category data with the full information
-                        category = {
-                            id: categoryData._id,
-                            attributes: {
-                                name: categoryData.name,
-                                description: categoryData.description,
-                                order: categoryData.order,
-                                thumbnail: categoryData.thumbnail,
-                                images: {
-                                    data: categoryData.images || []
-                                }
-                            }
-                        };
-                        requiresPassword = false;
-                    } else {
-                    }
-                } catch (fetchError) {
-                    passwordError = 'Error loading category data. Please try again.';
-                }
+            if (result.success && result.category) {
+                console.log('[DEBUG] Password correct, updating category data');
+                // Password correct - update the category data with the full information from server
+                category = result.category;
+                requiresPassword = false;
+                passwordError = '';
             } else {
+                console.log('[DEBUG] Password verification failed:', result.error);
                 passwordError = result.error || 'Incorrect password';
             }
         } catch (error) {
+            console.error('[DEBUG] Error in password submission:', error);
             passwordError = 'Error verifying password. Please try again.';
         } finally {
             passwordLoading = false;

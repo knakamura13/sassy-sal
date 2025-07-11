@@ -148,43 +148,50 @@
 
         isLoadingNextCategory = true;
         try {
-            // Import Sanity helper to get all categories
-            const { getAllCategories } = await import('$lib/services/sanityHelpers');
-            const categories = await getAllCategories();
+            console.log('[DEBUG] Fetching categories for navigation');
+
+            // Use our server-side API endpoint instead of direct Sanity client
+            const response = await fetch('/api/categories');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const categories = await response.json();
+            console.log('[DEBUG] Fetched categories for navigation:', categories.length);
 
             if (categories.length <= 1) {
                 return;
             }
 
             // Sort categories by order to ensure correct sequence
-            const sortedCategories = [...categories].sort(
-                (a, b) => (a.attributes.order || 0) - (b.attributes.order || 0)
-            );
+            const sortedCategories = [...categories].sort((a, b) => (a.order || 0) - (b.order || 0));
 
             // Find the category with the next highest order
             const nextCat = sortedCategories.find(
-                (cat) => (cat.attributes.order || 0) > (categoryOrder || 0) && cat.id !== categoryId
+                (cat) => (cat.order || 0) > (categoryOrder || 0) && cat._id !== categoryId
             );
 
             // If we've found a next category, use it
             if (nextCat) {
                 nextCategory = {
-                    id: nextCat.id,
-                    name: nextCat.attributes.name
+                    id: nextCat._id,
+                    name: nextCat.name
                 };
             } else {
                 // If there's no next category (we're at the last one),
                 // get the first category (lowest order)
                 const firstCategory = sortedCategories[0];
-                if (firstCategory && firstCategory.id !== categoryId) {
+                if (firstCategory && firstCategory._id !== categoryId) {
                     nextCategory = {
-                        id: firstCategory.id,
-                        name: firstCategory.attributes.name
+                        id: firstCategory._id,
+                        name: firstCategory.name
                     };
                 }
             }
+
+            console.log('[DEBUG] Next category determined:', nextCategory);
         } catch (error) {
-            console.error('Error fetching next category:', error);
+            console.error('[DEBUG] Error fetching next category:', error);
         } finally {
             isLoadingNextCategory = false;
         }

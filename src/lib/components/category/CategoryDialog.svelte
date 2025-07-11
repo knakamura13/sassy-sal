@@ -243,6 +243,8 @@
                 // Store old name to check if name changed
                 const oldName = categoryNameFromProp;
 
+                // [DEBUG] Dispatching update event from CategoryDialog
+                console.log('[DEBUG] Dispatching update event', { id: categoryId, data: updateData });
                 // Dispatch the update event
                 dispatch('update', {
                     id: categoryId,

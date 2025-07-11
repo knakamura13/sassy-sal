@@ -28,7 +28,7 @@
     }
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+<div class="flex items-center justify-center bg-gray-50 px-4 py-8">
     <Card class="w-full max-w-md">
         <CardHeader class="text-center">
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
