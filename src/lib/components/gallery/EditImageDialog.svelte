@@ -36,13 +36,26 @@
     // Initialize form when dialog opens
     $: if (open) {
         editOrder = image.order || 0;
+        console.log('[EditImageDialog] Setting editOrder to:', editOrder, 'from image.order:', image.order);
         editSpanTwoColumns = image.spanTwoColumns || false;
+        console.log(
+            '[EditImageDialog] Setting editSpanTwoColumns to:',
+            editSpanTwoColumns,
+            'from image.spanTwoColumns:',
+            image.spanTwoColumns
+        );
         imagePreview = currentDisplayedUrl || '';
-        console.log('[EditImageDialog] Initialized:', { editOrder, editSpanTwoColumns, imageSpanTwoColumns: image.spanTwoColumns });
+        console.log('[EditImageDialog] Initialized:', {
+            editOrder,
+            editSpanTwoColumns,
+            imageSpanTwoColumns: image.spanTwoColumns
+        });
     }
 
-    // Debug: watch for changes to editSpanTwoColumns
-    $: console.log('[EditImageDialog] editSpanTwoColumns changed to:', editSpanTwoColumns);
+    // Watch for editOrder changes
+    $: if (typeof editOrder === 'number') {
+        console.log('[EditImageDialog] editOrder changed to:', editOrder);
+    }
 
     function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
