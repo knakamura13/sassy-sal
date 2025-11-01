@@ -77,6 +77,14 @@ export const load: PageServerLoad = async ({ params, url, setHeaders, cookies })
 
                     // Add responsive URLs for different screen sizes
                     image.responsiveUrls = urls.responsive;
+
+                    // Calculate aspect ratio from image dimensions if available
+                    if (image.image?.asset?.metadata?.dimensions) {
+                        const { width, height } = image.image.asset.metadata.dimensions;
+                        if (width && height && height > 0) {
+                            image.aspectRatio = width / height;
+                        }
+                    }
                 } catch (error) {
                     console.error('Error generating progressive URLs for image:', error);
                 }

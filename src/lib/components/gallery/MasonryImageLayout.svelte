@@ -18,8 +18,27 @@
     let msnry: any = null; // Masonry instance
     let il: any = null; // imagesLoaded instance
 
-    // Decide which items should be wide (2 columns)
-    const isWide = (img: Image) => (img.aspectRatio ?? 1) >= 1.4;
+    // Decide which items should be wide (2 columns) - only 1 in every 4 wide images
+    const isWide = (img: Image) => {
+        const ar = img.aspectRatio ?? 1;
+        const isWideAspectRatio = ar >= 1.4;
+
+        if (!isWideAspectRatio) {
+            console.log(`[isWide] image id: ${img.id}, aspectRatio: ${ar}, isWide: false (not wide enough)`);
+            return false;
+        }
+
+        // Find this image's position among all wide images
+        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4);
+        const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
+        const shouldBeWide = wideImageIndex % 4 === 0; // Every 4th wide image
+
+        console.log(
+            `[isWide] image id: ${img.id}, aspectRatio: ${ar}, wideImageIndex: ${wideImageIndex}, shouldBeWide: ${shouldBeWide}`
+        );
+
+        return shouldBeWide;
+    };
 
     function relayout() {
         msnry?.layout();
@@ -125,8 +144,8 @@
     /* Wide items span 2 columns */
     .grid-item.w2 {
         width: calc(
-            2 * ((100% - calc(16px * (var(--cols) - 1))) / var(--cols)) + calc(16px * (var(--cols) - 1))
-        ); /* 2 * column_width + gutters between them */
+            2 * ((100% - calc(16px * (var(--cols) - 1))) / var(--cols)) + 16px
+        ); /* 2 * column_width + 1 gutter (between the spanned columns) */
     }
 
     /* Make images fill their tile width without stretching height.

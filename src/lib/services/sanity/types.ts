@@ -16,6 +16,14 @@ export interface SanityImage {
     asset: {
         _ref: string;
         _type: string;
+        _id?: string;
+        url?: string;
+        metadata?: {
+            dimensions?: {
+                width: number;
+                height: number;
+            };
+        };
     };
 }
 

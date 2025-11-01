@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
     import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
 
     import { adminMode } from '$lib/stores/adminStore';
@@ -54,6 +55,7 @@
             medium?: string;
             large?: string;
         };
+        aspectRatio?: number;
     }
 
     interface SanityCategory {
@@ -263,6 +265,9 @@
                         ? image.attributes.image.data.attributes.order
                         : 0;
 
+            // Use aspect ratio calculated on server
+            let aspectRatio: number | undefined = image.aspectRatio;
+
             const galleryImage = {
                 id: String(image._id || image.id),
                 title,
@@ -278,10 +283,32 @@
                           medium: responsiveUrls.medium || fullSizeUrl || url,
                           large: responsiveUrls.large || fullSizeUrl || url
                       }
-                    : undefined
+                    : undefined,
+                aspectRatio
             };
 
             return galleryImage;
+        });
+    }
+
+    // Calculate aspect ratios for images that don't have them (client-side only)
+    $: if (browser && galleryImages.length > 0 && !loadingImageUrls) {
+        // Check for images without aspect ratios and calculate them
+        galleryImages.forEach((image, index) => {
+            if (image.aspectRatio === undefined && image.url) {
+                const img = new Image();
+                img.onload = () => {
+                    if (img.naturalWidth && img.naturalHeight) {
+                        const calculatedRatio = img.naturalWidth / img.naturalHeight;
+                        galleryImages[index].aspectRatio = calculatedRatio;
+                        galleryImages = [...galleryImages]; // Trigger reactivity
+                        console.log(
+                            `[client] calculated aspectRatio for ${image.id}: ${img.naturalWidth}x${img.naturalHeight} = ${calculatedRatio}`
+                        );
+                    }
+                };
+                img.src = image.url;
+            }
         });
     }
 

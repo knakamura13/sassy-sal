@@ -49,7 +49,19 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                 "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
                     _id,
                     order,
-                    image
+                    image {
+                        ...,
+                        asset-> {
+                            _id,
+                            url,
+                            metadata {
+                                dimensions {
+                                    width,
+                                    height
+                                }
+                            }
+                        }
+                    }
                 }
             }`
             : `*[_type == "category" && name == $identifier][0] {
@@ -61,7 +73,19 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                 "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
                     _id,
                     order,
-                    image
+                    image {
+                        ...,
+                        asset-> {
+                            _id,
+                            url,
+                            metadata {
+                                dimensions {
+                                    width,
+                                    height
+                                }
+                            }
+                        }
+                    }
                 }
             }`;
 
