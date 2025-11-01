@@ -78,6 +78,7 @@ export interface FormattedImage {
     documentId?: string;
     attributes: {
         order: number;
+        spanTwoColumns?: boolean;
         image: {
             data: {
                 attributes: {

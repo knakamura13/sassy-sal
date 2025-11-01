@@ -88,7 +88,7 @@
 
     // Get the category from the server data - ensure it exists
     let category = data?.category;
-    let categoryImages: SanityImage[] = [];
+    let categoryImages: any[] = [];
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
@@ -286,7 +286,7 @@
                       }
                     : undefined,
                 aspectRatio,
-                spanTwoColumns: image.spanTwoColumns
+                spanTwoColumns: image.attributes.spanTwoColumns
             };
 
             console.log(
