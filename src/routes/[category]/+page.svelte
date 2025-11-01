@@ -302,9 +302,6 @@
                         const calculatedRatio = img.naturalWidth / img.naturalHeight;
                         galleryImages[index].aspectRatio = calculatedRatio;
                         galleryImages = [...galleryImages]; // Trigger reactivity
-                        console.log(
-                            `[client] calculated aspectRatio for ${image.id}: ${img.naturalWidth}x${img.naturalHeight} = ${calculatedRatio}`
-                        );
                     }
                 };
                 img.src = image.url;

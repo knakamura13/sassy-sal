@@ -24,7 +24,6 @@
         const isWideAspectRatio = ar >= 1.4;
 
         if (!isWideAspectRatio) {
-            console.log(`[isWide] image id: ${img.id}, aspectRatio: ${ar}, isWide: false (not wide enough)`);
             return false;
         }
 
@@ -35,9 +34,6 @@
         // Don't make images wide if there are fewer than 3 images remaining
         // This prevents whitespace issues when wide images appear near the end
         if (imagesRemaining < 3) {
-            console.log(
-                `[isWide] image id: ${img.id}, aspectRatio: ${ar}, imagesRemaining: ${imagesRemaining}, isWide: false (too few images remaining)`
-            );
             return false;
         }
 
@@ -45,10 +41,6 @@
         const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4);
         const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
         const shouldBeWide = wideImageIndex % 4 === 0; // Every 4th wide image
-
-        console.log(
-            `[isWide] image id: ${img.id}, aspectRatio: ${ar}, wideImageIndex: ${wideImageIndex}, imagesRemaining: ${imagesRemaining}, shouldBeWide: ${shouldBeWide}`
-        );
 
         return shouldBeWide;
     };
