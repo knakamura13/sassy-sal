@@ -5,10 +5,10 @@ export default defineCliConfig({
     projectId: 'lwgwqd6k',
     dataset: 'production',
   },
+  studioHost: 'sallyjkphotography',
   /**
    * Enable auto-updates for studios.
    * Learn more at https://www.sanity.io/docs/cli#auto-updates
    */
-  autoUpdates: true,
-  studioHost: 'sallyjkphotography',
+  deployment: {autoUpdates: true},
 })
