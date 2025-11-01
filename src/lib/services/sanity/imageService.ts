@@ -93,10 +93,14 @@ export const updateImage = async (
     data: { order?: number; image?: File; spanTwoColumns?: boolean }
 ): Promise<{ data: FormattedImage }> => {
     try {
+        console.log('[updateImage] Updating image', id, 'with data:', data);
+
         const updates: Partial<SanityGalleryImage> = {
             order: data.order !== undefined ? data.order : undefined,
             spanTwoColumns: data.spanTwoColumns !== undefined ? data.spanTwoColumns : undefined
         };
+
+        console.log('[updateImage] Prepared updates:', updates);
 
         // If there's a new image file, upload it
         if (data.image && data.image instanceof File) {
@@ -106,6 +110,8 @@ export const updateImage = async (
 
         // Filter out undefined values
         const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, value]) => value !== undefined));
+
+        console.log('[updateImage] Clean updates:', cleanUpdates);
 
         // Update the document via server endpoint
         const response = await fetch('/api/sanity', {

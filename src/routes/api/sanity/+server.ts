@@ -32,7 +32,9 @@ export async function POST({ request, cookies }) {
 
             case 'updateImage':
                 const { imageId, imageUpdates } = data;
+                console.log('[API updateImage] Updating image', imageId, 'with updates:', imageUpdates);
                 const updatedImage = await updateSanityDocument(imageId, imageUpdates);
+                console.log('[API updateImage] Updated image result:', updatedImage);
                 return json({ success: true, data: updatedImage });
 
             case 'deleteImage':
