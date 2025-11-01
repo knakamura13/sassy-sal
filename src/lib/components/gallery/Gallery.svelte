@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, tick, onDestroy } from 'svelte';
+    import { browser } from '$app/environment';
 
     import { adminMode } from '$lib/stores/adminStore';
     import { type Image, imageStore } from '$lib/stores/imageStore';
@@ -48,6 +49,11 @@
     let showProgressDialog = false;
     let uploadStep = 0;
     let uploadTotal = 0;
+
+    // Reactive column count based on screen width (matches CSS breakpoints)
+    let windowWidth = browser ? window.innerWidth : 1024; // Default to desktop width for SSR
+    $: columns = windowWidth >= 1024 ? 3 : windowWidth >= 640 ? 2 : 1;
+
     let uploadMessage = '';
     let uploadPercentage = 0;
     let uploadOperation = '';
@@ -86,6 +92,12 @@
             window.addEventListener('imageReadyFromCDN', handleImageReadyFromCDN as EventListener);
         }
 
+        // Listen for window resize to update column count
+        const handleResize = () => {
+            windowWidth = window.innerWidth;
+        };
+        window.addEventListener('resize', handleResize);
+
         return () => {
             // Clean up services
             cacheManager?.destroy();
@@ -94,6 +106,7 @@
             if (useCdn) {
                 window.removeEventListener('imageReadyFromCDN', handleImageReadyFromCDN as EventListener);
             }
+            window.removeEventListener('resize', handleResize);
 
             // Clean up any blob URLs when component unmounts
             localImages.forEach((img) => {
@@ -536,6 +549,7 @@
             images={sortedImages}
             isAdmin={$adminMode}
             isCategory={true}
+            {columns}
             on:imageClick={(e) => handleImageClick(e.detail)}
             on:removeImage={(e) => handleRemoveImage(e.detail)}
             on:updateImage={handleUpdateImage}

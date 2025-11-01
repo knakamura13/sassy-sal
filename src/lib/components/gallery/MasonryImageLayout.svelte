@@ -13,6 +13,7 @@
     export let images: Image[] = [];
     export let isAdmin = false;
     export let isCategory = true;
+    export let columns = 3; // Current number of columns (1, 2, or 3)
 
     let gridEl: HTMLDivElement | null = null;
     let msnry: any = null; // Masonry instance
@@ -23,9 +24,15 @@
     const MIN_IMAGES_REMAINING_FOR_WIDE = 3; // Don't make images wide if fewer than this many images remain
     const SKIP_FIRST_N_WIDE_IMAGES = 1; // Skip the first N wide images (slice parameter)
     const WIDE_IMAGE_FREQUENCY = 3; // Show every Nth wide image as actually wide (2-column span)
+    const PROTECT_FIRST_N_IMAGES_IN_2_COL = 2; // In 2-column mode, don't make first N images wide
 
-    // Decide which items should be wide (2 columns) - selective display to prevent whitespace
+    // Decide which items should be wide (2 columns) - selective display to prevent whitespace and layout issues
     const isWide = (img: Image) => {
+        // Never make images wide in 1-column mode
+        if (columns === 1) {
+            return false;
+        }
+
         const ar = img.aspectRatio ?? 1;
         const isWideAspectRatio = ar >= WIDE_ASPECT_RATIO_THRESHOLD;
 
@@ -35,6 +42,12 @@
 
         // Find this image's position in the full images array
         const currentImageIndex = images.findIndex((image) => image.id === img.id);
+
+        // In 2-column mode, don't make the first N images wide to prevent awkward gaps
+        if (columns === 2 && currentImageIndex < PROTECT_FIRST_N_IMAGES_IN_2_COL) {
+            return false;
+        }
+
         const imagesRemaining = images.length - currentImageIndex - 1;
 
         // Don't make images wide if there are fewer than MIN_IMAGES_REMAINING_FOR_WIDE images remaining
