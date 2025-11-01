@@ -226,9 +226,16 @@
 
     // Function to handle saving changes
     async function saveChanges() {
+        console.log('[saveChanges] Starting save process', {
+            localImages: localImages.map(img => ({ id: img.id, order: img.order, spanTwoColumns: img.spanTwoColumns })),
+            originalImages: originalImages.map(img => ({ id: img.id, order: img.order, spanTwoColumns: img.spanTwoColumns }))
+        });
+
         if (isSaving || !imageOperationsService) return;
 
         isSaving = true;
+
+        console.log('[saveChanges] About to call imageOperationsService.saveChanges');
 
         const result = await imageOperationsService.saveChanges({
             localImages,
@@ -408,6 +415,8 @@
 
     // Function to handle image update
     function handleUpdateImage(event: CustomEvent) {
+        console.log('[Gallery] handleUpdateImage received event:', event.detail);
+
         const { id, data } = event.detail;
 
         // Find the image to update
@@ -435,9 +444,19 @@
         localImages[imageIndex] = {
             ...localImages[imageIndex],
             order: newOrder,
-            spanTwoColumns: updateFields.spanTwoColumns !== undefined ? updateFields.spanTwoColumns : localImages[imageIndex].spanTwoColumns,
+            spanTwoColumns:
+                updateFields.spanTwoColumns !== undefined
+                    ? updateFields.spanTwoColumns
+                    : localImages[imageIndex].spanTwoColumns,
             file: imageFile // Store file for later processing
         };
+
+        console.log('[handleUpdateImage] Updated image:', {
+            id: localImages[imageIndex].id,
+            order: localImages[imageIndex].order,
+            spanTwoColumns: localImages[imageIndex].spanTwoColumns,
+            updateFields: updateFields
+        });
 
         // Force reactive update by reassigning the array
         localImages = [...localImages];

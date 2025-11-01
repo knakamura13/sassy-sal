@@ -95,6 +95,12 @@
     }
 
     async function handleSubmit() {
+        console.log('[EditImageDialog] handleSubmit called with:', {
+            editOrder,
+            editSpanTwoColumns,
+            imageId: image.id
+        });
+
         isUploading = true;
         errorMessage = '';
 
@@ -125,6 +131,11 @@
             }
 
             // Dispatch the update event
+            console.log('[EditImageDialog] Dispatching update event:', {
+                id: image.id,
+                data: updateData
+            });
+
             dispatch('update', {
                 id: image.id,
                 data: updateData
