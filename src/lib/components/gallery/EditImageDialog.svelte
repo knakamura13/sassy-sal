@@ -52,10 +52,6 @@
         });
     }
 
-    // Watch for editOrder changes
-    $: if (typeof editOrder === 'number') {
-        console.log('[EditImageDialog] editOrder changed to:', editOrder);
-    }
 
     function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
