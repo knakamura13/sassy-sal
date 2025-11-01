@@ -24,6 +24,7 @@ export interface Image {
     isFromCache?: boolean; // Flag to indicate if the image is from local cache or Sanity CDN
     uploadedAt?: number; // Timestamp when the image was uploaded (for cache management)
     updatedAt?: number; // Timestamp when the image was last updated (for cache management)
+    aspectRatio?: number; // Cached aspect ratio (width/height) for layout calculations
 }
 
 // Create a writable store with initial images
