@@ -97,6 +97,8 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
             identifier: nameOrId
         });
 
+        console.log('[categoryService] After GROQ query - category.images:', category.images?.map(img => ({ _id: img._id, spanTwoColumns: img.spanTwoColumns })));
+
         if (!category) {
             return null;
         }
