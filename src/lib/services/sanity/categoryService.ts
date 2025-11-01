@@ -97,6 +97,8 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
             identifier: nameOrId
         });
 
+        console.log('[categoryService] Raw GROQ result:', JSON.stringify(category, null, 2));
+
         if (!category) {
             return null;
         }
