@@ -18,10 +18,16 @@
     let msnry: any = null; // Masonry instance
     let il: any = null; // imagesLoaded instance
 
-    // Decide which items should be wide (2 columns) - only 1 in every 4 wide images, but not near the end
+    // Masonry layout constants
+    const WIDE_ASPECT_RATIO_THRESHOLD = 1.4; // Images with aspect ratio >= this are considered wide
+    const MIN_IMAGES_REMAINING_FOR_WIDE = 3; // Don't make images wide if fewer than this many images remain
+    const SKIP_FIRST_WIDE_IMAGE = 1; // Skip the first wide image (slice parameter)
+    const WIDE_IMAGE_FREQUENCY = 3; // Show every Nth wide image as actually wide (2-column span)
+
+    // Decide which items should be wide (2 columns) - selective display to prevent whitespace
     const isWide = (img: Image) => {
         const ar = img.aspectRatio ?? 1;
-        const isWideAspectRatio = ar >= 1.4;
+        const isWideAspectRatio = ar >= WIDE_ASPECT_RATIO_THRESHOLD;
 
         if (!isWideAspectRatio) {
             return false;
@@ -31,16 +37,16 @@
         const currentImageIndex = images.findIndex((image) => image.id === img.id);
         const imagesRemaining = images.length - currentImageIndex - 1;
 
-        // Don't make images wide if there are fewer than 3 images remaining
+        // Don't make images wide if there are fewer than MIN_IMAGES_REMAINING_FOR_WIDE images remaining
         // This prevents whitespace issues when wide images appear near the end
-        if (imagesRemaining < 3) {
+        if (imagesRemaining < MIN_IMAGES_REMAINING_FOR_WIDE) {
             return false;
         }
 
         // Find this image's position among all wide images, skipping the first one
-        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4).slice(1);
+        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= WIDE_ASPECT_RATIO_THRESHOLD).slice(SKIP_FIRST_WIDE_IMAGE);
         const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
-        const shouldBeWide = wideImageIndex % 3 === 0; // Every 3rd wide image
+        const shouldBeWide = wideImageIndex % WIDE_IMAGE_FREQUENCY === 0; // Every Nth wide image
 
         return shouldBeWide;
     };
