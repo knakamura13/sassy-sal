@@ -21,7 +21,7 @@
     // Masonry layout constants
     const WIDE_ASPECT_RATIO_THRESHOLD = 1.4; // Images with aspect ratio >= this are considered wide
     const MIN_IMAGES_REMAINING_FOR_WIDE = 3; // Don't make images wide if fewer than this many images remain
-    const SKIP_FIRST_WIDE_IMAGE = 1; // Skip the first wide image (slice parameter)
+    const SKIP_FIRST_N_WIDE_IMAGES = 1; // Skip the first N wide images (slice parameter)
     const WIDE_IMAGE_FREQUENCY = 3; // Show every Nth wide image as actually wide (2-column span)
 
     // Decide which items should be wide (2 columns) - selective display to prevent whitespace
@@ -44,7 +44,9 @@
         }
 
         // Find this image's position among all wide images, skipping the first one
-        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= WIDE_ASPECT_RATIO_THRESHOLD).slice(SKIP_FIRST_WIDE_IMAGE);
+        const wideImages = images
+            .filter((img) => (img.aspectRatio ?? 1) >= WIDE_ASPECT_RATIO_THRESHOLD)
+            .slice(SKIP_FIRST_N_WIDE_IMAGES);
         const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
         const shouldBeWide = wideImageIndex % WIDE_IMAGE_FREQUENCY === 0; // Every Nth wide image
 
