@@ -98,53 +98,35 @@
     .grid {
         --cols: 1;
         width: 100%;
-        max-width: 300px; /* 1 * 300px */
+        max-width: 1400px; /* full width utilization at all breakpoints */
         margin: 0 auto;
     }
 
     @media (min-width: 640px) {
         .grid {
             --cols: 2;
-            max-width: 496px; /* 2 * 240px + 16px gutter */
         }
     }
 
     @media (min-width: 1024px) {
         .grid {
+            --cols: 3;
             max-width: 1400px; /* ensure full width utilization on desktop */
         }
     }
     /* Responsive column sizing that adapts to available space */
     .grid-sizer,
     .grid-item {
-        width: 300px;
+        /* Fluid width: account for gutters in calculation */
+        width: calc((100% - calc(16px * (var(--cols) - 1))) / var(--cols));
         margin-bottom: 16px;
-    }
-
-    @media (min-width: 640px) {
-        .grid-sizer,
-        .grid-item {
-            width: 240px;
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .grid-sizer,
-        .grid-item {
-            /* Fluid width: account for gutters in calculation */
-            width: calc((100% - 32px) / 3); /* (container - gutters) / columns */
-        }
     }
 
     /* Wide items span 2 columns */
     .grid-item.w2 {
-        width: calc(480px + 16px); /* 2 * 240px + gutter */
-    }
-
-    @media (min-width: 1024px) {
-        .grid-item.w2 {
-            width: calc(2 * ((100% - 32px) / 3) + 16px); /* 2 * column_width + gutter */
-        }
+        width: calc(
+            2 * ((100% - calc(16px * (var(--cols) - 1))) / var(--cols)) + calc(16px * (var(--cols) - 1))
+        ); /* 2 * column_width + gutters between them */
     }
 
     /* Make images fill their tile width without stretching height.
