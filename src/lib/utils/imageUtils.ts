@@ -71,8 +71,11 @@ export function findImageChanges(
         // Check if file changed
         const fileChanged = !!local.file;
 
-        // Return true if either order or file changed
-        return orderChanged || fileChanged;
+        // Check if spanTwoColumns changed
+        const spanTwoColumnsChanged = local.spanTwoColumns !== orig.spanTwoColumns;
+
+        // Return true if order, file, or spanTwoColumns changed
+        return orderChanged || fileChanged || spanTwoColumnsChanged;
     });
 
     return { imagesToAdd, imagesToRemove, imagesToUpdate };
