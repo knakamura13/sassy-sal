@@ -92,6 +92,7 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
         documentId: image._id,
         attributes: {
             order: image.order || 0,
+            spanTwoColumns: image.spanTwoColumns,
             image: {
                 data: {
                     attributes: {
