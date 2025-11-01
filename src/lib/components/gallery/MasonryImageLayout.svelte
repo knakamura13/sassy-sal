@@ -37,10 +37,10 @@
             return false;
         }
 
-        // Find this image's position among all wide images
-        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4);
+        // Find this image's position among all wide images, skipping the first one
+        const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4).slice(1);
         const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
-        const shouldBeWide = wideImageIndex % 4 === 0; // Every 4th wide image
+        const shouldBeWide = wideImageIndex % 3 === 0; // Every 3rd wide image
 
         return shouldBeWide;
     };
