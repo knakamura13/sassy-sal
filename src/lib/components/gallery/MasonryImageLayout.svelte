@@ -18,7 +18,7 @@
     let msnry: any = null; // Masonry instance
     let il: any = null; // imagesLoaded instance
 
-    // Decide which items should be wide (2 columns) - only 1 in every 4 wide images
+    // Decide which items should be wide (2 columns) - only 1 in every 4 wide images, but not near the end
     const isWide = (img: Image) => {
         const ar = img.aspectRatio ?? 1;
         const isWideAspectRatio = ar >= 1.4;
@@ -28,13 +28,26 @@
             return false;
         }
 
+        // Find this image's position in the full images array
+        const currentImageIndex = images.findIndex((image) => image.id === img.id);
+        const imagesRemaining = images.length - currentImageIndex - 1;
+
+        // Don't make images wide if there are fewer than 3 images remaining
+        // This prevents whitespace issues when wide images appear near the end
+        if (imagesRemaining < 3) {
+            console.log(
+                `[isWide] image id: ${img.id}, aspectRatio: ${ar}, imagesRemaining: ${imagesRemaining}, isWide: false (too few images remaining)`
+            );
+            return false;
+        }
+
         // Find this image's position among all wide images
         const wideImages = images.filter((img) => (img.aspectRatio ?? 1) >= 1.4);
         const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
         const shouldBeWide = wideImageIndex % 4 === 0; // Every 4th wide image
 
         console.log(
-            `[isWide] image id: ${img.id}, aspectRatio: ${ar}, wideImageIndex: ${wideImageIndex}, shouldBeWide: ${shouldBeWide}`
+            `[isWide] image id: ${img.id}, aspectRatio: ${ar}, wideImageIndex: ${wideImageIndex}, imagesRemaining: ${imagesRemaining}, shouldBeWide: ${shouldBeWide}`
         );
 
         return shouldBeWide;
