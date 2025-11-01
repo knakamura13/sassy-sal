@@ -20,65 +20,65 @@ sanity/
 
 ### `client.ts`
 
-- **Purpose**: Sanity client configuration and initialization
-- **Exports**: `client`, `urlFor`, `isBrowser`
-- **Responsibilities**:
-    - Environment detection (browser vs server)
-    - Client configuration with browser-specific options
-    - Image URL builder setup
-    - Browser polyfills for Node.js compatibility
+-   **Purpose**: Sanity client configuration and initialization
+-   **Exports**: `client`, `urlFor`, `isBrowser`
+-   **Responsibilities**:
+    -   Environment detection (browser vs server)
+    -   Client configuration with browser-specific options
+    -   Image URL builder setup
+    -   Browser polyfills for Node.js compatibility
 
 ### `types.ts`
 
-- **Purpose**: Shared TypeScript interfaces
-- **Exports**: All type definitions used across Sanity services
-- **Key Types**:
-    - `SanityCategory`, `SanityGalleryImage`, `SanityImage`
-    - `FormattedCategory`, `FormattedImage`
-    - `CategoryData`, `ImageData`
+-   **Purpose**: Shared TypeScript interfaces
+-   **Exports**: All type definitions used across Sanity services
+-   **Key Types**:
+    -   `SanityCategory`, `SanityGalleryImage`, `SanityImage`
+    -   `FormattedCategory`, `FormattedImage`
+    -   `CategoryData`, `ImageData`
 
 ### `transformers.ts`
 
-- **Purpose**: Data transformation between Sanity's format and UI expectations
-- **Exports**: `transformCategory`, `transformCategoryWithImages`, `transformImage`, `createSanityImageFromAsset`
-- **Responsibilities**:
-    - Convert Sanity documents to UI-friendly formats
-    - Generate multiple image URL variants (thumbnail, medium, full)
-    - Handle error cases in URL generation
+-   **Purpose**: Data transformation between Sanity's format and UI expectations
+-   **Exports**: `transformCategory`, `transformCategoryWithImages`, `transformImage`, `createSanityImageFromAsset`
+-   **Responsibilities**:
+    -   Convert Sanity documents to UI-friendly formats
+    -   Generate multiple image URL variants (thumbnail, medium, full)
+    -   Handle error cases in URL generation
 
 ### `categoryService.ts`
 
-- **Purpose**: Category-related CRUD operations
-- **Exports**: `getCategories`, `getCategoryWithImages`, `addCategory`, `deleteCategory`, `updateCategory`
-- **Features**:
-    - GROQ queries for category data
-    - Progress callbacks for deletion operations
-    - Automatic image cleanup on category deletion
+-   **Purpose**: Category-related CRUD operations
+-   **Exports**: `getCategories`, `getCategoryWithImages`, `addCategory`, `deleteCategory`, `updateCategory`
+-   **Features**:
+    -   GROQ queries for category data
+    -   Progress callbacks for deletion operations
+    -   Automatic image cleanup on category deletion
 
 ### `imageService.ts`
 
-- **Purpose**: Image-related CRUD operations
-- **Exports**: `addImage`, `deleteImage`, `updateImage`
-- **Features**:
-    - File upload integration
-    - Server-side operations via API endpoints
-    - Data transformation for UI consistency
+-   **Purpose**: Image-related CRUD operations
+-   **Exports**: `addImage`, `deleteImage`, `updateImage`
+-   **Features**:
+    -   File upload integration
+    -   Server-side operations via API endpoints
+    -   Data transformation for UI consistency
 
 ### `uploadService.ts`
 
-- **Purpose**: File upload with network resilience
-- **Exports**: `uploadFile`
-- **Features**:
-    - Configurable retry logic for network errors
-    - Exponential backoff with jitter
-    - Timeout handling
-    - Progress tracking capabilities
+-   **Purpose**: File upload with network resilience
+-   **Exports**: `uploadFile`
+-   **Features**:
+    -   Configurable retry logic for network errors
+    -   Exponential backoff with jitter
+    -   Timeout handling
+    -   Progress tracking capabilities
 
 ### `index.ts`
 
-- **Purpose**: Main entry point for the Sanity services module
-- **Exports**: Re-exports all functionality from other modules
-- **Usage**: Import from this file to access any Sanity service functionality
+-   **Purpose**: Main entry point for the Sanity services module
+-   **Exports**: Re-exports all functionality from other modules
+-   **Usage**: Import from this file to access any Sanity service functionality
 
 ## Usage Examples
 
@@ -152,14 +152,14 @@ console.log('Uploaded asset ID:', asset._id);
 
 All services include comprehensive error handling:
 
-- Network errors are logged with context
-- Retry logic for transient failures
-- Graceful degradation for missing data
-- User-friendly error messages
+-   Network errors are logged with context
+-   Retry logic for transient failures
+-   Graceful degradation for missing data
+-   User-friendly error messages
 
 ## Performance Considerations
 
-- Client configuration optimized for browser vs server environments
-- CDN usage when available
-- Batch operations for bulk deletions
-- Lazy loading of retry configuration
+-   Client configuration optimized for browser vs server environments
+-   CDN usage when available
+-   Batch operations for bulk deletions
+-   Lazy loading of retry configuration

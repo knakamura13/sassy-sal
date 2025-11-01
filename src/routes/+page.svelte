@@ -6,8 +6,7 @@
         addCategory,
         addCategoryFast,
         uploadCategoryThumbnail,
-        deleteCategory,
-        getCategories
+        deleteCategory
     } from '$lib/services/sanity/categoryService';
     import { addDeletedCategory, deletedCategories } from '$lib/stores/deletedCategoriesStore';
     import { adminMode } from '$lib/stores/adminStore';
@@ -218,7 +217,12 @@
             if ($adminMode) {
                 try {
                     // Fetch latest categories to find the correct id
-                    const allCategories = await getCategories();
+                    const response1 = await fetch('/api/categories');
+                    const rawCategories1 = response1.ok ? await response1.json() : [];
+                    const allCategories = rawCategories1.map((cat: any) => ({
+                        id: cat._id,
+                        attributes: { name: cat.name, order: cat.order }
+                    }));
                     const categoryToDelete = (allCategories as any[]).find((cat) => {
                         return `${cat.id}` === `${id}`;
                     });
@@ -249,7 +253,12 @@
 
                     // Refresh category list from server after deletion
                     try {
-                        const updatedCategories = await getCategories();
+                        const response2 = await fetch('/api/categories');
+                        const rawCategories2 = response2.ok ? await response2.json() : [];
+                        const updatedCategories = rawCategories2.map((cat: any) => ({
+                            id: cat._id,
+                            attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                        }));
 
                         // If category still exists in response, track it as deleted locally
                         const categoryStillExists = (updatedCategories as any[]).some((cat) => cat.id === id);
@@ -291,7 +300,12 @@
 
                         // Try to refresh categories from server
                         try {
-                            const updatedCategories = await getCategories();
+                            const response2 = await fetch('/api/categories');
+                            const rawCategories2 = response2.ok ? await response2.json() : [];
+                            const updatedCategories = rawCategories2.map((cat: any) => ({
+                                id: cat._id,
+                                attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                            }));
                             if (updatedCategories && updatedCategories.length > 0) {
                                 updateCategoriesAndRender(updatedCategories);
                             }
@@ -583,8 +597,6 @@
 
             if ($adminMode) {
                 try {
-                    console.log('[DEBUG] Calling server-side API for category update', { id, data });
-
                     // Call our server-side API endpoint instead of the client-side Sanity service
                     const response = await fetch(`/api/categories/${id}`, {
                         method: 'PATCH',
@@ -600,7 +612,6 @@
                     }
 
                     const result = await response.json();
-                    console.log('[DEBUG] Server-side update successful', result);
 
                     // Update local state immediately for responsiveness
                     const updatedCategories = categories.map((cat) => {
@@ -620,7 +631,12 @@
 
                     // Refresh from server to get complete updated data
                     try {
-                        const refreshedCategories = await getCategories();
+                        const response = await fetch('/api/categories');
+                        const rawCategories = response.ok ? await response.json() : [];
+                        const refreshedCategories = rawCategories.map((cat: any) => ({
+                            id: cat._id,
+                            attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                        }));
                         if (refreshedCategories && refreshedCategories.length > 0) {
                             updateCategoriesAndRender(refreshedCategories);
                         }
@@ -632,7 +648,7 @@
                     showToast.success('Category updated successfully');
                 } catch (updateError: any) {
                     console.error('[DEBUG] Error updating category via API:', updateError);
-                    
+
                     // Special handling for 404 errors (category not found)
                     if (
                         updateError.status === 404 ||
@@ -642,7 +658,12 @@
 
                         // Try to refresh categories from server
                         try {
-                            const updatedCategories = await getCategories();
+                            const response2 = await fetch('/api/categories');
+                            const rawCategories2 = response2.ok ? await response2.json() : [];
+                            const updatedCategories = rawCategories2.map((cat: any) => ({
+                                id: cat._id,
+                                attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                            }));
                             if (updatedCategories && updatedCategories.length > 0) {
                                 categories = updatedCategories as Category[];
                             }

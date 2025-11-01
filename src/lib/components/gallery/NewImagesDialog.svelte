@@ -62,18 +62,24 @@
     async function fetchLatestOrderValue() {
         isLoadingImages = true;
         try {
-            // Dynamic import to avoid SSR issues
-            const { getCategoryWithImages } = await import('$lib/services/sanity/categoryService');
-            const categoryResponse = (await getCategoryWithImages(categoryId)) as CategoryResponse;
+            // Call our server-side API endpoint instead of the client-side service
+            const response = await fetch(`/api/categories/${encodeURIComponent(categoryId)}/order`);
 
-            // Calculate the highest order value from images
-            const highestOrder = getHighestOrderValue(categoryResponse);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
 
-            // Set the order value to highest + 2 as a suggestion
-            suggestedOrderValue = highestOrder + 2;
-            orderValue = suggestedOrderValue;
+            const result = await response.json();
+
+            if (result.success) {
+                // Set the order value to the suggested value from server
+                suggestedOrderValue = result.suggestedOrder || 2;
+                orderValue = suggestedOrderValue;
+            } else {
+                throw new Error('Failed to get order information');
+            }
         } catch (error) {
-            console.error('Error fetching images for order value:', error);
+            console.error('[DEBUG] Error fetching images for order value:', error);
             // Default to 0 if there's an error
             suggestedOrderValue = 0;
             orderValue = 0;

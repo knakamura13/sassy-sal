@@ -5,4 +5,4 @@ export const load: PageLoad = ({ data }) => {
     return {
         ...(data || {}) // Handle case where data could be null
     };
-} 
+};

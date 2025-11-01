@@ -1,6 +1,7 @@
 // Helper functions for working with Sanity queries
 import { client } from './sanity/client';
 import { getImageUrls, getMediumUrl, getPlaceholderUrl, getResponsiveUrls } from './imageConfig';
+import { sanityFetchWithRetry } from '../utils/sanityRetry';
 
 /**
  * Get all categories with optimized query shape
@@ -14,7 +15,8 @@ export const getAllCategories = async (): Promise<any[]> => {
     thumbnail
   }`;
 
-    return client.fetch(query).then((categories: any[]) => categories.map(formatCategory));
+    const categories = await sanityFetchWithRetry(client, query);
+    return categories.map(formatCategory);
 };
 
 /**
@@ -51,7 +53,8 @@ export const getCategoryById = async (id: string): Promise<any | null> => {
     }
   }`;
 
-    return client.fetch(query, { id }).then((category: any) => (category ? formatCategoryWithImages(category) : null));
+    const category = await sanityFetchWithRetry(client, query, { id });
+    return category ? formatCategoryWithImages(category) : null;
 };
 
 /**

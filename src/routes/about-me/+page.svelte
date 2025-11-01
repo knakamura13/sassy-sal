@@ -1,6 +1,18 @@
 <script>
     export let data;
-    const { aboutMe } = data;
+
+    // Handle potential missing data gracefully
+    $: aboutMe = data?.aboutMe || {
+        title: 'About Me',
+        mainContent: [],
+        contactForm: {
+            formHeader: 'Get in touch',
+            formFields: {},
+            submitButtonText: 'Send Message'
+        },
+        email: '',
+        footerTagline: ''
+    };
 
     import { PortableText } from '@portabletext/svelte';
     import { urlFor } from '$lib/utils/image';
@@ -66,6 +78,13 @@
             return;
         }
 
+        // Check if user is in admin mode before making API call
+        if (!$adminMode) {
+            console.warn('Cannot update title: not in admin mode');
+            cancelEditingTitle();
+            return;
+        }
+
         updateLoading.title = true;
 
         try {
@@ -91,6 +110,11 @@
                 aboutMe.title = editedValues.title.trim();
                 isEditing.title = false;
                 editedValues.title = '';
+            } else if (response.status === 403) {
+                console.error('Unauthorized to update title');
+                // Reset admin mode if we get 403
+                adminMode.set(false);
+                cancelEditingTitle();
             } else {
                 console.error('Failed to update title');
             }
@@ -118,6 +142,13 @@
             return;
         }
 
+        // Check if user is in admin mode before making API call
+        if (!$adminMode) {
+            console.warn('Cannot update form header: not in admin mode');
+            cancelEditingFormHeader();
+            return;
+        }
+
         updateLoading.formHeader = true;
 
         try {
@@ -141,6 +172,10 @@
                 aboutMe.contactForm.formHeader = editedValues.formHeader.trim();
                 isEditing.formHeader = false;
                 editedValues.formHeader = '';
+            } else if (response.status === 403) {
+                console.error('Unauthorized to update form header');
+                adminMode.set(false);
+                cancelEditingFormHeader();
             } else {
                 console.error('Failed to update form header');
             }
@@ -168,6 +203,13 @@
             return;
         }
 
+        // Check if user is in admin mode before making API call
+        if (!$adminMode) {
+            console.warn('Cannot update footer tagline: not in admin mode');
+            cancelEditingFooterTagline();
+            return;
+        }
+
         updateLoading.footerTagline = true;
 
         try {
@@ -191,6 +233,10 @@
                 aboutMe.footerTagline = editedValues.footerTagline.trim();
                 isEditing.footerTagline = false;
                 editedValues.footerTagline = '';
+            } else if (response.status === 403) {
+                console.error('Unauthorized to update footer tagline');
+                adminMode.set(false);
+                cancelEditingFooterTagline();
             } else {
                 console.error('Failed to update footer tagline');
             }
@@ -218,6 +264,13 @@
             return;
         }
 
+        // Check if user is in admin mode before making API call
+        if (!$adminMode) {
+            console.warn('Cannot update email: not in admin mode');
+            cancelEditingEmail();
+            return;
+        }
+
         updateLoading.email = true;
 
         try {
@@ -241,6 +294,10 @@
                 aboutMe.email = editedValues.email.trim();
                 isEditing.email = false;
                 editedValues.email = '';
+            } else if (response.status === 403) {
+                console.error('Unauthorized to update email');
+                adminMode.set(false);
+                cancelEditingEmail();
             } else {
                 console.error('Failed to update email');
             }

@@ -25,6 +25,6 @@ If using Gmail:
 
 ## Security Notes
 
-- Never commit the `.env` file to version control
-- The `.env` file should be added to your `.gitignore` file
-- For production deployment, set these environment variables in your hosting provider's dashboard
+-   Never commit the `.env` file to version control
+-   The `.env` file should be added to your `.gitignore` file
+-   For production deployment, set these environment variables in your hosting provider's dashboard

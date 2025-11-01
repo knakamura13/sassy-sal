@@ -38,4 +38,4 @@ export const isDeleted = (categoryId: string | number) => {
 
 export const deletedCategories = deletedCategoriesStore;
 
-export default deletedCategoriesStore; 
+export default deletedCategoriesStore;

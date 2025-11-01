@@ -8,4 +8,4 @@ if (typeof window !== 'undefined') {
 }
 
 export const ssr = true; // Enable server-side rendering site-wide
-export const prerender = false; 
+export const prerender = false;

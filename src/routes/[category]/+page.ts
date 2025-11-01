@@ -10,4 +10,4 @@ export const load: PageLoad = ({ params, url, data }) => {
         ...data,
         admin: isAdmin
     };
-}; 
+};

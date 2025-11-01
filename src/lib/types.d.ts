@@ -20,4 +20,4 @@ declare module 'events' {
         prependOnceListener(event: string, listener: (...args: any[]) => void): this;
         eventNames(): (string | symbol)[];
     }
-} 
+}

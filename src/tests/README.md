@@ -87,12 +87,12 @@ When upload issues occur:
 
 Based on the code analysis, common upload failure patterns include:
 
-- **Environment Variable Issues**: Missing or incorrect `VITE_SANITY_PROJECT_ID` or `SANITY_API_TOKEN`
-- **File Size Issues**: Large files timing out or exceeding limits
-- **Network Issues**: Intermittent connectivity problems
-- **Race Conditions**: Multiple uploads happening simultaneously
-- **Memory Issues**: Blob URL memory leaks causing browser slowdown
-- **CDN Timing**: Images uploaded but not immediately available from Sanity CDN
+-   **Environment Variable Issues**: Missing or incorrect `VITE_SANITY_PROJECT_ID` or `SANITY_API_TOKEN`
+-   **File Size Issues**: Large files timing out or exceeding limits
+-   **Network Issues**: Intermittent connectivity problems
+-   **Race Conditions**: Multiple uploads happening simultaneously
+-   **Memory Issues**: Blob URL memory leaks causing browser slowdown
+-   **CDN Timing**: Images uploaded but not immediately available from Sanity CDN
 
 ## Next Steps for Debugging
 
@@ -108,8 +108,8 @@ If upload failures persist after confirming basic functionality works:
 
 Current tests cover:
 
-- ✅ Sanity API authentication and permissions
-- ✅ Image URL generation and transformation
-- ✅ Upload API endpoint functionality
-- ⏱️ Frontend upload component testing (future)
-- ⏱️ End-to-end upload flow testing (future)
+-   ✅ Sanity API authentication and permissions
+-   ✅ Image URL generation and transformation
+-   ✅ Upload API endpoint functionality
+-   ⏱️ Frontend upload component testing (future)
+-   ⏱️ End-to-end upload flow testing (future)

@@ -70,4 +70,4 @@ if (typeof window !== 'undefined') {
         });
 }
 
-export { }; 
+export {};

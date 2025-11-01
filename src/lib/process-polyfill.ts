@@ -20,13 +20,13 @@ class EventEmitter {
 
     emit(event: string, ...args: any[]): boolean {
         if (!this.events[event]) return false;
-        this.events[event].forEach(listener => listener(...args));
+        this.events[event].forEach((listener) => listener(...args));
         return true;
     }
 
     removeListener(event: string, listener: (...args: any[]) => void): this {
         if (!this.events[event]) return this;
-        this.events[event] = this.events[event].filter(l => l !== listener);
+        this.events[event] = this.events[event].filter((l) => l !== listener);
         return this;
     }
 }
@@ -80,4 +80,4 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export default {}; 
+export default {};

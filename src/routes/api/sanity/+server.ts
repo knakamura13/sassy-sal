@@ -1,12 +1,15 @@
 import { json } from '@sveltejs/kit';
 import { createSanityDocument, updateSanityDocument, deleteSanityDocument } from '$lib/server/sanityServerClient';
 
-export async function POST({ request }) {
+export async function POST({ request, cookies }) {
     try {
         const { operation, data } = await request.json();
 
         // Require authentication for all operations
-        // For a real app, you should add more sophisticated auth here
+        const adminSession = cookies.get('admin_session');
+        if (!adminSession || adminSession !== 'authenticated') {
+            return json({ error: 'Unauthorized' }, { status: 403 });
+        }
 
         // Handle different operations
         switch (operation) {

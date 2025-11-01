@@ -13,7 +13,11 @@ export const publicClient = createClient({
     dataset,
     apiVersion,
     useCdn, // Use CDN for better performance on public data
-    perspective: 'published' // Only fetch published documents, not drafts
+    perspective: 'published', // Only fetch published documents, not drafts
+    // Add timeout configuration (retries handled by custom logic)
+    timeout: 30000, // 30 second timeout
+    maxRetries: 0, // Disable automatic retries since we use custom retry logic
+    ignoreBrowserTokenWarning: true
 });
 
 // Create image URL builder

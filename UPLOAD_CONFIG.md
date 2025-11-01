@@ -52,11 +52,11 @@ UPLOAD_RETRY_ON_NETWORK_ERRORS=true
 
 The system uses these sensible defaults if no environment variables are set:
 
-- **Max Retries**: 3 attempts
-- **Initial Delay**: 1000ms (1 second)
-- **Max Delay**: 8000ms (8 seconds)
-- **Timeout**: 60000ms (60 seconds)
-- **Retry on Network Errors**: true
+-   **Max Retries**: 3 attempts
+-   **Initial Delay**: 1000ms (1 second)
+-   **Max Delay**: 8000ms (8 seconds)
+-   **Timeout**: 60000ms (60 seconds)
+-   **Retry on Network Errors**: true
 
 ## Retry Behavior
 
@@ -73,20 +73,20 @@ The retry mechanism uses exponential backoff with jitter to avoid thundering her
 
 The system automatically retries these types of errors:
 
-- `Failed to fetch`
-- `NetworkError`
-- `ERR_NETWORK_CHANGED`
-- Connection-related errors
-- Timeout errors
+-   `Failed to fetch`
+-   `NetworkError`
+-   `ERR_NETWORK_CHANGED`
+-   Connection-related errors
+-   Timeout errors
 
 ### Configuration Limits
 
 To prevent misconfigurations, the system enforces these limits:
 
-- **Max Retries**: 0-10 attempts
-- **Initial Delay**: 100ms-5 seconds
-- **Max Delay**: 1-30 seconds
-- **Timeout**: 5 seconds-5 minutes
+-   **Max Retries**: 0-10 attempts
+-   **Initial Delay**: 100ms-5 seconds
+-   **Max Delay**: 1-30 seconds
+-   **Timeout**: 5 seconds-5 minutes
 
 ## Usage Examples
 
@@ -124,9 +124,9 @@ VITE_UPLOAD_RETRY_ON_NETWORK_ERRORS=false
 
 The system logs retry attempts to the console, including:
 
-- File name and size
-- Retry attempt number
-- Delay before next attempt
-- Error message that triggered the retry
+-   File name and size
+-   Retry attempt number
+-   Delay before next attempt
+-   Error message that triggered the retry
 
 This helps with debugging network issues and tuning retry parameters.

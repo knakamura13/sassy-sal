@@ -12,8 +12,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
             throw error(400, 'Category name and password are required');
         }
 
-        console.log('[DEBUG] Fetching password-protected category data for:', categoryName);
-
         // Fetch the category data including password using server-side client
         const categoryResponse = await getCategoryWithImages(categoryName);
 
@@ -26,17 +24,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
         // Check if category has password protection
         if (!category.attributes.password) {
             // Category is not password protected, return full data
-            console.log('[DEBUG] Category is not password protected, returning full data');
             return json({ success: true, category });
         }
 
         // Check if provided password matches
         if (category.attributes.password !== password) {
-            console.log('[DEBUG] Password mismatch for category:', categoryName);
             return json({ success: false, error: 'Incorrect password' }, { status: 401 });
         }
-
-        console.log('[DEBUG] Password correct, processing category data');
 
         // Password is correct, process and return full category data
         // Ensure images data is properly structured
@@ -69,10 +63,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
             });
         }
 
-        console.log('[DEBUG] Successfully processed category data, returning to client');
-
-        return json({ 
-            success: true, 
+        return json({
+            success: true,
             category: {
                 id: category.id,
                 attributes: {
@@ -84,10 +76,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
                 }
             }
         });
-
     } catch (err: any) {
         console.error('[DEBUG] Error in password-protected category fetch:', err);
-        
+
         if (err.status) {
             throw err;
         }

@@ -15,7 +15,7 @@ function createAdminStore() {
             // Check for the admin_session cookie using document.cookie
             const hasAdminCookie = document.cookie
                 .split('; ')
-                .some(cookie => cookie.startsWith('admin_session=authenticated'));
+                .some((cookie) => cookie.startsWith('admin_session=authenticated'));
 
             // Set the initial state based on the cookie
             if (hasAdminCookie) {

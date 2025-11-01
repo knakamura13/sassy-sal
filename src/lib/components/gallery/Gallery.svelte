@@ -148,8 +148,6 @@
 
         isLoadingNextCategory = true;
         try {
-            console.log('[DEBUG] Fetching categories for navigation');
-
             // Use our server-side API endpoint instead of direct Sanity client
             const response = await fetch('/api/categories');
             if (!response.ok) {
@@ -157,7 +155,6 @@
             }
 
             const categories = await response.json();
-            console.log('[DEBUG] Fetched categories for navigation:', categories.length);
 
             if (categories.length <= 1) {
                 return;
@@ -188,10 +185,8 @@
                     };
                 }
             }
-
-            console.log('[DEBUG] Next category determined:', nextCategory);
         } catch (error) {
-            console.error('[DEBUG] Error fetching next category:', error);
+            console.error('Error fetching next category:', error);
         } finally {
             isLoadingNextCategory = false;
         }

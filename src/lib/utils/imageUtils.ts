@@ -36,26 +36,25 @@ export function ensureImageOrder(images: Image[]): Image[] {
  * Deep clone an array of images to avoid reference issues
  */
 export function cloneImages(images: Image[]): Image[] {
-    return images.map(img => ({ ...img }));
+    return images.map((img) => ({ ...img }));
 }
 
 /**
  * Find differences between original and current images
  */
-export function findImageChanges(localImages: Image[], originalImages: Image[]): {
+export function findImageChanges(
+    localImages: Image[],
+    originalImages: Image[]
+): {
     imagesToAdd: Image[];
     imagesToRemove: Image[];
     imagesToUpdate: Image[];
 } {
     // Find images to add
-    const imagesToAdd = localImages.filter(
-        (local) => !originalImages.some((orig) => orig.id === local.id)
-    );
+    const imagesToAdd = localImages.filter((local) => !originalImages.some((orig) => orig.id === local.id));
 
     // Find images to remove
-    const imagesToRemove = originalImages.filter(
-        (orig) => !localImages.some((local) => local.id === orig.id)
-    );
+    const imagesToRemove = originalImages.filter((orig) => !localImages.some((local) => local.id === orig.id));
 
     // Find images with changes (order or file)
     const imagesToUpdate = localImages.filter((local) => {
@@ -77,4 +76,4 @@ export function findImageChanges(localImages: Image[], originalImages: Image[]):
     });
 
     return { imagesToAdd, imagesToRemove, imagesToUpdate };
-} 
+}

@@ -4,35 +4,35 @@ A simple website builder for photographers, built with SvelteKit and Sanity CMS.
 
 ## Features
 
-- Responsive home page with categories and image galleries
-- Dynamic category pages with custom routing (slug route)
-- Modern UI with Tailwind CSS and Shadcn components
-- Image management with upload functionality
-- Optimistic UI updates for smoother user experience
-- Sanity CMS backend integration
-    - Type-safe content modeling with GROQ queries
-    - Real-time content updates with @sanity/client
-    - Image pipeline with hotspot handling and CDN optimization
-    - Server-side and client-side Sanity clients
-    - File drag-and-drop image uploads with custom Svelte components
-- Admin features
-    - Password-protected admin login
-    - Category management interface
-    - Category management with atomic updates
-    - Optimistic UI updates with local state management
-    - Client-side image uploads with progress indicators
-    - Toast notifications for user feedback
-- SEO optimized page structure
-- About Me page
-- API routes for backend functionality
+-   Responsive home page with categories and image galleries
+-   Dynamic category pages with custom routing (slug route)
+-   Modern UI with Tailwind CSS and Shadcn components
+-   Image management with upload functionality
+-   Optimistic UI updates for smoother user experience
+-   Sanity CMS backend integration
+    -   Type-safe content modeling with GROQ queries
+    -   Real-time content updates with @sanity/client
+    -   Image pipeline with hotspot handling and CDN optimization
+    -   Server-side and client-side Sanity clients
+    -   File drag-and-drop image uploads with custom Svelte components
+-   Admin features
+    -   Password-protected admin login
+    -   Category management interface
+    -   Category management with atomic updates
+    -   Optimistic UI updates with local state management
+    -   Client-side image uploads with progress indicators
+    -   Toast notifications for user feedback
+-   SEO optimized page structure
+-   About Me page
+-   API routes for backend functionality
 
 ## Prerequisites
 
-- Node.js >= 20
-    - Command: `nvm install 20; nvm use 20`
-- Sanity.io account
-    - Free tier available with 2 users, 100K API requests/month
-    - No self-hosting required
+-   Node.js >= 20
+    -   Command: `nvm install 20; nvm use 20`
+-   Sanity.io account
+    -   Free tier available with 2 users, 100K API requests/month
+    -   No self-hosting required
 
 ## Getting started
 
@@ -151,4 +151,4 @@ export default {
 
 ## Future Features/Changes
 
-- [ ] **About Me Page Redesign**
+-   [ ] **About Me Page Redesign**
