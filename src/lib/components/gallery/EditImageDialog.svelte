@@ -33,8 +33,8 @@
     let fileInput: HTMLInputElement;
     let isDragging = false;
 
-    // Initialize form when image changes (not when dialog opens/closes)
-    $: if (image) {
+    // Initialize form when image ID changes (not when dialog opens/closes or other props change)
+    $: if (image?.id) {
         console.log('[EditImageDialog] Initializing with image:', {
             id: image.id,
             order: image.order,
