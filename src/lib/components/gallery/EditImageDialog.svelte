@@ -40,6 +40,9 @@
         imagePreview = currentDisplayedUrl || '';
     }
 
+    // Debug: log when editSpanTwoColumns changes
+    $: console.log('[EditImageDialog] editSpanTwoColumns is now:', editSpanTwoColumns);
+
     function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files[0]) {
@@ -158,8 +161,14 @@
         </div>
 
         <div class="flex items-center space-x-2">
-            <Checkbox id="editSpanTwoColumns" bind:checked={editSpanTwoColumns} disabled={isUploading} />
+            <Checkbox
+                id="editSpanTwoColumns"
+                checked={editSpanTwoColumns}
+                disabled={isUploading}
+                on:click={() => editSpanTwoColumns = !editSpanTwoColumns}
+            />
             <Label for="editSpanTwoColumns">Span Two Columns</Label>
+            <span class="text-xs text-red-500">Value: {editSpanTwoColumns}</span>
         </div>
         <p class="text-xs text-gray-500">
             When enabled, this image will span across two columns in multi-column layouts
