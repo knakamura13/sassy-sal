@@ -47,6 +47,13 @@ export class ImageOperationsService {
         // Find images to add, update, or remove
         const { imagesToAdd, imagesToRemove, imagesToUpdate } = findImageChanges(localImages, originalImages);
 
+        console.log('[ImageOperations saveChanges] findImageChanges result:', {
+            imagesToAdd: imagesToAdd.length,
+            imagesToRemove: imagesToRemove.length,
+            imagesToUpdate: imagesToUpdate.length,
+            imagesToUpdateDetails: imagesToUpdate.map(img => ({ id: img.id, spanTwoColumns: img.spanTwoColumns }))
+        });
+
         // Reset file size tracking
         this.totalFileSizeBytes = 0;
         this.uploadedFileSizeBytes = 0;
