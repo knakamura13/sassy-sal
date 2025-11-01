@@ -74,10 +74,6 @@ export function findImageChanges(
         // Check if spanTwoColumns changed
         const spanTwoColumnsChanged = local.spanTwoColumns !== orig.spanTwoColumns;
 
-        if (spanTwoColumnsChanged) {
-            console.log('[findImageChanges] spanTwoColumns changed for image', local.id, 'from', orig.spanTwoColumns, 'to', local.spanTwoColumns);
-        }
-
         // Return true if order, file, or spanTwoColumns changed
         return orderChanged || fileChanged || spanTwoColumnsChanged;
     });

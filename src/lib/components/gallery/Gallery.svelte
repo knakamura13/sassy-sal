@@ -226,7 +226,6 @@
 
     // Function to handle saving changes
     async function saveChanges() {
-        console.log('[Gallery saveChanges] Starting save process...');
         if (isSaving || !imageOperationsService) return;
 
         isSaving = true;
@@ -409,7 +408,6 @@
 
     // Function to handle image update
     function handleUpdateImage(event: CustomEvent) {
-        console.log('[Gallery handleUpdateImage] Received update event for image', event.detail.id, 'with data:', event.detail.data);
         const { id, data } = event.detail;
 
         // Find the image to update

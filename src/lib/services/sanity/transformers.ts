@@ -87,7 +87,7 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
         console.error('Error generating progressive image URLs:', error);
     }
 
-    const result = {
+    return {
         id: image._id,
         documentId: image._id,
         attributes: {
@@ -104,16 +104,6 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
             }
         }
     };
-
-    console.log(
-        '[transformImage]',
-        image._id,
-        'Input spanTwoColumns:',
-        image.spanTwoColumns,
-        'Output spanTwoColumns:',
-        result.attributes.spanTwoColumns
-    );
-    return result;
 }
 
 /**
