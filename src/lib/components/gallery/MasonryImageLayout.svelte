@@ -108,15 +108,13 @@
             max-width: 496px; /* 2 * 240px + 16px gutter */
         }
     }
+
     @media (min-width: 1024px) {
         .grid {
-            --cols: 3;
-            width: 1322px; /* exact width needed: 3 * 430px + 32px gutters */
-            max-width: 1400px; /* constrained by parent container */
+            max-width: 1400px; /* ensure full width utilization on desktop */
         }
     }
-
-    /* Fixed column widths that work with max-width constraints */
+    /* Responsive column sizing that adapts to available space */
     .grid-sizer,
     .grid-item {
         width: 300px;
@@ -133,18 +131,19 @@
     @media (min-width: 1024px) {
         .grid-sizer,
         .grid-item {
-            width: 430px; /* reduced to ensure 3 columns fit comfortably */
+            /* Fluid width: account for gutters in calculation */
+            width: calc((100% - 32px) / 3); /* (container - gutters) / columns */
         }
     }
 
     /* Wide items span 2 columns */
     .grid-item.w2 {
-        width: calc(480px + 16px); /* 2 * 240px + 1 * 16px gutter */
+        width: calc(480px + 16px); /* 2 * 240px + gutter */
     }
 
     @media (min-width: 1024px) {
         .grid-item.w2 {
-            width: calc(860px + 16px); /* 2 * 430px + 1 * 16px gutter */
+            width: calc(2 * ((100% - 32px) / 3) + 16px); /* 2 * column_width + gutter */
         }
     }
 
