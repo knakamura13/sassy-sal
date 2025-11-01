@@ -152,7 +152,6 @@
     function handleEdit(event: MouseEvent) {
         event.stopPropagation();
         event.preventDefault();
-        console.log('[ImageCard] Opening edit dialog for image:', image.id);
         editDialogOpen = true;
     }
 

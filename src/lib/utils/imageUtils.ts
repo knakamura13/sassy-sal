@@ -74,20 +74,8 @@ export function findImageChanges(
         // Check if spanTwoColumns changed
         const spanTwoColumnsChanged = local.spanTwoColumns !== orig.spanTwoColumns;
 
-        const shouldUpdate = orderChanged || fileChanged || spanTwoColumnsChanged;
-
-        if (shouldUpdate) {
-            console.log('[findImageChanges] Detected change for image:', local.id, {
-                orderChanged,
-                fileChanged,
-                spanTwoColumnsChanged,
-                local: { order: local.order, spanTwoColumns: local.spanTwoColumns },
-                orig: { order: orig.order, spanTwoColumns: orig.spanTwoColumns }
-            });
-        }
-
         // Return true if order, file, or spanTwoColumns changed
-        return shouldUpdate;
+        return orderChanged || fileChanged || spanTwoColumnsChanged;
     });
 
     return { imagesToAdd, imagesToRemove, imagesToUpdate };
