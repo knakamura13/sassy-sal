@@ -111,7 +111,8 @@
     @media (min-width: 1024px) {
         .grid {
             --cols: 3;
-            max-width: 872px; /* 3 * 280px + 32px gutters */
+            width: 1322px; /* exact width needed: 3 * 430px + 32px gutters */
+            max-width: 1400px; /* constrained by parent container */
         }
     }
 
@@ -132,7 +133,7 @@
     @media (min-width: 1024px) {
         .grid-sizer,
         .grid-item {
-            width: 280px;
+            width: 430px; /* reduced to ensure 3 columns fit comfortably */
         }
     }
 
@@ -143,7 +144,7 @@
 
     @media (min-width: 1024px) {
         .grid-item.w2 {
-            width: calc(560px + 16px); /* 2 * 280px + 1 * 16px gutter */
+            width: calc(860px + 16px); /* 2 * 430px + 1 * 16px gutter */
         }
     }
 
