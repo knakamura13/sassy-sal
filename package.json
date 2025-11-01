@@ -25,6 +25,7 @@
         "@sveltejs/adapter-node": "5.2.0",
         "@sveltejs/kit": "2.20.7",
         "@sveltejs/vite-plugin-svelte": "^3.1.1",
+        "@types/masonry-layout": "^4",
         "@types/node": "22.1.0",
         "@types/nodemailer": "^6.4.17",
         "@types/stylis": "^4.2.7",
@@ -44,16 +45,16 @@
         "mode-watcher": "^0.5.1",
         "nodemailer": "^7.0.2",
         "postcss": "8.4.41",
+        "prettier": "^3.5.3",
         "prettier-plugin-svelte": "^3.2.6",
         "prettier-plugin-tailwindcss": "^0.6.11",
-        "prettier": "^3.5.3",
         "sanity": "^3.93.0",
         "sass": "1.69.7",
         "shadcn-svelte": "^0.14.0",
         "stream-browserify": "^3.0.0",
+        "svelte": "^4.2.19",
         "svelte-check": "^3.8.5",
         "svelte-sonner": "^0.3.28",
-        "svelte": "^4.2.19",
         "sveltekit-superforms": "^2.24.0",
         "tailwind-merge": "^3.1.0",
         "tailwind-variants": "^1.0.0",
@@ -63,8 +64,12 @@
         "typescript": "^5.5.4",
         "util": "^0.12.5",
         "uuid": "^11.1.0",
-        "vite-plugin-tailwind-purgecss": "0.3.3",
         "vite": "^5.4.6",
+        "vite-plugin-tailwind-purgecss": "0.3.3",
         "vitest": "^3.2.4"
+    },
+    "dependencies": {
+        "imagesloaded": "^5.0.0",
+        "masonry-layout": "^4.2.2"
     }
 }

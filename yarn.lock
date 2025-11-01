@@ -4416,6 +4416,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jquery@npm:*":
+  version: 3.5.33
+  resolution: "@types/jquery@npm:3.5.33"
+  dependencies:
+    "@types/sizzle": "npm:*"
+  checksum: 10/9a9e2cddc584f9afa1970b0febac0b65bed6d8084baf9655346f5787ee1b25975a0f259b0c81edc7757fbb92d584ed2d1b39804ab78ab0238407c7e4b0376011
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:>= 7.0.14":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
@@ -4436,6 +4445,15 @@ __metadata:
   version: 4.17.16
   resolution: "@types/lodash@npm:4.17.16"
   checksum: 10/9a8bb7471a7521bd65d528e1bd14f79819a3eeb6f8a35a8a44649a7d773775c0813e93fd93bd32ccf350bb076c0bf02c6d47877c4625f526f6dd4d283c746aec
+  languageName: node
+  linkType: hard
+
+"@types/masonry-layout@npm:^4":
+  version: 4.2.8
+  resolution: "@types/masonry-layout@npm:4.2.8"
+  dependencies:
+    "@types/jquery": "npm:*"
+  checksum: 10/44b9161142d89befd87297a2aba5c477a446761122b7be40569da2fb5d257683177ef44ef3ae73651c462792dda3675a3c32a2de39cb0e21585511afc2ebe8a3
   languageName: node
   linkType: hard
 
@@ -4516,6 +4534,13 @@ __metadata:
   version: 1.0.3
   resolution: "@types/shallow-equals@npm:1.0.3"
   checksum: 10/3c3c730ee2b37465b4ac0c5ad334229a95bde8bb48f3a5d19753514183babb446f9d30cc7ab23420963b7d21a6326a6d3da0a3066236256c062f2875f3d87b65
+  languageName: node
+  linkType: hard
+
+"@types/sizzle@npm:*":
+  version: 2.3.10
+  resolution: "@types/sizzle@npm:2.3.10"
+  checksum: 10/7898ae8c147d6804e1eb7811664bf6e58c382840b03a56976c668f17fbc76f752c4086bddb0d6c6d54e279a9259cf4fbb61a6ee968dac98615c42350f6f57d6a
   languageName: node
   linkType: hard
 
@@ -6277,6 +6302,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"desandro-matches-selector@npm:^2.0.0":
+  version: 2.0.2
+  resolution: "desandro-matches-selector@npm:2.0.2"
+  checksum: 10/d7d211ab037587d5aebfce39d1b3e794029a83197dabe7f3ef01b0445446b08bcc97ac2c59dd361f2e857ccce52d493114ee1573e8dc604762c9322708f1b54d
+  languageName: node
+  linkType: hard
+
 "detect-indent@npm:^6.1.0":
   version: 6.1.0
   resolution: "detect-indent@npm:6.1.0"
@@ -6943,6 +6975,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ev-emitter@npm:^1.0.0":
+  version: 1.1.1
+  resolution: "ev-emitter@npm:1.1.1"
+  checksum: 10/a6c9767f8a70512a4e211b6d78406bcbae7950d778ce8dd90bb64e9d7fb16878dd598a042e9a2b53dc769175db7d9da0b8e4b8d570482d67936975dcc5419ca0
+  languageName: node
+  linkType: hard
+
+"ev-emitter@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "ev-emitter@npm:2.1.2"
+  checksum: 10/1102823ef040684869256100e19a6c6aeeecd422d09a267d7c74e77023136eede2ee86ee475ad1019d30d1f7917557d74542d5665e9f91c398bd5814260af6b3
+  languageName: node
+  linkType: hard
+
 "event-source-polyfill@npm:1.0.31":
   version: 1.0.31
   resolution: "event-source-polyfill@npm:1.0.31"
@@ -7266,6 +7312,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fizzy-ui-utils@npm:^2.0.0":
+  version: 2.0.7
+  resolution: "fizzy-ui-utils@npm:2.0.7"
+  dependencies:
+    desandro-matches-selector: "npm:^2.0.0"
+  checksum: 10/00262e74a429450e7e958330bb65f0403335d50ff104e881628ba6d4bad13f92888559df3cd4e479b0b5b0da3218e762fdc0a40dbce1adb32991d765e25d2936
+  languageName: node
+  linkType: hard
+
 "flatted@npm:^3.3.3":
   version: 3.3.3
   resolution: "flatted@npm:3.3.3"
@@ -7573,6 +7628,13 @@ __metadata:
   dependencies:
     global: "npm:^4.4.0"
   checksum: 10/951dc093a1d17c6512ea4e69b08bf1a304254f06373d166a2d360d7a7e7128e4469bc72f51fb5ead776880a2e6031f5e0557981aff6fdffcf55d4152866eebfe
+  languageName: node
+  linkType: hard
+
+"get-size@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "get-size@npm:2.0.3"
+  checksum: 10/268530ea41a2217c5aa7bc750259a5db8c8cbf50036cc6e33bb3bca82f9333f2facc8788d1bd943f1ca69f51109226919209592a0b8c9206eebe89ca12d69285
   languageName: node
   linkType: hard
 
@@ -7995,6 +8057,15 @@ __metadata:
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
   checksum: 10/cceb6a457000f8f6a50e1196429750d782afce5680dd878aa4221bd79972d68b3a55b4b1458fc682be978f4d3c6a249046aa0880637367216444ab7b014cfc98
+  languageName: node
+  linkType: hard
+
+"imagesloaded@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "imagesloaded@npm:5.0.0"
+  dependencies:
+    ev-emitter: "npm:^2.1.2"
+  checksum: 10/b7724cbc1c7ebde367caa4e0758eed8f6bafaa403235c4b048d0f744adf59102e672e677a0c68a0f630d3a150da23096f6e9e7780a1098c71d45bdf55e3b916b
   languageName: node
   linkType: hard
 
@@ -9014,6 +9085,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"masonry-layout@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "masonry-layout@npm:4.2.2"
+  dependencies:
+    get-size: "npm:^2.0.2"
+    outlayer: "npm:^2.1.0"
+  checksum: 10/7ab8817fe2d647537aba4407a95c2d37ff70d720d1ac4ece11101b4d8b64513da2a23aa5f5d779df12936457c6571f6721ce08a4a322522ff86b4b1df1cb6fe1
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -9747,6 +9828,17 @@ __metadata:
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
   checksum: 10/5666560f7b9f10182548bf7013883265be33620b1c1b4a4d405c25be2636f970c5488ff3e6c48de75b55d02bde037249fe5dbfbb4c0fb7714953d56aed062e6d
+  languageName: node
+  linkType: hard
+
+"outlayer@npm:^2.1.0":
+  version: 2.1.1
+  resolution: "outlayer@npm:2.1.1"
+  dependencies:
+    ev-emitter: "npm:^1.0.0"
+    fizzy-ui-utils: "npm:^2.0.0"
+    get-size: "npm:^2.0.2"
+  checksum: 10/15a819257f042a1cd01a3a33f7e1d6489183eb1a5467e8688b27b5641393fa755fe77e36b47159ad9d4c1e165c04b94222e3c65f635113efbdafda432a4de41c
   languageName: node
   linkType: hard
 
@@ -11273,6 +11365,7 @@ __metadata:
     "@sveltejs/adapter-node": "npm:5.2.0"
     "@sveltejs/kit": "npm:2.20.7"
     "@sveltejs/vite-plugin-svelte": "npm:^3.1.1"
+    "@types/masonry-layout": "npm:^4"
     "@types/node": "npm:22.1.0"
     "@types/nodemailer": "npm:^6.4.17"
     "@types/stylis": "npm:^4.2.7"
@@ -11288,7 +11381,9 @@ __metadata:
     dotenv: "npm:^16.5.0"
     events: "npm:^3.3.0"
     formsnap: "npm:1.0.1"
+    imagesloaded: "npm:^5.0.0"
     lucide-svelte: "npm:^0.488.0"
+    masonry-layout: "npm:^4.2.2"
     mode-watcher: "npm:^0.5.1"
     nodemailer: "npm:^7.0.2"
     postcss: "npm:8.4.41"

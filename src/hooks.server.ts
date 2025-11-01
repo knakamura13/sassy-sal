@@ -2,6 +2,11 @@ import { type Handle, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
 
 export const handle: Handle = async ({ event, resolve }) => {
+    // Skip Chrome DevTools specific requests
+    if (event.url.pathname.startsWith('/.well-known/appspecific/')) {
+        return new Response('Not Found', { status: 404 });
+    }
+
     // Generate a unique nonce for this request
     const nonce = crypto.randomBytes(16).toString('base64');
 

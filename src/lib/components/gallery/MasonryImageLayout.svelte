@@ -1,155 +1,162 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { onMount, createEventDispatcher } from 'svelte';
+    import { browser } from '$app/environment';
     import type { Image } from '$lib/stores/imageStore';
     import ImageCard from './ImageCard.svelte';
 
-    // Props
+    // imagesLoaded doesn't have TypeScript definitions, so we use any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    // Events
+    const dispatch = createEventDispatcher();
+
     export let images: Image[] = [];
     export let isAdmin = false;
     export let isCategory = true;
 
-    // Event dispatcher
-    const dispatch = createEventDispatcher();
+    let gridEl: HTMLDivElement | null = null;
+    let msnry: any = null; // Masonry instance
+    let il: any = null; // imagesLoaded instance
 
-    // Store aspect ratios and column spans for each image
-    let imageLayout: Map<string, { aspectRatio: number; columnSpan: number }> = new Map();
+    // Decide which items should be wide (2 columns)
+    const isWide = (img: Image) => (img.aspectRatio ?? 1) >= 1.4;
 
-    // Function to handle image click
+    function relayout() {
+        msnry?.layout();
+    }
+
+    onMount(() => {
+        if (!browser || !gridEl) return;
+
+        let ro: ResizeObserver | null = null;
+
+        // Dynamically import masonry libraries only on client side
+        (async () => {
+            const [Masonry, imagesLoaded] = await Promise.all([
+                import('masonry-layout'),
+                // @ts-ignore - imagesloaded doesn't have TypeScript definitions
+                import('imagesloaded')
+            ]);
+
+            // Masonry instance
+            msnry = new Masonry.default(gridEl, {
+                itemSelector: '.grid-item',
+                columnWidth: '.grid-sizer', // responsive via CSS below
+                gutter: 16, // horizontal and vertical spacing
+                transitionDuration: 0 // snappy; set e.g. '150ms' if you want animated reflows
+            });
+
+            // Layout after each image loads
+            il = imagesLoaded.default(gridEl);
+            il.on('progress', () => msnry?.layout());
+
+            // Relayout on resize
+            ro = new ResizeObserver(() => relayout());
+            ro.observe(gridEl);
+        })();
+
+        // Return cleanup function
+        return () => {
+            ro?.disconnect();
+            il?.off('progress');
+            msnry?.destroy();
+            msnry = null;
+        };
+    });
+
+    // When the images array changes, ping Masonry after the DOM updates on next tick
+    $: images, setTimeout(() => relayout(), 0);
+
     function handleImageClick(image: Image) {
         dispatch('imageClick', image);
     }
-
-    // Function to handle image removal
-    function handleRemoveImage(imageId: string) {
-        dispatch('removeImage', imageId);
-    }
-
-    // Function to handle image update
-    function handleUpdateImage(event: CustomEvent) {
-        dispatch('updateImage', event.detail);
-    }
-
-    // Calculate aspect ratio and determine column span for an image
-    async function calculateImageLayout(image: Image): Promise<{ aspectRatio: number; columnSpan: number }> {
-        // If aspect ratio is already cached, use it
-        if (image.aspectRatio !== undefined) {
-            const columnSpan = image.aspectRatio >= 1.4 ? 2 : 1;
-            return { aspectRatio: image.aspectRatio, columnSpan };
-        }
-
-        return new Promise((resolve) => {
-            // Use the best available URL for calculating aspect ratio
-            const imageUrl = image.fullSizeUrl || image.url;
-
-            if (!imageUrl) {
-                resolve({ aspectRatio: 1, columnSpan: 1 });
-                return;
-            }
-
-            const img = new Image();
-
-            img.onload = () => {
-                const aspectRatio = img.width / img.height;
-                // Wide landscape images (aspect ratio >= 1.4) span 2 columns
-                const columnSpan = aspectRatio >= 1.4 ? 2 : 1;
-                resolve({ aspectRatio, columnSpan });
-            };
-
-            img.onerror = () => {
-                // Default to single column on error
-                resolve({ aspectRatio: 1, columnSpan: 1 });
-            };
-
-            img.src = imageUrl;
-        });
-    }
-
-    // Calculate layouts for all images
-    async function calculateAllLayouts() {
-        const newLayout = new Map();
-
-        for (const image of images) {
-            const layout = await calculateImageLayout(image);
-            newLayout.set(image.id, layout);
-        }
-
-        imageLayout = newLayout;
-    }
-
-    // Recalculate layouts when images change
-    $: if (images && images.length > 0) {
-        calculateAllLayouts();
-    }
-
-    // Get column span for a specific image
-    function getColumnSpan(imageId: string): number {
-        return imageLayout.get(imageId)?.columnSpan || 1;
-    }
 </script>
 
-<!-- Masonry layout container -->
-<div class="masonry-container">
+<!-- Masonry grid -->
+<div class="grid" bind:this={gridEl}>
+    <!-- Sizer defines the base column width; CSS controls how many columns per breakpoint -->
+    <div class="grid-sizer"></div>
+
     {#each images as image (image.id)}
         <div
-            class="masonry-item"
-            style="grid-column: span {getColumnSpan(image.id)};"
-            on:click|preventDefault|stopPropagation={() => handleImageClick(image)}
+            class={`grid-item ${isWide(image) ? 'w2' : ''}`}
+            on:click|stopPropagation={() => handleImageClick(image)}
             on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
             role="button"
             tabindex="0"
             aria-label={image.title || 'View image'}
         >
-            <ImageCard
-                {image}
-                {isCategory}
-                {isAdmin}
-                on:remove={() => handleRemoveImage(image.id)}
-                on:update={handleUpdateImage}
-            />
+            <!-- Your card component; ensure it renders a single <img> inside -->
+            <ImageCard {image} {isCategory} {isAdmin} />
         </div>
     {/each}
 </div>
 
 <style lang="scss">
-    .masonry-container {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-        grid-auto-flow: dense;
-        gap: 1rem;
+    /* Set how many columns at each breakpoint with a CSS variable.
+     Masonry uses the .grid-sizer width as the column width. */
+    .grid {
+        --cols: 1;
         width: 100%;
+        max-width: 300px; /* 1 * 300px */
         margin: 0 auto;
+    }
 
-        /* Responsive grid columns */
-        /* Mobile: Single column */
-        @media (min-width: 640px) {
-            /* Tablet: 2 columns */
-            grid-template-columns: repeat(2, 1fr);
+    @media (min-width: 640px) {
+        .grid {
+            --cols: 2;
+            max-width: 496px; /* 2 * 240px + 16px gutter */
         }
-
-        @media (min-width: 1024px) {
-            /* Desktop: 3 columns */
-            grid-template-columns: repeat(3, 1fr);
+    }
+    @media (min-width: 1024px) {
+        .grid {
+            --cols: 3;
+            max-width: 872px; /* 3 * 280px + 32px gutters */
         }
     }
 
-    .masonry-item {
+    /* Fixed column widths that work with max-width constraints */
+    .grid-sizer,
+    .grid-item {
+        width: 300px;
+        margin-bottom: 16px;
+    }
+
+    @media (min-width: 640px) {
+        .grid-sizer,
+        .grid-item {
+            width: 240px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .grid-sizer,
+        .grid-item {
+            width: 280px;
+        }
+    }
+
+    /* Wide items span 2 columns */
+    .grid-item.w2 {
+        width: calc(480px + 16px); /* 2 * 240px + 1 * 16px gutter */
+    }
+
+    @media (min-width: 1024px) {
+        .grid-item.w2 {
+            width: calc(560px + 16px); /* 2 * 280px + 1 * 16px gutter */
+        }
+    }
+
+    /* Make images fill their tile width without stretching height.
+     Masonry handles the variable height automatically. */
+    .grid-item :global(img) {
+        display: block;
         width: 100%;
+        height: auto;
+    }
+
+    /* Optional hover affordance */
+    .grid-item {
         cursor: pointer;
-        transition: transform 0.2s ease-in-out;
-        /* Let images maintain their aspect ratio */
-        display: flex;
-        flex-direction: column;
-
-        /* Ensure images fill the grid cell properly */
-        :global(img) {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        &:hover {
-            transform: translateY(-2px);
-        }
     }
 </style>
