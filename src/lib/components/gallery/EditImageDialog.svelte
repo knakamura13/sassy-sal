@@ -107,7 +107,6 @@
                 }
             };
 
-
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {

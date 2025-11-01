@@ -63,6 +63,7 @@ export const load: PageServerLoad = async ({ params, url, setHeaders, cookies })
         // Pre-process images to add optimized URLs for progressive loading
         if (category.attributes.images.data) {
             category.attributes.images.data = category.attributes.images.data.map((image: any) => {
+                console.log('[server] Processing image spanTwoColumns:', image.spanTwoColumns, 'full object keys:', Object.keys(image));
                 // Skip if the image doesn't have a Sanity image reference
                 if (!image.image) return image;
 

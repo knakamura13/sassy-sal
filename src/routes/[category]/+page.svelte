@@ -289,6 +289,12 @@
                 spanTwoColumns: image.spanTwoColumns
             };
 
+            console.log('[+page.svelte] Transformed image:', {
+                id: galleryImage.id,
+                spanTwoColumns: galleryImage.spanTwoColumns,
+                originalSpanTwoColumns: image.spanTwoColumns
+            });
+
             return galleryImage;
         });
     }
