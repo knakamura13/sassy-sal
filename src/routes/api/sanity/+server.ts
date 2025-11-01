@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { createSanityDocument, updateSanityDocument, deleteSanityDocument } from '$lib/server/sanityServerClient';
+import { createSanityDocument, updateSanityDocument, deleteSanityDocument, serverClient } from '$lib/server/sanityServerClient';
 
 export async function POST({ request, cookies }) {
     try {
@@ -43,6 +43,14 @@ export async function POST({ request, cookies }) {
                 const { id: aboutMeId, updates: aboutMeUpdates } = data;
                 const updatedAboutMe = await updateSanityDocument(aboutMeId, aboutMeUpdates);
                 return json({ success: true, data: updatedAboutMe });
+
+            case 'batchResetSpanTwoColumns':
+                // Batch update all gallery images to set spanTwoColumns to false
+                const batchResult = await serverClient
+                    .patch({ query: '*[_type == "galleryImage" && spanTwoColumns == true]' })
+                    .set({ spanTwoColumns: false })
+                    .commit();
+                return json({ success: true, data: batchResult });
 
             default:
                 return json({ error: 'Invalid operation' }, { status: 400 });
