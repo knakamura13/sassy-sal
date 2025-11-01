@@ -33,9 +33,13 @@
     let fileInput: HTMLInputElement;
     let isDragging = false;
 
-    // Initialize form when dialog opens
-    $: if (open) {
-        console.log('[EditImageDialog] Initializing with image:', { id: image.id, order: image.order, spanTwoColumns: image.spanTwoColumns });
+    // Initialize form when image changes (not when dialog opens/closes)
+    $: if (image) {
+        console.log('[EditImageDialog] Initializing with image:', {
+            id: image.id,
+            order: image.order,
+            spanTwoColumns: image.spanTwoColumns
+        });
         editOrder = image.order || 0;
         editSpanTwoColumns = image.spanTwoColumns || false;
         console.log('[EditImageDialog] Set editSpanTwoColumns to:', editSpanTwoColumns);
