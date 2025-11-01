@@ -289,6 +289,15 @@
                 spanTwoColumns: image.spanTwoColumns
             };
 
+            console.log(
+                '[page transformation]',
+                galleryImage.id,
+                'spanTwoColumns:',
+                galleryImage.spanTwoColumns,
+                'from image.attributes.spanTwoColumns:',
+                image.attributes?.spanTwoColumns
+            );
+
             return galleryImage;
         });
     }

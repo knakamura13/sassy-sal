@@ -105,7 +105,14 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
         }
     };
 
-    console.log('[transformImage] Input spanTwoColumns:', image.spanTwoColumns, 'Output spanTwoColumns:', result.attributes.spanTwoColumns);
+    console.log(
+        '[transformImage]',
+        image._id,
+        'Input spanTwoColumns:',
+        image.spanTwoColumns,
+        'Output spanTwoColumns:',
+        result.attributes.spanTwoColumns
+    );
     return result;
 }
 
