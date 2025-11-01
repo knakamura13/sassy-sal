@@ -35,9 +35,16 @@
 
     // Initialize form when dialog opens
     $: if (open) {
+        console.log('[EditImageDialog] Initializing with image:', { id: image.id, order: image.order, spanTwoColumns: image.spanTwoColumns });
         editOrder = image.order || 0;
         editSpanTwoColumns = image.spanTwoColumns || false;
+        console.log('[EditImageDialog] Set editSpanTwoColumns to:', editSpanTwoColumns);
         imagePreview = currentDisplayedUrl || '';
+    }
+
+    // Log when editSpanTwoColumns changes
+    $: if (editSpanTwoColumns !== undefined) {
+        console.log('[EditImageDialog] editSpanTwoColumns changed to:', editSpanTwoColumns);
     }
 
     function handleFileChange(event: Event) {
@@ -161,6 +168,9 @@
             <Checkbox id="editSpanTwoColumns" bind:checked={editSpanTwoColumns} disabled={isUploading} />
             <Label for="editSpanTwoColumns">Span Two Columns</Label>
         </div>
+        {#if editSpanTwoColumns !== undefined}
+            <p class="text-xs text-red-500">Current value: {editSpanTwoColumns ? 'true' : 'false'}</p>
+        {/if}
         <p class="text-xs text-gray-500">
             When enabled, this image will span across two columns in multi-column layouts
         </p>
