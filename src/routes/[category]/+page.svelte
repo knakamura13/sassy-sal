@@ -56,6 +56,7 @@
             large?: string;
         };
         aspectRatio?: number;
+        spanTwoColumns?: boolean;
     }
 
     interface SanityCategory {
