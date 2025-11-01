@@ -19,51 +19,15 @@
     let msnry: any = null; // Masonry instance
     let il: any = null; // imagesLoaded instance
 
-    // Masonry layout constants
-    const WIDE_ASPECT_RATIO_THRESHOLD = 1.4; // Images with aspect ratio >= this are considered wide
-    const MIN_IMAGES_REMAINING_FOR_WIDE = 3; // Don't make images wide if fewer than this many images remain
-    const SKIP_FIRST_N_WIDE_IMAGES = 1; // Skip the first N wide images (slice parameter)
-    const WIDE_IMAGE_FREQUENCY = 3; // Show every Nth wide image as actually wide (2-column span)
-    const PROTECT_FIRST_N_IMAGES_IN_2_COL = 2; // In 2-column mode, don't make first N images wide
-
-    // Decide which items should be wide (2 columns) - selective display to prevent whitespace and layout issues
+    // Decide which items should be wide (2 columns) - based on admin-controlled boolean
     const isWide = (img: Image) => {
         // Never make images wide in 1-column mode
         if (columns === 1) {
             return false;
         }
 
-        const ar = img.aspectRatio ?? 1;
-        const isWideAspectRatio = ar >= WIDE_ASPECT_RATIO_THRESHOLD;
-
-        if (!isWideAspectRatio) {
-            return false;
-        }
-
-        // Find this image's position in the full images array
-        const currentImageIndex = images.findIndex((image) => image.id === img.id);
-
-        // In 2-column mode, don't make the first N images wide to prevent awkward gaps
-        if (columns === 2 && currentImageIndex < PROTECT_FIRST_N_IMAGES_IN_2_COL) {
-            return false;
-        }
-
-        const imagesRemaining = images.length - currentImageIndex - 1;
-
-        // Don't make images wide if there are fewer than MIN_IMAGES_REMAINING_FOR_WIDE images remaining
-        // This prevents whitespace issues when wide images appear near the end
-        if (imagesRemaining < MIN_IMAGES_REMAINING_FOR_WIDE) {
-            return false;
-        }
-
-        // Find this image's position among all wide images, skipping the first one
-        const wideImages = images
-            .filter((img) => (img.aspectRatio ?? 1) >= WIDE_ASPECT_RATIO_THRESHOLD)
-            .slice(SKIP_FIRST_N_WIDE_IMAGES);
-        const wideImageIndex = wideImages.findIndex((wideImg) => wideImg.id === img.id);
-        const shouldBeWide = wideImageIndex % WIDE_IMAGE_FREQUENCY === 0; // Every Nth wide image
-
-        return shouldBeWide;
+        // Use the admin-controlled boolean field
+        return img.spanTwoColumns === true;
     };
 
     function relayout() {

@@ -25,6 +25,7 @@ export interface Image {
     uploadedAt?: number; // Timestamp when the image was uploaded (for cache management)
     updatedAt?: number; // Timestamp when the image was last updated (for cache management)
     aspectRatio?: number; // Cached aspect ratio (width/height) for layout calculations
+    spanTwoColumns?: boolean; // Whether this image should span two columns in the layout
 }
 
 // Create a writable store with initial images

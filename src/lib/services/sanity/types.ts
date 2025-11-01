@@ -45,6 +45,7 @@ export interface SanityGalleryImage {
         _type: string;
         _ref: string;
     };
+    spanTwoColumns?: boolean;
 }
 
 export interface FormattedCategory {

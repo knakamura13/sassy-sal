@@ -284,7 +284,8 @@
                           large: responsiveUrls.large || fullSizeUrl || url
                       }
                     : undefined,
-                aspectRatio
+                aspectRatio,
+                spanTwoColumns: image.spanTwoColumns
             };
 
             return galleryImage;

@@ -90,11 +90,12 @@ export const deleteImage = async (id: string): Promise<null> => {
  */
 export const updateImage = async (
     id: string,
-    data: { order?: number; image?: File }
+    data: { order?: number; image?: File; spanTwoColumns?: boolean }
 ): Promise<{ data: FormattedImage }> => {
     try {
         const updates: Partial<SanityGalleryImage> = {
-            order: data.order !== undefined ? data.order : undefined
+            order: data.order !== undefined ? data.order : undefined,
+            spanTwoColumns: data.spanTwoColumns !== undefined ? data.spanTwoColumns : undefined
         };
 
         // If there's a new image file, upload it

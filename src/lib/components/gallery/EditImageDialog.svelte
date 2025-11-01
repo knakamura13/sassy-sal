@@ -4,6 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
+    import { Checkbox } from '$lib/components/ui/checkbox';
     import { uploadFile } from '$lib/services/sanity/uploadService';
     import Dialog from '$lib/components/Dialog.svelte';
     import type { Image } from '$lib/stores/imageStore';
@@ -24,6 +25,7 @@
 
     // Edit dialog state
     let editOrder = 0;
+    let editSpanTwoColumns = false;
     let selectedFile: File | null = null;
     let imagePreview = '';
     let isUploading = false;
@@ -34,6 +36,7 @@
     // Initialize form when dialog opens
     $: if (open) {
         editOrder = image.order || 0;
+        editSpanTwoColumns = image.spanTwoColumns || false;
         imagePreview = currentDisplayedUrl || '';
     }
 
@@ -99,7 +102,8 @@
             // Prepare the update data
             const updateData: any = {
                 data: {
-                    order: editOrder
+                    order: editOrder,
+                    spanTwoColumns: editSpanTwoColumns
                 }
             };
 
@@ -152,6 +156,16 @@
             />
             <p class="text-xs text-gray-500">Images are displayed in ascending order (lower numbers first)</p>
         </div>
+
+        <div class="flex items-center space-x-2">
+            <Checkbox
+                id="editSpanTwoColumns"
+                bind:checked={editSpanTwoColumns}
+                disabled={isUploading}
+            />
+            <Label for="editSpanTwoColumns">Span Two Columns</Label>
+        </div>
+        <p class="text-xs text-gray-500">When enabled, this image will span across two columns in multi-column layouts</p>
 
         <div class="space-y-2">
             <Label>Replace Image</Label>

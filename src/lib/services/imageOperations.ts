@@ -230,7 +230,8 @@ export class ImageOperationsService {
                 const updatePromises = imagesToUpdate.map(async (image, i) => {
                     try {
                         const updateData: any = {
-                            order: Number(typeof image.order === 'number' ? image.order : image.order || 0)
+                            order: Number(typeof image.order === 'number' ? image.order : image.order || 0),
+                            spanTwoColumns: image.spanTwoColumns
                         };
 
                         if (image.file) {

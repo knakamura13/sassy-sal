@@ -27,5 +27,12 @@ export default {
       type: 'reference',
       to: [{type: 'category'}],
     },
+    {
+      name: 'spanTwoColumns',
+      title: 'Span Two Columns',
+      description: 'Whether this image should span across two columns in the gallery layout',
+      type: 'boolean',
+      initialValue: false,
+    },
   ],
 }

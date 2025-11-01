@@ -49,6 +49,7 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                 "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
                     _id,
                     order,
+                    spanTwoColumns,
                     image {
                         ...,
                         asset-> {
@@ -73,6 +74,7 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
                 "images": *[_type == "galleryImage" && references(^._id)] | order(order asc) {
                     _id,
                     order,
+                    spanTwoColumns,
                     image {
                         ...,
                         asset-> {

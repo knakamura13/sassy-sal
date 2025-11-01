@@ -435,6 +435,7 @@
         localImages[imageIndex] = {
             ...localImages[imageIndex],
             order: newOrder,
+            spanTwoColumns: updateFields.spanTwoColumns !== undefined ? updateFields.spanTwoColumns : localImages[imageIndex].spanTwoColumns,
             file: imageFile // Store file for later processing
         };
 
