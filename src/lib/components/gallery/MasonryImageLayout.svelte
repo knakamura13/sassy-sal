@@ -83,6 +83,10 @@
     function handleImageUpdate(event: CustomEvent) {
         dispatch('updateImage', event.detail);
     }
+
+    function handleImageRemove(event: CustomEvent) {
+        dispatch('removeImage', event.detail);
+    }
 </script>
 
 <!-- Masonry grid -->
@@ -100,7 +104,7 @@
             aria-label={image.title || 'View image'}
         >
             <!-- Your card component; ensure it renders a single <img> inside -->
-            <ImageCard {image} {isCategory} {isAdmin} on:update={handleImageUpdate} />
+            <ImageCard {image} {isCategory} {isAdmin} on:update={handleImageUpdate} on:remove={handleImageRemove} />
         </div>
     {/each}
 </div>

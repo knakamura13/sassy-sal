@@ -38,7 +38,11 @@
         editOrder = image.order || 0;
         editSpanTwoColumns = image.spanTwoColumns || false;
         imagePreview = currentDisplayedUrl || '';
+        console.log('[EditImageDialog] Initialized:', { editOrder, editSpanTwoColumns, imageSpanTwoColumns: image.spanTwoColumns });
     }
+
+    // Debug: watch for changes to editSpanTwoColumns
+    $: console.log('[EditImageDialog] editSpanTwoColumns changed to:', editSpanTwoColumns);
 
     function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -107,6 +111,8 @@
                 }
             };
 
+            console.log('[EditImageDialog] Update data:', updateData);
+
             // If there's a selected file, upload it first
             if (selectedFile) {
                 try {
@@ -158,14 +164,12 @@
         </div>
 
         <div class="flex items-center space-x-2">
-            <Checkbox
-                id="editSpanTwoColumns"
-                bind:checked={editSpanTwoColumns}
-                disabled={isUploading}
-            />
+            <Checkbox id="editSpanTwoColumns" bind:checked={editSpanTwoColumns} disabled={isUploading} />
             <Label for="editSpanTwoColumns">Span Two Columns</Label>
         </div>
-        <p class="text-xs text-gray-500">When enabled, this image will span across two columns in multi-column layouts</p>
+        <p class="text-xs text-gray-500">
+            When enabled, this image will span across two columns in multi-column layouts
+        </p>
 
         <div class="space-y-2">
             <Label>Replace Image</Label>
