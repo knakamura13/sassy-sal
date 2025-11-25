@@ -11,6 +11,7 @@
     const dispatch = createEventDispatcher<{
         remove: string;
         update: { id: string; data: any };
+        loaded: { id: string };
     }>();
 
     // Image loading states
@@ -64,6 +65,12 @@
     onMount(async () => {
         await loadImage();
     });
+
+    function notifyImageLoaded() {
+        dispatch('loaded', { id: image.id });
+    }
+
+    $: isPlaceholderActive = !!placeholderUrl && currentDisplayedUrl === placeholderUrl;
 
     // Function to load image in progressive stages
     async function loadImage() {
@@ -182,7 +189,7 @@
                         <img
                             src={placeholderUrl}
                             alt="Loading"
-                            class="h-full w-full object-cover {isFromCache ? 'border-2 border-amber-400' : ''}"
+                            class="h-full w-full object-cover {isFromCache ? 'border-2 border-amber-400' : ''} placeholder-blur"
                         />
                     {:else}
                         <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
@@ -216,14 +223,13 @@
                     <img
                         src={currentDisplayedUrl}
                         alt={image.alt || 'Gallery image'}
-                        class="h-full w-full object-cover transition-opacity duration-500 {isFromCache
-                            ? 'border-2 border-amber-400'
-                            : ''}"
+                        class={`h-full w-full object-cover transition-opacity duration-500 ${isFromCache ? 'border-2 border-amber-400' : ''} ${isPlaceholderActive ? 'placeholder-blur' : ''}`}
                         style="opacity: 1;"
                         loading="lazy"
                         on:load={() => {
                             thumbnailLoaded = true;
                             isLoading = false;
+                            notifyImageLoaded();
                         }}
                     />
                 </picture>
@@ -270,3 +276,13 @@
 
 <!-- Edit Image Dialog -->
 <EditImageDialog bind:open={editDialogOpen} {image} {currentDisplayedUrl} on:update={handleUpdate} />
+
+<style>
+    /* Blur-up tiny placeholder so it fills space without showing pixelation */
+    .placeholder-blur {
+        filter: blur(16px);
+        transform: scale(1.06);
+        transform-origin: center;
+        transition: filter 200ms ease, transform 200ms ease;
+    }
+</style>

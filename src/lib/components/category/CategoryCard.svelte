@@ -185,6 +185,8 @@
         }
     }
 
+    $: isPlaceholderActive = !!placeholderUrl && currentDisplayedUrl === placeholderUrl;
+
     // Helper to use placeholder background when no image is available
     function usePlaceholderBackground() {
         // Set currentDisplayedUrl to empty string to trigger placeholder background display
@@ -249,7 +251,7 @@
                     <img
                         src={currentDisplayedUrl}
                         alt={categoryName}
-                        class="h-full w-full object-cover transition-opacity duration-500"
+                        class={`h-full w-full object-cover transition-opacity duration-500 ${isPlaceholderActive ? 'placeholder-blur' : ''}`}
                         style="opacity: 1;"
                     />
                 </div>
@@ -278,10 +280,10 @@
                 </div>
             {/if}
         {:else}
-            <!-- Loading placeholder - smaller version of the image without blur -->
+            <!-- Loading placeholder - blurred tiny image while real one loads -->
             <div class="flex h-full w-full items-center justify-center bg-gray-100">
                 {#if placeholderUrl}
-                    <img src={placeholderUrl} alt="Loading" class="h-full w-full object-cover" />
+                    <img src={placeholderUrl} alt="Loading" class="h-full w-full object-cover placeholder-blur" />
                 {:else}
                     <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
                 {/if}
@@ -337,6 +339,15 @@
         {/if}
     </div>
 </a>
+
+<style>
+    .placeholder-blur {
+        filter: blur(16px);
+        transform: scale(1.06);
+        transform-origin: center;
+        transition: filter 200ms ease, transform 200ms ease;
+    }
+</style>
 
 <!-- Edit Dialog -->
 <CategoryDialog bind:open={editDialogOpen} mode="edit" {category} {currentDisplayedUrl} on:update={handleUpdate} />

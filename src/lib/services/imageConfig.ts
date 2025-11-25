@@ -8,8 +8,9 @@ import { urlFor as baseSanityUrlFor } from './sanity/client';
 export const IMAGE_SIZES = {
     // Tiny placeholder images (for initial loading)
     PLACEHOLDER: {
-        width: 200,
-        quality: 60
+        // Very small + low quality on purpose so blur-up stays lightweight
+        width: 32,
+        quality: 20
     },
     // Small thumbnail images
     THUMBNAIL: {

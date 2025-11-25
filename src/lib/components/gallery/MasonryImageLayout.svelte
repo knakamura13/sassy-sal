@@ -34,6 +34,20 @@
         msnry?.layout();
     }
 
+    let relayoutFrame: number | null = null;
+    function scheduleRelayout() {
+        if (!browser) return;
+
+        if (relayoutFrame !== null) {
+            cancelAnimationFrame(relayoutFrame);
+        }
+
+        relayoutFrame = requestAnimationFrame(() => {
+            relayout();
+            relayoutFrame = null;
+        });
+    }
+
     onMount(() => {
         if (!browser || !gridEl) return;
 
@@ -57,7 +71,7 @@
 
             // Layout after each image loads
             il = imagesLoaded.default(gridEl);
-            il.on('progress', () => msnry?.layout());
+            il.on('progress', scheduleRelayout);
 
             // Relayout on resize
             ro = new ResizeObserver(() => relayout());
@@ -67,7 +81,7 @@
         // Return cleanup function
         return () => {
             ro?.disconnect();
-            il?.off('progress');
+            il?.off('progress', scheduleRelayout);
             msnry?.destroy();
             msnry = null;
         };
@@ -104,7 +118,14 @@
             aria-label={image.title || 'View image'}
         >
             <!-- Your card component; ensure it renders a single <img> inside -->
-            <ImageCard {image} {isCategory} {isAdmin} on:update={handleImageUpdate} on:remove={handleImageRemove} />
+            <ImageCard
+                {image}
+                {isCategory}
+                {isAdmin}
+                on:loaded={scheduleRelayout}
+                on:update={handleImageUpdate}
+                on:remove={handleImageRemove}
+            />
         </div>
     {/each}
 </div>
