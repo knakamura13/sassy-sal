@@ -18,6 +18,7 @@
     let gridEl: HTMLDivElement | null = null;
     let msnry: any = null; // Masonry instance
     let il: any = null; // imagesLoaded instance
+    let itemRefs: HTMLElement[] = [];
 
     // Decide which items should be wide (2 columns) - based on admin-controlled boolean
     const isWide = (img: Image) => {
@@ -94,6 +95,29 @@
         dispatch('imageClick', image);
     }
 
+    function handleKeydown(event: KeyboardEvent, index: number, image: Image) {
+        const key = event.key;
+        const lastIndex = itemRefs.length - 1;
+
+        if (key === 'Enter' || key === ' ') {
+            event.preventDefault();
+            handleImageClick(image);
+            return;
+        }
+
+        if (key === 'ArrowRight' || key === 'ArrowDown') {
+            event.preventDefault();
+            const nextIndex = Math.min(index + 1, lastIndex);
+            itemRefs[nextIndex]?.focus();
+        }
+
+        if (key === 'ArrowLeft' || key === 'ArrowUp') {
+            event.preventDefault();
+            const prevIndex = Math.max(index - 1, 0);
+            itemRefs[prevIndex]?.focus();
+        }
+    }
+
     function handleImageUpdate(event: CustomEvent) {
         dispatch('updateImage', event.detail);
     }
@@ -108,11 +132,12 @@
     <!-- Sizer defines the base column width; CSS controls how many columns per breakpoint -->
     <div class="grid-sizer"></div>
 
-    {#each images as image (image.id)}
+    {#each images as image, index (image.id)}
         <div
             class={`grid-item ${isWide(image) ? 'w2' : ''}`}
+            bind:this={(el) => (itemRefs[index] = el)}
             on:click|stopPropagation={() => handleImageClick(image)}
-            on:keydown={(e) => e.key === 'Enter' && handleImageClick(image)}
+            on:keydown={(e) => handleKeydown(e, index, image)}
             role="button"
             tabindex="0"
             aria-label={image.title || 'View image'}
@@ -178,5 +203,17 @@
     /* Optional hover affordance */
     .grid-item {
         cursor: pointer;
+    }
+
+    .grid-item:focus-visible {
+        outline: 3px solid #d19177;
+        outline-offset: 4px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .grid-item,
+        .grid-sizer {
+            transition: none !important;
+        }
     }
 </style>

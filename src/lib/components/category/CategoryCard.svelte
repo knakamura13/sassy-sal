@@ -232,7 +232,11 @@
 </script>
 
 <a
-    href={String(categoryId).startsWith('temp-') ? '#' : `/${categoryName}`}
+    href={
+        String(categoryId).startsWith('temp-')
+            ? '#'
+            : `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`
+    }
     class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
     class:pointer-events-none={String(categoryId).startsWith('temp-')}
 >

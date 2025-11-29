@@ -80,9 +80,10 @@
         admin?: boolean;
         isFallback?: boolean;
         requiresPassword?: boolean;
+        baseUrl?: string;
     };
 
-    // Set admin mode from URL parameter
+    // Set admin mode from server data
     $: if (data.admin) {
         adminMode.set(true);
     }
@@ -93,6 +94,7 @@
     let isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
+    let baseUrl = data?.baseUrl || '';
 
     // Password protection state
     let requiresPassword = data?.requiresPassword || false;
@@ -409,6 +411,38 @@
 <svelte:head>
     {#if category}
         <title>{category.attributes.name} | Photography Portfolio</title>
+        {#if category.attributes.description}
+            <meta name="description" content={category.attributes.description} />
+        {/if}
+        {#if baseUrl}
+            <meta property="og:title" content={`${category.attributes.name} | Photography Portfolio`} />
+            <meta
+                property="og:description"
+                content={category.attributes.description || 'Photography gallery'}
+            />
+            <meta property="og:url" content={`${baseUrl}/${category.attributes.name.toLowerCase().replace(/\s+/g, '-')}`} />
+            <meta property="og:type" content="website" />
+            {#if category.attributes.thumbnail?.data?.attributes?.fullSizeUrl || category.attributes.thumbnail?.data?.attributes?.url}
+                <meta
+                    property="og:image"
+                    content={category.attributes.thumbnail?.data?.attributes?.fullSizeUrl ||
+                        category.attributes.thumbnail?.data?.attributes?.url}
+                />
+            {/if}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content={`${category.attributes.name} | Photography Portfolio`} />
+            <meta
+                name="twitter:description"
+                content={category.attributes.description || 'Photography gallery'}
+            />
+            {#if category.attributes.thumbnail?.data?.attributes?.fullSizeUrl || category.attributes.thumbnail?.data?.attributes?.url}
+                <meta
+                    name="twitter:image"
+                    content={category.attributes.thumbnail?.data?.attributes?.fullSizeUrl ||
+                        category.attributes.thumbnail?.data?.attributes?.url}
+                />
+            {/if}
+        {/if}
     {:else}
         <title>Category | Photography Portfolio</title>
     {/if}

@@ -4,18 +4,20 @@ import { getCategoryWithImages, getCategories } from '$lib/services/sanity/categ
 import { getImageUrls } from '$lib/services/imageConfig';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, cookies }) => {
+export const load: PageServerLoad = async ({ params, cookies, setHeaders, url }) => {
     // Derive admin status from authenticated cookie only
     const admin = cookies.get('admin_session') === 'authenticated';
     const categoryParam = params.category;
+    const baseUrl = url.origin;
 
     try {
         // First, fetch all categories
         const allCategories = await getCategories();
+        const normalize = (value: string) => value.toLowerCase().replace(/[\s_]+/g, '-');
 
-        // Find the matching category by name (case-insensitive)
+        // Find the matching category by name or slug (case-insensitive)
         const matchingCategory = allCategories.find(
-            (cat) => cat.attributes.name.toLowerCase() === categoryParam.toLowerCase()
+            (cat) => normalize(cat.attributes.name) === normalize(categoryParam)
         );
 
         if (!matchingCategory) {
@@ -38,8 +40,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         // Check if category is password protected (now boolean flag)
         const isPasswordProtected = !!category.attributes.passwordProtected;
 
+        // If user previously unlocked this category in this session, skip password prompt
+        const unlockCookie = cookies.get(`category_access_${category.id}`);
+        const unlockedThisSession = unlockCookie === 'granted';
+
         // If password protected and not admin, always require password prompt
-        if (isPasswordProtected && !admin) {
+        if (isPasswordProtected && !admin && !unlockedThisSession) {
             return {
                 category: {
                     id: category.id,
@@ -52,7 +58,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                     }
                 },
                 admin,
-                requiresPassword: true
+                requiresPassword: true,
+                baseUrl
             };
         }
 
@@ -94,7 +101,16 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
             });
         }
 
-        return { category, admin, requiresPassword: false };
+        // Public caching hints for non-passworded content
+        if (!isPasswordProtected) {
+            setHeaders({
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+            });
+        } else {
+            setHeaders({ 'Cache-Control': 'private, no-store' });
+        }
+
+        return { category, admin, requiresPassword: false, baseUrl };
     } catch (err: any) {
         // Handle errors
         if (err.status === 404) {

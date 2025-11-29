@@ -1,5 +1,20 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+    import { preloadData } from '$app/navigation';
+
     export let nextCategory: { id: string; name: string } | null = null;
+
+    const slugify = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
+    let href = nextCategory ? `/${slugify(nextCategory.name)}` : '';
+
+    onMount(() => {
+        if (href) preloadData(href).catch(() => {});
+    });
+
+    $: {
+        href = nextCategory ? `/${slugify(nextCategory.name)}` : '';
+        if (href) preloadData(href).catch(() => {});
+    }
 </script>
 
 {#if nextCategory}
@@ -7,7 +22,7 @@
         <a
             href="/{nextCategory.name.toLowerCase().replace(/\s+/g, '-')}"
             class="link link--zoomies flex flex-row items-center gap-1 !text-2xl !text-[#d19177]"
-            data-sveltekit-reload
+            data-sveltekit-preload-data
         >
             {nextCategory.name}
             <svg

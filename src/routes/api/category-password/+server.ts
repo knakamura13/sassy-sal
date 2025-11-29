@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { client } from '$lib/services/sanity/client';
 import { transformCategoryWithImages } from '$lib/services/sanity/transformers';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
     try {
         const { categoryId, categoryName, password } = await request.json();
 
@@ -86,6 +86,16 @@ export const POST: RequestHandler = async ({ request }) => {
 
         // Password ok - strip password before returning
         const sanitizedCategory = transformCategoryWithImages(category);
+
+        // Set a short-lived session cookie so the user doesn't re-enter the password repeatedly
+        cookies.set(`category_access_${category._id}`, 'granted', {
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 6 // 6 hours
+        });
+
         return json({ success: true, category: sanitizedCategory });
     } catch (err: any) {
         if (err.status) {

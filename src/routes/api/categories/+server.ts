@@ -20,7 +20,11 @@ export const GET: RequestHandler = async () => {
             passwordProtected: category.attributes.passwordProtected
         }));
 
-        return json(transformedCategories);
+        return json(transformedCategories, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+            }
+        });
     } catch (err: any) {
         console.error('[DEBUG] Error fetching categories list:', err);
 
