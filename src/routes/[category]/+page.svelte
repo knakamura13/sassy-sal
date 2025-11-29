@@ -66,6 +66,7 @@
             name: string;
             description?: string;
             order?: number;
+            passwordProtected?: boolean;
             thumbnail?: any;
             images?: {
                 data: SanityImage[];
@@ -369,18 +370,17 @@
 
         try {
             // Call our server-side API endpoint to fetch the full category data
-            const response = await fetch(
-                `/api/category-password/${encodeURIComponent(category?.attributes.name || '')}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        password: event.detail.password
-                    })
-                }
-            );
+            const response = await fetch('/api/category-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categoryId: category?.id,
+                    categoryName: category?.attributes.name,
+                    password: event.detail.password
+                })
+            });
 
             const result = await response.json();
 

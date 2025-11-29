@@ -4,9 +4,9 @@ import { getCategoryWithImages, getCategories } from '$lib/services/sanity/categ
 import { getImageUrls } from '$lib/services/imageConfig';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, url, setHeaders, cookies }) => {
-    // Check for admin mode from URL search params
-    const admin = url.searchParams.get('admin') === 'true';
+export const load: PageServerLoad = async ({ params, cookies }) => {
+    // Derive admin status from authenticated cookie only
+    const admin = cookies.get('admin_session') === 'authenticated';
     const categoryParam = params.category;
 
     try {
@@ -35,8 +35,8 @@ export const load: PageServerLoad = async ({ params, url, setHeaders, cookies })
 
         const category = categoryResponse.data;
 
-        // Check if category is password protected
-        const isPasswordProtected = !!category.attributes.password;
+        // Check if category is password protected (now boolean flag)
+        const isPasswordProtected = !!category.attributes.passwordProtected;
 
         // If password protected and not admin, always require password prompt
         if (isPasswordProtected && !admin) {
@@ -46,6 +46,7 @@ export const load: PageServerLoad = async ({ params, url, setHeaders, cookies })
                     attributes: {
                         name: category.attributes.name,
                         order: category.attributes.order,
+                        passwordProtected: true,
                         thumbnail: category.attributes.thumbnail,
                         images: { data: [] } // Don't return images for password-protected categories
                     }

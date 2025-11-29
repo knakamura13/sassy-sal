@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
+import { EMAIL_USER, EMAIL_PASSWORD } from '$env/static/private';
 
 /**
  * Handle POST requests to /api/about-me
@@ -26,8 +27,9 @@ export async function POST({ request }) {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: import.meta.env.VITE_EMAIL_USER || 'sallyjkphoto@gmail.com',
-                pass: import.meta.env.VITE_EMAIL_PASSWORD // Make sure to set this in your .env file
+                // Prefer server-only secrets, fall back to legacy VITE vars for compatibility
+                user: EMAIL_USER || import.meta.env.VITE_EMAIL_USER || 'sallyjkphoto@gmail.com',
+                pass: EMAIL_PASSWORD || import.meta.env.VITE_EMAIL_PASSWORD
             }
         });
 
@@ -45,8 +47,8 @@ export async function POST({ request }) {
 
         // Send email
         await transporter.sendMail({
-            from: import.meta.env.VITE_EMAIL_USER || 'sallyjkphoto@gmail.com',
-            to: 'sallyjkphoto@gmail.com',
+            from: EMAIL_USER || import.meta.env.VITE_EMAIL_USER || 'sallyjkphoto@gmail.com',
+            to: EMAIL_USER || import.meta.env.VITE_EMAIL_USER || 'sallyjkphoto@gmail.com',
             replyTo: data.email,
             subject,
             html: htmlBody,

@@ -30,7 +30,7 @@
         attributes: {
             name: string;
             order: number;
-            password?: string;
+            passwordProtected?: boolean;
             thumbnail?: {
                 data?: {
                     attributes?: {
@@ -104,7 +104,7 @@
             // Edit mode - populate with existing data
             categoryName = categoryNameFromProp;
             orderValue = categoryOrder;
-            categoryPassword = category.attributes.password || '';
+            categoryPassword = '';
             imagePreview = currentDisplayedUrl || '';
         } else {
             // Create mode - fetch latest order value and reset form

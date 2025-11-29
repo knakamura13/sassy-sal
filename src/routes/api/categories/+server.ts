@@ -16,7 +16,8 @@ export const GET: RequestHandler = async () => {
             _id: category.id,
             name: category.attributes.name,
             order: category.attributes.order,
-            thumbnail: category.attributes.thumbnail
+            thumbnail: category.attributes.thumbnail,
+            passwordProtected: category.attributes.passwordProtected
         }));
 
         return json(transformedCategories);

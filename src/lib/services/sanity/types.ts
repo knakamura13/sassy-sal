@@ -54,7 +54,7 @@ export interface FormattedCategory {
     attributes: {
         name: string;
         order: number;
-        password?: string;
+        passwordProtected?: boolean;
         thumbnail: {
             data: {
                 attributes: {

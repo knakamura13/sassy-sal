@@ -9,6 +9,7 @@ export function transformCategory(category: SanityCategory): FormattedCategory {
     let thumbnailUrl = '';
     let placeholderUrl = '';
     let fullSizeUrl = '';
+    const passwordProtected = !!category.password;
 
     try {
         if (category.thumbnail) {
@@ -28,7 +29,7 @@ export function transformCategory(category: SanityCategory): FormattedCategory {
         attributes: {
             name: category.name,
             order: category.order || 0,
-            password: category.password,
+            passwordProtected,
             thumbnail: category.thumbnail
                 ? {
                       data: {

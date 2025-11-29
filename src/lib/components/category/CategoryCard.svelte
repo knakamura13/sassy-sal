@@ -10,7 +10,7 @@
         attributes: {
             name: string;
             order: number;
-            password?: string;
+            passwordProtected?: boolean;
             thumbnail?: {
                 data?: {
                     attributes?: {
@@ -232,7 +232,7 @@
 </script>
 
 <a
-    href={String(categoryId).startsWith('temp-') ? '#' : isAdmin ? `/${categoryName}?admin=true` : `/${categoryName}`}
+    href={String(categoryId).startsWith('temp-') ? '#' : `/${categoryName}`}
     class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
     class:pointer-events-none={String(categoryId).startsWith('temp-')}
 >
@@ -291,7 +291,7 @@
         {/if}
 
         <!-- Password protection indicator -->
-        {#if category.attributes.password && !isAdmin}
+        {#if category.attributes.passwordProtected && !isAdmin}
             <div class="absolute left-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -310,7 +310,7 @@
         >
             <h2 class="text-right text-2xl font-medium tracking-wide">
                 {categoryName}
-                {#if category.attributes.password && !isAdmin}
+                {#if category.attributes.passwordProtected && !isAdmin}
                     <span class="ml-2 text-lg">🔒</span>
                 {/if}
             </h2>

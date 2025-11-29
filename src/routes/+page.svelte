@@ -24,6 +24,7 @@
         attributes: {
             name: string;
             order: number;
+            passwordProtected?: boolean;
             description?: string;
             thumbnail?: {
                 data: {
@@ -42,6 +43,7 @@
         attributes: {
             name: string;
             order: number;
+            passwordProtected?: boolean;
             description?: string;
             thumbnail: {
                 data: {
@@ -257,7 +259,12 @@
                         const rawCategories2 = response2.ok ? await response2.json() : [];
                         const updatedCategories = rawCategories2.map((cat: any) => ({
                             id: cat._id,
-                            attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                            attributes: {
+                                name: cat.name,
+                                order: cat.order,
+                                thumbnail: cat.thumbnail,
+                                passwordProtected: cat.passwordProtected
+                            }
                         }));
 
                         // If category still exists in response, track it as deleted locally
@@ -304,7 +311,12 @@
                             const rawCategories2 = response2.ok ? await response2.json() : [];
                             const updatedCategories = rawCategories2.map((cat: any) => ({
                                 id: cat._id,
-                                attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                                attributes: {
+                                    name: cat.name,
+                                    order: cat.order,
+                                    thumbnail: cat.thumbnail,
+                                    passwordProtected: cat.passwordProtected
+                                }
                             }));
                             if (updatedCategories && updatedCategories.length > 0) {
                                 updateCategoriesAndRender(updatedCategories);
@@ -635,7 +647,12 @@
                         const rawCategories = response.ok ? await response.json() : [];
                         const refreshedCategories = rawCategories.map((cat: any) => ({
                             id: cat._id,
-                            attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                            attributes: {
+                                name: cat.name,
+                                order: cat.order,
+                                thumbnail: cat.thumbnail,
+                                passwordProtected: cat.passwordProtected
+                            }
                         }));
                         if (refreshedCategories && refreshedCategories.length > 0) {
                             updateCategoriesAndRender(refreshedCategories);
@@ -662,7 +679,12 @@
                             const rawCategories2 = response2.ok ? await response2.json() : [];
                             const updatedCategories = rawCategories2.map((cat: any) => ({
                                 id: cat._id,
-                                attributes: { name: cat.name, order: cat.order, thumbnail: cat.thumbnail }
+                                attributes: {
+                                    name: cat.name,
+                                    order: cat.order,
+                                    thumbnail: cat.thumbnail,
+                                    passwordProtected: cat.passwordProtected
+                                }
                             }));
                             if (updatedCategories && updatedCategories.length > 0) {
                                 categories = updatedCategories as Category[];
