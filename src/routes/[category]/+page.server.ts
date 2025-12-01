@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ params, cookies, setHeaders, url })
 
     try {
         // First, fetch all categories
-        const allCategories = await getCategories();
+        const allCategories = await getCategories({ bypassCache: admin });
         const normalize = (value: string) => value.toLowerCase().replace(/[\s_]+/g, '-');
 
         // Find the matching category by name or slug (case-insensitive)
@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params, cookies, setHeaders, url })
         const categoryId = matchingCategory.id;
 
         // Now fetch the specific category with images using the id
-        const categoryResponse = await getCategoryWithImages(categoryId);
+        const categoryResponse = await getCategoryWithImages(categoryId, { bypassCache: admin });
 
         // If no category found with this parameter
         if (!categoryResponse || !categoryResponse.data) {
@@ -102,7 +102,9 @@ export const load: PageServerLoad = async ({ params, cookies, setHeaders, url })
         }
 
         // Public caching hints for non-passworded content
-        if (!isPasswordProtected) {
+        if (admin) {
+            setHeaders({ 'Cache-Control': 'private, no-store' });
+        } else if (!isPasswordProtected) {
             setHeaders({
                 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
             });

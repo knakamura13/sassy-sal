@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ params }) => {
         }
 
         // Use the server-side service to get category with images
-        const categoryResponse = await getCategoryWithImages(id);
+        const categoryResponse = await getCategoryWithImages(id, { bypassCache: true });
 
         if (!categoryResponse || !categoryResponse.data) {
             throw error(404, 'Category not found');

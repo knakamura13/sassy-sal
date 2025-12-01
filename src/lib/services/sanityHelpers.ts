@@ -5,9 +5,9 @@ import { sanityFetchWithRetry } from '../utils/sanityRetry';
 
 /**
  * Get all categories with optimized query shape
- * @returns {Promise<Array>} Array of formatted categories
+ * @returns {Promise<FormattedCategory[]>} Array of formatted categories
  */
-export const getAllCategories = async (): Promise<any[]> => {
+export const getAllCategories = async (): Promise<FormattedCategory[]> => {
     const query = `*[_type == "category"] | order(order asc) {
     _id,
     name,
@@ -15,16 +15,16 @@ export const getAllCategories = async (): Promise<any[]> => {
     thumbnail
   }`;
 
-    const categories = await sanityFetchWithRetry(client, query);
-    return categories.map(formatCategory);
+    const categories = await sanityFetchWithRetry<SanityCategory[]>(client, query);
+    return categories.map(formatCategory).filter(Boolean) as FormattedCategory[];
 };
 
 /**
  * Get latest categories with an optional limit
  * @param {number} limit - Number of categories to return
- * @returns {Promise<Array>} Array of formatted categories
+ * @returns {Promise<FormattedCategory[]>} Array of formatted categories
  */
-export const getLatestCategories = async (limit: number = 10): Promise<any[]> => {
+export const getLatestCategories = async (limit: number = 10): Promise<FormattedCategory[]> => {
     const query = `*[_type == "category"] | order(_createdAt desc)[0...${limit}] {
     _id,
     name,
@@ -32,7 +32,9 @@ export const getLatestCategories = async (limit: number = 10): Promise<any[]> =>
     thumbnail
   }`;
 
-    return client.fetch(query).then((categories: any[]) => categories.map(formatCategory));
+    return client.fetch(query).then((categories: SanityCategory[]) =>
+        categories.map(formatCategory).filter(Boolean) as FormattedCategory[]
+    );
 };
 
 /**
@@ -53,7 +55,7 @@ export const getCategoryById = async (id: string): Promise<any | null> => {
     }
   }`;
 
-    const category = await sanityFetchWithRetry(client, query, { id });
+    const category = await sanityFetchWithRetry<SanityCategory | null>(client, query, { id });
     return category ? formatCategoryWithImages(category) : null;
 };
 

@@ -50,7 +50,13 @@
         <!-- Desktop Navigation -->
         <nav class="hidden items-center gap-6 md:flex">
             {#each navLinks as link}
-                <a href={link.href} class="link link--zoomies !text-[20px] !text-[#3f4a49]">{link.label}</a>
+                <a
+                    href={link.href}
+                    class="link link--zoomies !text-[20px] !text-[#3f4a49]"
+                    data-sveltekit-preload-data="hover"
+                >
+                    {link.label}
+                </a>
             {/each}
 
             {#if $adminMode}
@@ -77,6 +83,7 @@
                 <a
                     href={link.href}
                     class="link link--zoomies !text-[20px] !text-[#3f4a49]"
+                    data-sveltekit-preload-data="hover"
                     on:click={() => (isMenuOpen = false)}
                 >
                     {link.label}

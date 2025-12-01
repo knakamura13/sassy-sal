@@ -53,7 +53,7 @@ export const handle: Handle = async ({ event, resolve }) => {
             `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
             `img-src 'self' data: blob: https://cdn.sanity.io; ` +
             `font-src 'self' https://fonts.gstatic.com; ` +
-            `connect-src 'self' https://*.sanity.io; ` +
+            `connect-src 'self' https://*.sanity.io https://fonts.googleapis.com https://fonts.gstatic.com; ` +
             `frame-ancestors 'none';`
     );
 

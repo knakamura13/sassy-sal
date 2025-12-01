@@ -3,11 +3,56 @@ import { transformCategory, transformCategoryWithImages, createSanityImageFromAs
 import { uploadFile } from './uploadService';
 import type { SanityCategory, SanityGalleryImage, FormattedCategory, CategoryData } from './types';
 
+// Server-only, short‑TTL memory cache to avoid hammering Sanity on hot paths
+const isServer = typeof window === 'undefined';
+type CacheEntry<T> = { expires: number; value: T };
+const CATEGORY_TTL_MS = 1000 * 60 * 3; // 3 minutes
+const categoryCache = isServer ? new Map<string, CacheEntry<any>>() : null;
+
+const clone = <T>(value: T): T => {
+    try {
+        return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+    } catch {
+        return value;
+    }
+};
+
+const getCached = <T>(key: string): T | null => {
+    if (!categoryCache) return null;
+    const cached = categoryCache.get(key);
+    if (!cached) return null;
+    if (cached.expires < Date.now()) {
+        categoryCache.delete(key);
+        return null;
+    }
+    return cached.value as T;
+};
+
+const setCached = <T>(key: string, value: T, ttlMs = CATEGORY_TTL_MS) => {
+    if (!categoryCache) return;
+    categoryCache.set(key, { value: clone(value), expires: Date.now() + ttlMs });
+};
+
+const invalidateCategoryCache = (categoryId?: string) => {
+    if (!categoryCache) return;
+    categoryCache.delete('categories');
+    if (categoryId) {
+        categoryCache.delete(`category-${categoryId}`);
+    }
+};
+
 /**
  * Fetch all categories
  * @returns {Promise<FormattedCategory[]>} - Array of categories
  */
-export const getCategories = async (): Promise<FormattedCategory[]> => {
+export const getCategories = async (options: { bypassCache?: boolean } = {}): Promise<FormattedCategory[]> => {
+    const useCache = isServer && !options.bypassCache;
+
+    if (useCache) {
+        const cached = getCached<FormattedCategory[]>('categories');
+        if (cached) return clone(cached);
+    }
+
     try {
         // Use GROQ to query all categories, sorted by order
         const query = `*[_type == "category"] | order(order asc) {
@@ -21,7 +66,13 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
         const categories: SanityCategory[] = await client.fetch(query);
 
         // Transform the data to match the expected structure in the UI components
-        return categories.map(transformCategory);
+        const transformed = categories.map(transformCategory);
+
+        if (useCache && transformed.length > 0) {
+            setCached('categories', transformed);
+        }
+
+        return transformed;
     } catch (error) {
         console.error('Error fetching categories from Sanity:', error);
         return [];
@@ -33,7 +84,18 @@ export const getCategories = async (): Promise<FormattedCategory[]> => {
  * @param {string} nameOrId - The category name or ID
  * @returns {Promise<{ data: FormattedCategory } | null>} - Category with images
  */
-export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: FormattedCategory } | null> => {
+export const getCategoryWithImages = async (
+    nameOrId: string,
+    options: { bypassCache?: boolean } = {}
+): Promise<{ data: FormattedCategory } | null> => {
+    const cacheKey = `category-${nameOrId}`;
+    const useCache = isServer && !options.bypassCache;
+
+    if (useCache) {
+        const cached = getCached<{ data: FormattedCategory }>(cacheKey);
+        if (cached) return clone(cached);
+    }
+
     try {
         // Check if it looks like a document ID
         const isDocumentId = nameOrId.length > 10;
@@ -104,7 +166,13 @@ export const getCategoryWithImages = async (nameOrId: string): Promise<{ data: F
         // Transform the data to match the expected structure in the UI components
         const transformedCategory = transformCategoryWithImages(category);
 
-        return { data: transformedCategory };
+        const result = { data: transformedCategory };
+
+        if (useCache) {
+            setCached(cacheKey, result);
+        }
+
+        return result;
     } catch (error) {
         console.error('Error fetching category with images from Sanity:', error);
         return null;
@@ -155,6 +223,8 @@ export const addCategoryFast = async (
         // Transform the response to match expected format
         const transformedCategory = transformCategory(createdCategory);
 
+        invalidateCategoryCache(createdCategory._id);
+
         return { data: transformedCategory };
     } catch (error) {
         console.error('Error adding category to Sanity:', error);
@@ -203,6 +273,8 @@ export const uploadCategoryThumbnail = async (
 
         // Transform the response to match expected format
         const transformedCategory = transformCategory(updatedCategory);
+
+        invalidateCategoryCache(categoryId);
 
         return { data: transformedCategory };
     } catch (error) {
@@ -259,6 +331,8 @@ export const addCategory = async (categoryData: CategoryData): Promise<{ data: F
 
         // Transform the response to match expected format
         const transformedCategory = transformCategory(createdCategory);
+
+        invalidateCategoryCache(createdCategory._id);
 
         return { data: transformedCategory };
     } catch (error) {
@@ -355,6 +429,8 @@ export const deleteCategory = async (
             progressCallback(totalSteps, totalSteps, 'Category deleted successfully!');
         }
 
+        invalidateCategoryCache(id);
+
         return null;
     } catch (error) {
         console.error('Error deleting category from Sanity:', error);
@@ -402,6 +478,8 @@ export const updateCategory = async (id: string, data: CategoryData): Promise<{ 
 
         // Transform the response to match expected format
         const transformedCategory = transformCategory(updatedCategory);
+
+        invalidateCategoryCache(id);
 
         return { data: transformedCategory };
     } catch (error) {

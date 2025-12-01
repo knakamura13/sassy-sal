@@ -125,6 +125,16 @@
     function handleImageRemove(event: CustomEvent) {
         dispatch('removeImage', event.detail);
     }
+
+    // Action to keep track of item elements for keyboard nav
+    function itemRef(node: HTMLElement, index: number) {
+        itemRefs[index] = node;
+        return {
+            destroy() {
+                itemRefs.splice(index, 1);
+            }
+        };
+    }
 </script>
 
 <!-- Masonry grid -->
@@ -135,7 +145,7 @@
     {#each images as image, index (image.id)}
         <div
             class={`grid-item ${isWide(image) ? 'w2' : ''}`}
-            bind:this={(el) => (itemRefs[index] = el)}
+            use:itemRef={index}
             on:click|stopPropagation={() => handleImageClick(image)}
             on:keydown={(e) => handleKeydown(e, index, image)}
             role="button"

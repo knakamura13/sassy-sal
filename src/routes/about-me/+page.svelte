@@ -373,7 +373,6 @@
                     }
                 }}
                 on:blur={updateTitle}
-                autofocus
             />
             <button
                 type="button"
@@ -451,7 +450,6 @@
                     }}
                     on:blur={updateFormHeader}
                     placeholder="Contact form header"
-                    autofocus
                 />
                 <button
                     type="button"
@@ -596,7 +594,6 @@
                         }}
                         on:blur={updateFooterTagline}
                         placeholder="Footer tagline"
-                        autofocus
                     />
                     <button
                         type="button"
@@ -668,7 +665,6 @@
                         }}
                         on:blur={updateEmail}
                         placeholder="your.email@domain.com"
-                        autofocus
                     />
                     <button
                         type="button"

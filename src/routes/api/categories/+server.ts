@@ -2,10 +2,12 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getCategories } from '$lib/services/sanity/categoryService';
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ cookies }) => {
     try {
+        const isAdmin = cookies.get('admin_session') === 'authenticated';
+
         // Use the server-side service to get categories
-        const categories = await getCategories();
+        const categories = await getCategories({ bypassCache: isAdmin });
 
         if (!categories) {
             throw error(404, 'No categories found');
@@ -20,11 +22,11 @@ export const GET: RequestHandler = async () => {
             passwordProtected: category.attributes.passwordProtected
         }));
 
-        return json(transformedCategories, {
-            headers: {
-                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-            }
-        });
+        const headers = isAdmin
+            ? { 'Cache-Control': 'private, no-store' }
+            : { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' };
+
+        return json(transformedCategories, { headers });
     } catch (err: any) {
         console.error('[DEBUG] Error fetching categories list:', err);
 
