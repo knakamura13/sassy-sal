@@ -75,6 +75,27 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
     let imageUrl = '';
     let imagePlaceholderUrl = '';
     let imageFullSizeUrl = '';
+    let responsiveUrls:
+        | {
+              small: string;
+              medium: string;
+              large: string;
+          }
+        | undefined;
+    let responsiveWebpUrls:
+        | {
+              small: string;
+              medium: string;
+              large: string;
+          }
+        | undefined;
+    let responsiveAvifUrls:
+        | {
+              small: string;
+              medium: string;
+              large: string;
+          }
+        | undefined;
 
     try {
         if (image.image) {
@@ -83,6 +104,9 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
             imageUrl = imageUrls.medium;
             imagePlaceholderUrl = imageUrls.placeholder;
             imageFullSizeUrl = imageUrls.large;
+            responsiveUrls = imageUrls.responsive;
+            responsiveWebpUrls = imageUrls.webp.responsive;
+            responsiveAvifUrls = imageUrls.avif.responsive;
         }
     } catch (error) {
         console.error('Error generating progressive image URLs:', error);
@@ -96,11 +120,14 @@ export function transformImage(image: SanityGalleryImage): FormattedImage {
             spanTwoColumns: image.spanTwoColumns,
             image: {
                 data: {
-                    attributes: {
+                    attributes: ({
                         url: imageUrl,
                         placeholderUrl: imagePlaceholderUrl,
-                        fullSizeUrl: imageFullSizeUrl
-                    }
+                        fullSizeUrl: imageFullSizeUrl,
+                        responsiveUrls,
+                        responsiveWebpUrls,
+                        responsiveAvifUrls
+                    } as any)
                 }
             }
         }

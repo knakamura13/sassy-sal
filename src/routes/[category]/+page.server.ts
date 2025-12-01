@@ -85,6 +85,8 @@ export const load: PageServerLoad = async ({ params, cookies, setHeaders, url })
 
                     // Add responsive URLs for different screen sizes
                     image.responsiveUrls = urls.responsive;
+                    image.responsiveWebpUrls = urls.webp.responsive;
+                    image.responsiveAvifUrls = urls.avif.responsive;
 
                     // Calculate aspect ratio from image dimensions if available
                     if (image.image?.asset?.metadata?.dimensions) {

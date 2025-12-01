@@ -24,10 +24,19 @@
     let fullSizeLoaded = false;
     let isFromCache = image.isFromCache || false; // Track if image is from local cache
 
-    // Responsive image URLs
+    // Responsive image URLs (fallback)
     let responsiveSmallUrl = '';
     let responsiveMediumUrl = '';
     let responsiveLargeUrl = '';
+
+    // Format-specific responsive URLs
+    let responsiveSmallWebp = '';
+    let responsiveMediumWebp = '';
+    let responsiveLargeWebp = '';
+
+    let responsiveSmallAvif = '';
+    let responsiveMediumAvif = '';
+    let responsiveLargeAvif = '';
 
     // Edit dialog state
     let editDialogOpen = false;
@@ -45,6 +54,25 @@
             responsiveSmallUrl = image.responsiveUrls.small || '';
             responsiveMediumUrl = image.responsiveUrls.medium || '';
             responsiveLargeUrl = image.responsiveUrls.large || '';
+        }
+        if (image.responsiveWebpUrls) {
+            responsiveSmallWebp = image.responsiveWebpUrls.small || '';
+            responsiveMediumWebp = image.responsiveWebpUrls.medium || '';
+            responsiveLargeWebp = image.responsiveWebpUrls.large || '';
+        } else {
+            // Fall back to default responsive URLs; builder already auto(formats) but keep a copy
+            responsiveSmallWebp = responsiveSmallUrl;
+            responsiveMediumWebp = responsiveMediumUrl;
+            responsiveLargeWebp = responsiveLargeUrl;
+        }
+        if (image.responsiveAvifUrls) {
+            responsiveSmallAvif = image.responsiveAvifUrls.small || '';
+            responsiveMediumAvif = image.responsiveAvifUrls.medium || '';
+            responsiveLargeAvif = image.responsiveAvifUrls.large || '';
+        } else {
+            responsiveSmallAvif = responsiveSmallUrl;
+            responsiveMediumAvif = responsiveMediumUrl;
+            responsiveLargeAvif = responsiveLargeUrl;
         }
     }
 
@@ -198,28 +226,41 @@
             {:else if currentDisplayedUrl}
                 <!-- Responsive image with picture element and srcset -->
                 <picture>
-                    <!-- For small devices like phones (width < 640px) -->
+                    <!-- AVIF sources -->
                     <source
                         media="(max-width: 639px)"
-                        srcset={responsiveSmallUrl || currentDisplayedUrl}
-                        type="image/webp"
+                        srcset={responsiveSmallAvif || responsiveSmallUrl || currentDisplayedUrl}
+                        type="image/avif"
                     />
-
-                    <!-- For medium devices like tablets (640px <= width < 1024px) -->
                     <source
                         media="(min-width: 640px) and (max-width: 1023px)"
-                        srcset={responsiveMediumUrl || currentDisplayedUrl}
-                        type="image/webp"
+                        srcset={responsiveMediumAvif || responsiveMediumUrl || currentDisplayedUrl}
+                        type="image/avif"
                     />
-
-                    <!-- For large devices like desktops (width >= 1024px) -->
                     <source
                         media="(min-width: 1024px)"
-                        srcset={responsiveLargeUrl || currentDisplayedUrl}
+                        srcset={responsiveLargeAvif || responsiveLargeUrl || currentDisplayedUrl}
+                        type="image/avif"
+                    />
+
+                    <!-- WebP sources -->
+                    <source
+                        media="(max-width: 639px)"
+                        srcset={responsiveSmallWebp || responsiveSmallUrl || currentDisplayedUrl}
+                        type="image/webp"
+                    />
+                    <source
+                        media="(min-width: 640px) and (max-width: 1023px)"
+                        srcset={responsiveMediumWebp || responsiveMediumUrl || currentDisplayedUrl}
+                        type="image/webp"
+                    />
+                    <source
+                        media="(min-width: 1024px)"
+                        srcset={responsiveLargeWebp || responsiveLargeUrl || currentDisplayedUrl}
                         type="image/webp"
                     />
 
-                    <!-- Fallback image for browsers that don't support picture/srcset -->
+                    <!-- Fallback -->
                     <img
                         src={currentDisplayedUrl}
                         alt={image.alt || 'Gallery image'}

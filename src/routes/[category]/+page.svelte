@@ -288,6 +288,20 @@
                           large: responsiveUrls.large || fullSizeUrl || url
                       }
                     : undefined,
+                responsiveWebpUrls: image.responsiveWebpUrls
+                    ? {
+                          small: image.responsiveWebpUrls.small || url,
+                          medium: image.responsiveWebpUrls.medium || fullSizeUrl || url,
+                          large: image.responsiveWebpUrls.large || fullSizeUrl || url
+                      }
+                    : undefined,
+                responsiveAvifUrls: image.responsiveAvifUrls
+                    ? {
+                          small: image.responsiveAvifUrls.small || url,
+                          medium: image.responsiveAvifUrls.medium || fullSizeUrl || url,
+                          large: image.responsiveAvifUrls.large || fullSizeUrl || url
+                      }
+                    : undefined,
                 aspectRatio,
                 spanTwoColumns: image.attributes.spanTwoColumns
             };
@@ -340,6 +354,20 @@
                                           large: urls.responsive.large || urls.large || urls.medium
                                       }
                                     : undefined;
+                                image.responsiveWebpUrls = urls.webp.responsive
+                                    ? {
+                                          small: urls.webp.responsive.small || urls.medium,
+                                          medium: urls.webp.responsive.medium || urls.large || urls.medium,
+                                          large: urls.webp.responsive.large || urls.large || urls.medium
+                                      }
+                                    : undefined;
+                                image.responsiveAvifUrls = urls.avif.responsive
+                                    ? {
+                                          small: urls.avif.responsive.small || urls.medium,
+                                          medium: urls.avif.responsive.medium || urls.large || urls.medium,
+                                          large: urls.avif.responsive.large || urls.large || urls.medium
+                                      }
+                                    : undefined;
 
                                 // Also update the images array for next render
                                 const index = galleryImages.findIndex((img) => img.id === image.id);
@@ -352,6 +380,20 @@
                                               small: urls.responsive.small || urls.medium,
                                               medium: urls.responsive.medium || urls.large || urls.medium,
                                               large: urls.responsive.large || urls.large || urls.medium
+                                          }
+                                        : undefined;
+                                    galleryImages[index].responsiveWebpUrls = urls.webp.responsive
+                                        ? {
+                                              small: urls.webp.responsive.small || urls.medium,
+                                              medium: urls.webp.responsive.medium || urls.large || urls.medium,
+                                              large: urls.webp.responsive.large || urls.large || urls.medium
+                                          }
+                                        : undefined;
+                                    galleryImages[index].responsiveAvifUrls = urls.avif.responsive
+                                        ? {
+                                              small: urls.avif.responsive.small || urls.medium,
+                                              medium: urls.avif.responsive.medium || urls.large || urls.medium,
+                                              large: urls.avif.responsive.large || urls.large || urls.medium
                                           }
                                         : undefined;
                                 }

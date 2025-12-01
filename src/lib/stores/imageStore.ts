@@ -7,6 +7,8 @@ export interface ResponsiveUrls {
     large: string;
 }
 
+export interface ResponsiveFormatUrls extends ResponsiveUrls {}
+
 // Define the Image interface
 export interface Image {
     id: string;
@@ -20,6 +22,8 @@ export interface Image {
     thumbnailUrl?: string; // Medium quality/size image for initial display
     fullSizeUrl?: string; // Full-size high quality image for final display
     responsiveUrls?: ResponsiveUrls; // Responsive image URLs for different devices
+    responsiveWebpUrls?: ResponsiveFormatUrls; // WebP responsive set
+    responsiveAvifUrls?: ResponsiveFormatUrls; // AVIF responsive set
     cdnUrl?: string; // URL directly from Sanity CDN (used to check availability)
     isFromCache?: boolean; // Flag to indicate if the image is from local cache or Sanity CDN
     uploadedAt?: number; // Timestamp when the image was uploaded (for cache management)
