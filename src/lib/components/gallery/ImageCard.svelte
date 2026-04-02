@@ -197,7 +197,7 @@
 
 <div class="image-card group w-full">
     <div
-        class="relative overflow-hidden bg-gray-100 transition-all duration-300 hover:shadow-lg"
+        class="relative overflow-hidden bg-gray-100 transition-all duration-300 hover:shadow-lg hover:brightness-[1.03]"
         data-has-url={!!currentDisplayedUrl}
     >
         <!-- Image with progressive loading -->
@@ -291,7 +291,7 @@
                         type="button"
                         class="aspect-square h-10 w-10 p-1 text-white hover:bg-gray-600"
                         on:click|stopPropagation={handleEdit}
-                        aria-label="Edit category"
+                        aria-label="Edit image"
                     >
                         ✎
                     </button>
@@ -299,7 +299,7 @@
                         type="button"
                         class="aspect-square h-10 w-10 p-1 text-white hover:bg-red-600"
                         on:click|stopPropagation={handleRemove}
-                        aria-label="Remove category"
+                        aria-label="Remove image"
                     >
                         ×
                     </button>

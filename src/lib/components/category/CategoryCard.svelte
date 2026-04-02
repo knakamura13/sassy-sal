@@ -237,8 +237,9 @@
             ? '#'
             : `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`
     }
-    class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
+    class="category-card group relative block h-full w-full overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-lg focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#d19177]"
     class:pointer-events-none={String(categoryId).startsWith('temp-')}
+    aria-label="View {categoryName} gallery{category.attributes.passwordProtected && !isAdmin ? ' (password protected)' : ''}"
 >
     <div
         class="category-card-border pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300"
@@ -296,8 +297,8 @@
 
         <!-- Password protection indicator -->
         {#if category.attributes.passwordProtected && !isAdmin}
-            <div class="absolute left-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="absolute left-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img">
                     <path
                         stroke-linecap="round"
                         stroke-linejoin="round"

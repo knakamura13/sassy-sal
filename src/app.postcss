@@ -75,4 +75,20 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    /* Lock body scroll when image preview modal is open */
+    body.modal-open {
+        overflow: hidden !important;
+    }
+
+    /* Global reduced-motion: disable non-essential animations and transitions */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+        }
+    }
 }

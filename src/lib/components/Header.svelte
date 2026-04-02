@@ -20,24 +20,46 @@
         document.body.classList.toggle('no-scroll', isMenuOpen);
     }
 
+    function closeMenu() {
+        if (isMenuOpen) {
+            isMenuOpen = false;
+            document.body.classList.remove('no-scroll');
+        }
+    }
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (isMenuOpen && e.key === 'Escape') {
+            closeMenu();
+        }
+    }
+
     function checkMobile() {
         isMobile = window.innerWidth < MOBILE_BREAKPOINT;
     }
 
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    function debouncedCheckMobile() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(checkMobile, 100);
+    }
+
     onMount(() => {
         checkMobile();
-        window.addEventListener('resize', checkMobile);
+        window.addEventListener('resize', debouncedCheckMobile);
 
         return () => {
-            window.removeEventListener('resize', checkMobile);
+            window.removeEventListener('resize', debouncedCheckMobile);
+            clearTimeout(resizeTimer);
             document.body.classList.remove('no-scroll');
         };
     });
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 <header class="header">
     <div class="m-auto flex h-11 w-full max-w-[1400px] items-center justify-between">
-        <nav class="flex items-center gap-6">
+        <nav aria-label="Home" class="flex items-center gap-6">
             <a
                 href={homeUrl}
                 class="main-title link link--ascendance font-didot relative flex cursor-pointer items-center gap-4 !text-[32px] !text-[#3f4a49] transition-all duration-300"
@@ -48,7 +70,7 @@
         </nav>
 
         <!-- Desktop Navigation -->
-        <nav class="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main navigation" class="hidden items-center gap-6 md:flex">
             {#each navLinks as link}
                 <a
                     href={link.href}
@@ -76,15 +98,25 @@
 </header>
 
 <!-- Mobile Menu -->
-{#if isMobile && isMenuOpen}
-    <div id="mobile-menu" class="mobile-menu flex flex-col items-center justify-center" role="navigation">
-        <nav class="flex flex-col items-center gap-6 py-6">
+{#if isMobile}
+    <div
+        id="mobile-menu"
+        class="mobile-menu flex flex-col items-center justify-center"
+        class:mobile-menu--open={isMenuOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile navigation menu"
+        aria-hidden={!isMenuOpen}
+        inert={!isMenuOpen ? true : undefined}
+    >
+        <nav aria-label="Mobile navigation" class="flex flex-col items-center gap-6 py-6">
             {#each navLinks as link}
                 <a
                     href={link.href}
                     class="link link--zoomies !text-[20px] !text-[#3f4a49]"
                     data-sveltekit-preload-data="hover"
-                    on:click={() => (isMenuOpen = false)}
+                    on:click={closeMenu}
+                    tabindex={isMenuOpen ? 0 : -1}
                 >
                     {link.label}
                 </a>
@@ -93,7 +125,11 @@
             <!-- Admin Logout in Mobile Menu -->
             {#if $adminMode}
                 <form action="/admin?/logout" method="POST">
-                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]">
+                    <button
+                        type="submit"
+                        class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]"
+                        tabindex={isMenuOpen ? 0 : -1}
+                    >
                         Logout
                     </button>
                 </form>
@@ -124,7 +160,16 @@
         padding-bottom: 25vh;
         background-color: white;
         z-index: 100;
-        animation: slideDown 0.5s ease-out;
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .mobile-menu--open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
     }
 
     .logout-btn {
@@ -133,16 +178,5 @@
         cursor: pointer;
         font-family: inherit;
         padding: 0;
-    }
-
-    @keyframes slideDown {
-        from {
-            transform: translateY(50px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
     }
 </style>
