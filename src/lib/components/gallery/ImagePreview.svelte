@@ -11,9 +11,26 @@ let closeButton: HTMLButtonElement;
 let previouslyFocused: Element | null = null;
 let isVisible = false; // controls CSS transition state
 let isRendered = false; // controls DOM presence
+let cleanupTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+// Cleanup on unmount: restore body scroll and cancel pending timeouts
+onMount(() => {
+    return () => {
+        document.body.classList.remove('modal-open');
+        if (cleanupTimeoutId) {
+            clearTimeout(cleanupTimeoutId);
+            cleanupTimeoutId = null;
+        }
+    };
+});
 
 // Two-phase show: render first, then trigger CSS transition on next frame
 $: if (show && image) {
+    // Cancel any pending cleanup from a previous close
+    if (cleanupTimeoutId) {
+        clearTimeout(cleanupTimeoutId);
+        cleanupTimeoutId = null;
+    }
     isRendered = true;
     previouslyFocused = typeof document !== 'undefined' ? document.activeElement : null;
     // Wait for DOM render, then trigger transition
@@ -26,6 +43,13 @@ $: if (show && image) {
 } else if (!show && isRendered) {
     isVisible = false;
     // Wait for exit transition, then remove from DOM
+    cleanupTimeoutId = setTimeout(() => {
+        cleanupTimeoutId = null;
+        isRendered = false;
+        if (previouslyFocused instanceof HTMLElement) {
+            previouslyFocused.focus();
+        }
+    }, 300);
 }
 
 // Function to close the preview
@@ -33,7 +57,8 @@ function closePreview() {
     isVisible = false;
     dispatch('close');
     // Restore focus after transition completes
-    setTimeout(() => {
+    cleanupTimeoutId = setTimeout(() => {
+        cleanupTimeoutId = null;
         isRendered = false;
         if (previouslyFocused instanceof HTMLElement) {
             previouslyFocused.focus();
@@ -54,12 +79,12 @@ function handleKeydown(e: KeyboardEvent) {
     }
 }
 
-// Lock body scroll when modal is open
+// Lock body scroll when modal is open (uses CSS class to override !important in layout)
 $: if (typeof document !== 'undefined') {
     if (isVisible) {
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('modal-open');
     } else {
-        document.body.style.overflow = '';
+        document.body.classList.remove('modal-open');
     }
 }
 </script>

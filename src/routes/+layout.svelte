@@ -30,7 +30,7 @@
         transform: translateX(-50%);
         z-index: 9999;
         padding: 0.75rem 1.5rem;
-        background: #3f4a49;
+        background: #333f40;
         color: #fff;
         font-family: 'Garamond Libre', serif;
         font-size: 1rem;

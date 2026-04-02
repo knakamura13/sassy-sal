@@ -93,8 +93,12 @@
     let progressMessage = writable('');
     let progressPercentage = writable(0);
 
+    // Detect reduced motion preference for Svelte transitions (which bypass CSS rules)
+    let reducedMotion = false;
+
     // On component mount, try to load categories from localStorage if available
     onMount(() => {
+        reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         try {
             // First check if we have order overrides
             const savedOrder = localStorage.getItem(CATEGORIES_ORDER_KEY);
@@ -732,7 +736,7 @@
         <!-- Regular non-draggable grid for non-admin mode -->
         <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
             {#each categoryGrid.categories as category, i (category.id + '-' + categoryGrid.updateCounter)}
-                <div in:fly={{ y: 30, duration: 400, delay: i * 100 }}>
+                <div in:fly={{ y: reducedMotion ? 0 : 30, duration: reducedMotion ? 0 : 400, delay: reducedMotion ? 0 : Math.min(i * 100, 800) }}>
                     <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
                         <CategoryCard
                             {category}
