@@ -6,7 +6,7 @@
     },
     "build": {
         "builder": "RAILPACK",
-        "buildCommand": "yarn install --immutable && yarn build",
+        "buildCommand": "yarn install --frozen-lockfile && yarn build",
         "watchPaths": ["/src/**", "/static/**", "/package.json", "/yarn.lock"]
     },
     "environments": {
