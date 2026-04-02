@@ -504,18 +504,20 @@
     {#if aboutMe.contactForm}
         <form class="w-full" on:submit|preventDefault={handleSubmit}>
             {#if formSuccess}
-                <div class="alert alert-success mb-6 p-4">Thank you for your message! I'll get back to you soon.</div>
+                <div class="alert alert-success mb-6 p-4" role="status" aria-live="polite">Thank you for your message! I'll get back to you soon.</div>
             {/if}
 
             {#if formError}
-                <div class="alert alert-error mb-6 p-4">
+                <div class="alert alert-error mb-6 p-4" role="alert" aria-live="assertive">
                     {formError}
                 </div>
             {/if}
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="form-control">
+                    <label for="contact-name" class="sr-only">Name (required)</label>
                     <input
+                        id="contact-name"
                         type="text"
                         placeholder={(aboutMe.contactForm.formFields?.namePlaceholder || 'Your name') + ' *'}
                         class="input w-full bg-transparent"
@@ -526,7 +528,9 @@
                 </div>
 
                 <div class="form-control">
+                    <label for="contact-email" class="sr-only">Email (required)</label>
                     <input
+                        id="contact-email"
                         type="email"
                         placeholder={(aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email') + ' *'}
                         class="input w-full bg-transparent"
@@ -537,7 +541,9 @@
                 </div>
 
                 <div class="form-control">
+                    <label for="contact-phone" class="sr-only">Phone number</label>
                     <input
+                        id="contact-phone"
                         type="tel"
                         placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
                         class="input w-full bg-transparent"
@@ -547,7 +553,9 @@
                 </div>
 
                 <div class="form-control">
+                    <label for="contact-referral" class="sr-only">How did you hear about me?</label>
                     <input
+                        id="contact-referral"
                         type="text"
                         placeholder={aboutMe.contactForm.formFields?.referralPlaceholder ||
                             'How did you hear about me?'}
@@ -559,7 +567,9 @@
             </div>
 
             <div class="form-control col-span-2 mt-4">
+                <label for="contact-message" class="sr-only">Message (required)</label>
                 <textarea
+                    id="contact-message"
                     placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') + ' *'}
                     class="textarea min-h-[150px] w-full bg-transparent"
                     bind:value={formData.message}
@@ -727,6 +737,19 @@
 <style lang="scss">
     @use '../../lib/styles/variables' as vars;
     @use 'sass:color';
+
+    /* Visually hidden but accessible to screen readers */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
 
     a {
         color: vars.$secondary-color;

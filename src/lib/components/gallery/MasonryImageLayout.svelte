@@ -135,6 +135,40 @@
             }
         };
     }
+
+    // Action to fade in grid items as they enter the viewport
+    function revealOnScroll(node: HTMLElement) {
+        // Check reduced-motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+            node.style.opacity = '1';
+            return { destroy() {} };
+        }
+
+        node.style.opacity = '0';
+        node.style.transform = 'translateY(16px)';
+        node.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        node.style.opacity = '1';
+                        node.style.transform = 'translateY(0)';
+                        observer.unobserve(node);
+                    }
+                }
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+        );
+
+        observer.observe(node);
+        return {
+            destroy() {
+                observer.disconnect();
+            }
+        };
+    }
 </script>
 
 <!-- Masonry grid -->
@@ -146,6 +180,7 @@
         <div
             class={`grid-item ${isWide(image) ? 'w2' : ''}`}
             use:itemRef={index}
+            use:revealOnScroll
             on:click|stopPropagation={() => handleImageClick(image)}
             on:keydown={(e) => handleKeydown(e, index, image)}
             role="button"
@@ -208,6 +243,12 @@
         display: block;
         width: 100%;
         height: auto;
+    }
+
+    /* Let the browser skip rendering off-screen items */
+    .grid-item {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 300px;
     }
 
     /* Optional hover affordance */

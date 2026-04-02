@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
+    import { fly } from 'svelte/transition';
 
     import {
         addCategory,
@@ -730,15 +731,17 @@
     {:else}
         <!-- Regular non-draggable grid for non-admin mode -->
         <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
-            {#each categoryGrid.categories as category (category.id + '-' + categoryGrid.updateCounter)}
-                <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
-                    <CategoryCard
-                        {category}
-                        isAdmin={$adminMode}
-                        on:remove={handleRemoveCategory}
-                        on:update={handleUpdateCategory}
-                    />
-                </AspectRatio>
+            {#each categoryGrid.categories as category, i (category.id + '-' + categoryGrid.updateCounter)}
+                <div in:fly={{ y: 30, duration: 400, delay: i * 100 }}>
+                    <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
+                        <CategoryCard
+                            {category}
+                            isAdmin={$adminMode}
+                            on:remove={handleRemoveCategory}
+                            on:update={handleUpdateCategory}
+                        />
+                    </AspectRatio>
+                </div>
             {/each}
         </div>
     {/if}
