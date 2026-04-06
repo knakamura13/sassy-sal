@@ -81,6 +81,15 @@
         overflow: hidden !important;
     }
 
+    /* Lock body scroll when mobile nav menu is open */
+    body.no-scroll {
+        overflow: hidden !important;
+        overflow-y: hidden !important;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
     /* Global reduced-motion: disable non-essential animations and transitions */
     @media (prefers-reduced-motion: reduce) {
         *,

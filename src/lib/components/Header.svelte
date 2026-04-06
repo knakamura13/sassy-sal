@@ -3,6 +3,7 @@
     import '$lib/styles/links.scss';
     import Hamburger from './Hamburger.svelte';
     import { onMount } from 'svelte';
+    import { afterNavigate } from '$app/navigation';
 
     const MOBILE_BREAKPOINT = 768;
 
@@ -17,14 +18,33 @@
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
-        document.body.classList.toggle('no-scroll', isMenuOpen);
+        if (isMenuOpen) {
+            const scrollY = window.scrollY;
+            document.body.classList.add('no-scroll');
+            document.body.style.top = `-${scrollY}px`;
+        } else {
+            const scrollY = parseInt(document.body.style.top || '0') * -1;
+            document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollY);
+        }
     }
 
-    function closeMenu() {
+    function closeMenu(restoreScroll = true) {
         if (isMenuOpen) {
+            const scrollY = parseInt(document.body.style.top || '0') * -1;
             isMenuOpen = false;
             document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
+            if (restoreScroll) {
+                window.scrollTo(0, scrollY);
+            }
         }
+    }
+
+    function releaseScrollLock() {
+        document.body.classList.remove('no-scroll');
+        document.body.style.top = '';
     }
 
     function handleKeydown(e: KeyboardEvent) {
@@ -34,7 +54,13 @@
     }
 
     function checkMobile() {
+        const wasMobile = isMobile;
         isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        // Release body scroll lock if leaving mobile breakpoint with menu open
+        if (wasMobile && !isMobile && isMenuOpen) {
+            isMenuOpen = false;
+            releaseScrollLock();
+        }
     }
 
     let resizeTimer: ReturnType<typeof setTimeout>;
@@ -51,7 +77,14 @@
             window.removeEventListener('resize', debouncedCheckMobile);
             clearTimeout(resizeTimer);
             document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
         };
+    });
+
+    // Close menu on any navigation (logo click, back/forward, programmatic nav)
+    // Skip scroll restore — let SvelteKit handle scroll for the destination page
+    afterNavigate(() => {
+        closeMenu(false);
     });
 </script>
 
@@ -115,7 +148,7 @@
                     href={link.href}
                     class="link link--zoomies !text-[20px] !text-[#3f4a49]"
                     data-sveltekit-preload-data="hover"
-                    on:click={closeMenu}
+                    on:click={() => closeMenu(false)}
                     tabindex={isMenuOpen ? 0 : -1}
                 >
                     {link.label}
@@ -164,6 +197,7 @@
         transform: translateY(20px);
         pointer-events: none;
         transition: opacity 0.35s ease, transform 0.35s ease;
+        overscroll-behavior: contain;
     }
 
     .mobile-menu--open {

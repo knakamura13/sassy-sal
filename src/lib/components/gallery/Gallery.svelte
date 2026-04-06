@@ -205,6 +205,15 @@
         }
     }
 
+    // Re-fetch next category when the current category changes (client-side navigation)
+    let prevCategoryId: string = '';
+    $: if (categoryId && categoryId !== prevCategoryId) {
+        prevCategoryId = categoryId;
+        nextCategory = null;
+        isLoadingNextCategory = false;
+        fetchNextCategory();
+    }
+
     $: {
         // Update local images when category images change
         // But only if we're not in a modified state to avoid losing edits
