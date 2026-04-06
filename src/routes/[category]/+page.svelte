@@ -88,16 +88,22 @@
         adminMode.set(true);
     }
 
-    // Get the category from the server data - ensure it exists
-    let category = data?.category;
+    // Get the category from the server data - reactive for client-side navigation
+    $: category = data?.category;
     let categoryImages: any[] = [];
-    let isFallback = data?.isFallback || false;
+    $: isFallback = data?.isFallback || false;
     let loadingImageUrls = false;
     let imageUrlsLoaded = false;
-    let baseUrl = data?.baseUrl || '';
+    $: baseUrl = data?.baseUrl || '';
+
+    // Reset image loading state when category changes so images re-fetch
+    $: if (category) {
+        imageUrlsLoaded = false;
+        loadingImageUrls = false;
+    }
 
     // Password protection state
-    let requiresPassword = data?.requiresPassword || false;
+    $: requiresPassword = data?.requiresPassword || false;
     let passwordError = '';
     let passwordLoading = false;
 

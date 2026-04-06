@@ -3,6 +3,7 @@
     import '$lib/styles/links.scss';
     import Hamburger from './Hamburger.svelte';
     import { onMount } from 'svelte';
+    import { afterNavigate } from '$app/navigation';
 
     const MOBILE_BREAKPOINT = 768;
 
@@ -17,13 +18,25 @@
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
-        document.body.classList.toggle('no-scroll', isMenuOpen);
+        if (isMenuOpen) {
+            const scrollY = window.scrollY;
+            document.body.classList.add('no-scroll');
+            document.body.style.top = `-${scrollY}px`;
+        } else {
+            const scrollY = parseInt(document.body.style.top || '0') * -1;
+            document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollY);
+        }
     }
 
     function closeMenu() {
         if (isMenuOpen) {
+            const scrollY = parseInt(document.body.style.top || '0') * -1;
             isMenuOpen = false;
             document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollY);
         }
     }
 
@@ -51,7 +64,13 @@
             window.removeEventListener('resize', debouncedCheckMobile);
             clearTimeout(resizeTimer);
             document.body.classList.remove('no-scroll');
+            document.body.style.top = '';
         };
+    });
+
+    // Close menu on any navigation (logo click, back/forward, programmatic nav)
+    afterNavigate(() => {
+        closeMenu();
     });
 </script>
 
@@ -164,6 +183,7 @@
         transform: translateY(20px);
         pointer-events: none;
         transition: opacity 0.35s ease, transform 0.35s ease;
+        overscroll-behavior: contain;
     }
 
     .mobile-menu--open {
