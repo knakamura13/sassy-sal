@@ -30,14 +30,21 @@
         }
     }
 
-    function closeMenu() {
+    function closeMenu(restoreScroll = true) {
         if (isMenuOpen) {
             const scrollY = parseInt(document.body.style.top || '0') * -1;
             isMenuOpen = false;
             document.body.classList.remove('no-scroll');
             document.body.style.top = '';
-            window.scrollTo(0, scrollY);
+            if (restoreScroll) {
+                window.scrollTo(0, scrollY);
+            }
         }
+    }
+
+    function releaseScrollLock() {
+        document.body.classList.remove('no-scroll');
+        document.body.style.top = '';
     }
 
     function handleKeydown(e: KeyboardEvent) {
@@ -47,7 +54,13 @@
     }
 
     function checkMobile() {
+        const wasMobile = isMobile;
         isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        // Release body scroll lock if leaving mobile breakpoint with menu open
+        if (wasMobile && !isMobile && isMenuOpen) {
+            isMenuOpen = false;
+            releaseScrollLock();
+        }
     }
 
     let resizeTimer: ReturnType<typeof setTimeout>;
@@ -69,8 +82,9 @@
     });
 
     // Close menu on any navigation (logo click, back/forward, programmatic nav)
+    // Skip scroll restore — let SvelteKit handle scroll for the destination page
     afterNavigate(() => {
-        closeMenu();
+        closeMenu(false);
     });
 </script>
 
@@ -134,7 +148,7 @@
                     href={link.href}
                     class="link link--zoomies !text-[20px] !text-[#3f4a49]"
                     data-sveltekit-preload-data="hover"
-                    on:click={closeMenu}
+                    on:click={() => closeMenu(false)}
                     tabindex={isMenuOpen ? 0 : -1}
                 >
                     {link.label}
