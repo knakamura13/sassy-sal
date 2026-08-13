@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
+    import { IMAGE_SIZES } from '$lib/services/imageConfig';
     import type { Image } from '$lib/stores/imageStore';
     import EditImageDialog from './EditImageDialog.svelte';
 
@@ -11,6 +12,8 @@
     export let priority: boolean = false;
     /** Load immediately without marking as the LCP candidate */
     export let eager: boolean = false;
+    /** Matches masonry column count; override for 2-col spans */
+    export let sizes: string = '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
 
     const dispatch = createEventDispatcher<{
         remove: string;
@@ -71,6 +74,9 @@
             ? image.alt
             : image.title || '';
     $: aspectStyle = image.aspectRatio ? `aspect-ratio: ${image.aspectRatio}` : '';
+    $: intrinsicWidth = image.width ?? IMAGE_SIZES.MEDIUM.width;
+    $: intrinsicHeight =
+        image.height ?? (image.aspectRatio ? Math.round(intrinsicWidth / image.aspectRatio) : undefined);
     let loadingMode: 'eager' | 'lazy' = 'lazy';
     let fetchPriority: 'high' | 'auto' = 'auto';
     $: loadingMode = priority || eager ? 'eager' : 'lazy';
@@ -127,32 +133,38 @@
                         media="(max-width: 639px)"
                         srcset={responsiveSmallAvif || responsiveSmallUrl || displaySrc}
                         type="image/avif"
+                        {sizes}
                     />
                     <source
                         media="(min-width: 640px) and (max-width: 1023px)"
                         srcset={responsiveMediumAvif || responsiveMediumUrl || displaySrc}
                         type="image/avif"
+                        {sizes}
                     />
                     <source
                         media="(min-width: 1024px)"
                         srcset={responsiveLargeAvif || responsiveLargeUrl || displaySrc}
                         type="image/avif"
+                        {sizes}
                     />
 
                     <source
                         media="(max-width: 639px)"
                         srcset={responsiveSmallWebp || responsiveSmallUrl || displaySrc}
                         type="image/webp"
+                        {sizes}
                     />
                     <source
                         media="(min-width: 640px) and (max-width: 1023px)"
                         srcset={responsiveMediumWebp || responsiveMediumUrl || displaySrc}
                         type="image/webp"
+                        {sizes}
                     />
                     <source
                         media="(min-width: 1024px)"
                         srcset={responsiveLargeWebp || responsiveLargeUrl || displaySrc}
                         type="image/webp"
+                        {sizes}
                     />
 
                     <img
@@ -160,6 +172,9 @@
                         alt={imageAlt}
                         class={`relative h-full w-full object-cover ${isFromCache ? 'border-2 border-amber-400' : ''}`}
                         style={aspectStyle}
+                        width={intrinsicWidth}
+                        height={intrinsicHeight}
+                        {sizes}
                         loading={loadingMode}
                         fetchpriority={fetchPriority}
                         decoding="async"
@@ -211,7 +226,6 @@
 <style>
     .placeholder-blur {
         filter: blur(16px);
-        transform: scale(1.06);
         transform-origin: center;
     }
 </style>

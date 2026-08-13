@@ -737,11 +737,12 @@
     {:else if $adminMode}
         <!-- Admin category grid -->
         <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
-            {#each filteredCategories as category (String(category.id) + '-' + updateCounter)}
+            {#each filteredCategories as category, i (String(category.id) + '-' + updateCounter)}
                 <AspectRatio ratio={3 / 4} class="!aspect-[3/4] bg-muted">
                     <CategoryCard
                         {category}
                         isAdmin={$adminMode}
+                        priority={i === 0}
                         on:remove={handleRemoveCategory}
                         on:update={handleUpdateCategory}
                     />
@@ -759,6 +760,7 @@
                         <CategoryCard
                             {category}
                             isAdmin={$adminMode}
+                            priority={i === 0}
                             on:remove={handleRemoveCategory}
                             on:update={handleUpdateCategory}
                         />

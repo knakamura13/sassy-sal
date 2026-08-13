@@ -121,6 +121,8 @@
                 {srcset}
                 sizes="(min-width: 768px) 50vw, 100vw"
                 alt=""
+                width={categoryThumbnail?.data?.attributes?.width || 600}
+                height={categoryThumbnail?.data?.attributes?.height || 800}
                 class="relative h-full w-full object-cover"
                 loading="eager"
                 fetchpriority={fetchPriority}

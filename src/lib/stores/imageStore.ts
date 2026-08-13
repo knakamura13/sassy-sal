@@ -29,6 +29,8 @@ export interface Image {
     uploadedAt?: number; // Timestamp when the image was uploaded (for cache management)
     updatedAt?: number; // Timestamp when the image was last updated (for cache management)
     aspectRatio?: number; // Cached aspect ratio (width/height) for layout calculations
+    width?: number; // Intrinsic pixel width when known (CLS / width-height attrs)
+    height?: number; // Intrinsic pixel height when known
     spanTwoColumns?: boolean; // Whether this image should span two columns in the layout
 }
 

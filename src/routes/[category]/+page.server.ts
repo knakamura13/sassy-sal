@@ -92,6 +92,8 @@ export const load: PageServerLoad = async ({ params, cookies, setHeaders, url })
                     if (image.image?.asset?.metadata?.dimensions) {
                         const { width, height } = image.image.asset.metadata.dimensions;
                         if (width && height && height > 0) {
+                            image.width = width;
+                            image.height = height;
                             image.aspectRatio = width / height;
                         }
                     }
