@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
     import { fly } from 'svelte/transition';
+    import { page } from '$app/stores';
 
     import {
         addCategory,
@@ -185,6 +186,11 @@
 
     // Reactive derived value for category grid that triggers re-renders
     $: categoryGrid = { categories: filteredCategories, updateCounter };
+
+    $: origin = $page.url.origin;
+    $: ogImage =
+        filteredCategories.find((cat) => cat.attributes?.thumbnail?.data?.attributes?.url)?.attributes.thumbnail?.data
+            ?.attributes?.url || `${origin}/favicons/android-chrome-512x512.png`;
 
     // Set admin mode when the user is authenticated
     $: if (data.admin) {
@@ -713,10 +719,22 @@
 
 <svelte:head>
     <title>SallyJK Photography</title>
+    <meta property="og:title" content="SallyJK Photography" />
+    <meta property="og:description" content="Photography portfolio by Sally JK" />
+    <meta property="og:url" content={origin} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SallyJK Photography" />
+    <meta name="twitter:description" content="Photography portfolio by Sally JK" />
+    <meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
-<div class="page mx-auto min-h-[100vh] max-w-[1400px] !pb-[240px] !pt-[60px]" id="home">
-    {#if $adminMode}
+<div class="page mx-auto min-h-dvh max-w-[1400px] !pb-[240px] !pt-[60px]" id="home">
+    <h1 class="sr-only">SallyJK Photography</h1>
+    {#if !$adminMode && filteredCategories.length === 0}
+        <p class="py-16 text-center text-lg text-gray-600">No galleries yet. Check back soon.</p>
+    {:else if $adminMode}
         <!-- Admin category grid -->
         <div class="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-2">
             {#each filteredCategories as category (String(category.id) + '-' + updateCounter)}

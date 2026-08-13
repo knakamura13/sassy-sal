@@ -15,8 +15,20 @@
     };
 
     import { PortableText } from '@portabletext/svelte';
+    import { page } from '$app/stores';
     import { urlFor } from '$lib/utils/image';
     import { adminMode } from '$lib/stores/adminStore';
+
+    $: origin = $page.url.origin;
+    $: profileDims = aboutMe.profileImage?.asset?.metadata?.dimensions;
+    $: profileWidth = profileDims?.width || 600;
+    $: profileHeight = profileDims?.height || 800;
+    $: profileAlt = aboutMe.profileImage?.alt || aboutMe.profileImage?.altText || '';
+    $: ogImage = aboutMe.profileImage
+        ? urlFor(aboutMe.profileImage).width(1200).auto('format').url()
+        : `${origin}/favicons/android-chrome-512x512.png`;
+    $: pageTitle = `${aboutMe?.title || 'About Me'} | Photography Portfolio`;
+    $: pageDescription = aboutMe.footerTagline || aboutMe.title || 'About the photographer';
 
     // Set admin mode based on server-side authentication from layout
     $: if (data.admin) {
@@ -355,7 +367,17 @@
 </script>
 
 <svelte:head>
-    <title>{aboutMe?.title || 'About Me'} | Photography Portfolio</title>
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={`${origin}/about-me`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
 <div class="container mx-auto flex max-w-screen-lg flex-col gap-12 px-4 py-16 pb-32">
@@ -423,8 +445,11 @@
             <div class="w-full md:w-1/2 lg:w-2/5">
                 <img
                     src={urlFor(aboutMe.profileImage).width(600).auto('format').url()}
-                    alt="Profile"
+                    alt={profileAlt}
+                    width={profileWidth}
+                    height={profileHeight}
                     class="h-auto w-full shadow-md"
+                    style="aspect-ratio: {profileWidth} / {profileHeight};"
                 />
             </div>
         {/if}
@@ -774,8 +799,16 @@
         transition: border-color 0.2s ease;
 
         &:focus {
-            outline: none;
             border-color: vars.$secondary-color;
+        }
+
+        &:focus-visible {
+            outline: 2px solid vars.$secondary-color;
+            outline-offset: 2px;
+        }
+
+        &:user-invalid {
+            border-color: #dc3545;
         }
     }
 
@@ -799,6 +832,15 @@
 
         &:hover {
             background-color: color.adjust(vars.$secondary-color, $lightness: -10%);
+        }
+
+        &:focus-visible {
+            outline: 2px solid vars.$secondary-color;
+            outline-offset: 3px;
+        }
+
+        &:active {
+            opacity: 0.85;
         }
     }
 

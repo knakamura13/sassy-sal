@@ -71,6 +71,11 @@
             &:hover {
                 background-color: color.adjust(vars.$primary-color, $lightness: -10%);
             }
+
+            &:focus-visible {
+                outline: 2px solid vars.$secondary-color;
+                outline-offset: 3px;
+            }
         }
 
         &.btn-secondary {
@@ -81,6 +86,11 @@
             &:hover {
                 background-color: vars.$primary-color;
                 color: white;
+            }
+
+            &:focus-visible {
+                outline: 2px solid vars.$secondary-color;
+                outline-offset: 3px;
             }
         }
     }

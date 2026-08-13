@@ -26,18 +26,21 @@
 <style lang="scss">
     @use '../styles/variables' as vars;
 
-    // Local variables
     $hamburger-transition: 0.3s;
     $hamburger-height: 1.125rem;
 
     .hamburger {
         --hamburger-vertical-gap: 35%;
 
-        height: $hamburger-height;
-        width: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
         margin: auto;
         cursor: pointer;
-        aspect-ratio: 1.5;
         background: transparent;
         border: none;
         padding: 0;
@@ -47,8 +50,8 @@
             flex-direction: column;
             gap: var(--hamburger-vertical-gap);
             position: relative;
-            height: 100%;
-            width: 100%;
+            height: $hamburger-height;
+            width: calc(#{$hamburger-height} * 1.5);
             justify-content: center;
             transition: gap $hamburger-transition;
         }
@@ -70,7 +73,7 @@
         }
 
         &:hover,
-        &:focus {
+        &:focus-visible {
             --hamburger-vertical-gap: 16%;
 
             .line {
@@ -81,6 +84,15 @@
                 width: 0;
                 opacity: 0;
             }
+        }
+
+        &:focus {
+            outline: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid vars.$secondary-color;
+            outline-offset: 3px;
         }
 
         &.active {
