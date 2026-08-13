@@ -450,6 +450,9 @@
                     height={profileHeight}
                     class="h-auto w-full shadow-md"
                     style="aspect-ratio: {profileWidth} / {profileHeight};"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
                 />
             </div>
         {/if}

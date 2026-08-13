@@ -194,6 +194,9 @@
                 {isAdmin}
                 priority={index === 0}
                 eager={index < columns}
+                sizes={isWide(image)
+                    ? '(min-width: 1024px) 66vw, 100vw'
+                    : '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'}
                 on:loaded={scheduleRelayout}
                 on:update={handleImageUpdate}
                 on:remove={handleImageRemove}

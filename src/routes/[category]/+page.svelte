@@ -56,6 +56,8 @@
             large?: string;
         };
         aspectRatio?: number;
+        width?: number;
+        height?: number;
         spanTwoColumns?: boolean;
     }
 
@@ -309,6 +311,8 @@
                       }
                     : undefined,
                 aspectRatio,
+                width: image.width,
+                height: image.height,
                 spanTwoColumns: image.attributes.spanTwoColumns
             };
 
