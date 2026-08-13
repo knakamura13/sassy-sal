@@ -496,7 +496,7 @@
     {/if}
 </svelte:head>
 
-<div class="category-page relative min-h-[100vh]">
+<div class="category-page relative min-h-dvh">
     <div class="container mx-auto max-w-[1400px] px-4 py-8">
         {#if category}
             <div class="category-header mb-4">

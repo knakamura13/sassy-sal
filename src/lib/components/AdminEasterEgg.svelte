@@ -72,7 +72,7 @@
                     bind:value={password}
                     placeholder="Enter password"
                     required
-                    class="mb-2 w-full rounded-md border bg-transparent p-2 focus:outline-none"
+                    class="mb-2 w-full rounded-md border bg-transparent p-2 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                     disabled={loading}
                     autocomplete="current-password"
                 />
@@ -83,14 +83,14 @@
                     <button
                         type="button"
                         on:click={closeModal}
-                        class="rounded-md bg-gray-300 px-4 py-2 hover:bg-gray-400"
+                        class="rounded-md bg-gray-300 px-4 py-2 hover:bg-gray-400 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                         disabled={loading}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177] disabled:opacity-50"
                         disabled={loading}
                     >
                         {loading ? 'Logging in...' : 'Login'}

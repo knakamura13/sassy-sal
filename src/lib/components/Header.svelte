@@ -2,7 +2,7 @@
     import { adminMode } from '$lib/stores/adminStore';
     import '$lib/styles/links.scss';
     import Hamburger from './Hamburger.svelte';
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
     import { afterNavigate } from '$app/navigation';
 
     const MOBILE_BREAKPOINT = 768;
@@ -14,14 +14,19 @@
 
     let isMenuOpen = false;
     let isMobile = false;
+    let menuEl: HTMLElement | undefined;
+    let hamburgerWrap: HTMLElement | undefined;
     $: homeUrl = '/';
 
-    function toggleMenu() {
+    async function toggleMenu() {
         isMenuOpen = !isMenuOpen;
         if (isMenuOpen) {
             const scrollY = window.scrollY;
             document.body.classList.add('no-scroll');
             document.body.style.top = `-${scrollY}px`;
+            await tick();
+            const firstFocusable = menuEl?.querySelector<HTMLElement>('a[href], button:not([disabled])');
+            firstFocusable?.focus();
         } else {
             const scrollY = parseInt(document.body.style.top || '0') * -1;
             document.body.classList.remove('no-scroll');
@@ -30,7 +35,7 @@
         }
     }
 
-    function closeMenu(restoreScroll = true) {
+    function closeMenu(restoreScroll = true, restoreFocus = false) {
         if (isMenuOpen) {
             const scrollY = parseInt(document.body.style.top || '0') * -1;
             isMenuOpen = false;
@@ -38,6 +43,9 @@
             document.body.style.top = '';
             if (restoreScroll) {
                 window.scrollTo(0, scrollY);
+            }
+            if (restoreFocus) {
+                hamburgerWrap?.querySelector<HTMLElement>('button')?.focus();
             }
         }
     }
@@ -49,7 +57,7 @@
 
     function handleKeydown(e: KeyboardEvent) {
         if (isMenuOpen && e.key === 'Escape') {
-            closeMenu();
+            closeMenu(true, true);
         }
     }
 
@@ -124,7 +132,7 @@
         </nav>
 
         <!-- Mobile Navigation Toggle -->
-        <div class="flex items-center md:hidden">
+        <div class="flex items-center md:hidden" bind:this={hamburgerWrap}>
             <Hamburger isActive={isMenuOpen} on:click={toggleMenu} ariaControls="mobile-menu" />
         </div>
     </div>
@@ -134,6 +142,7 @@
 {#if isMobile}
     <div
         id="mobile-menu"
+        bind:this={menuEl}
         class="mobile-menu flex flex-col items-center justify-center"
         class:mobile-menu--open={isMenuOpen}
         role="dialog"
@@ -181,7 +190,9 @@
     .header {
         width: 100%;
         box-sizing: border-box;
-        padding: 2.8vw 6vw;
+        padding-top: max(2.8vw, env(safe-area-inset-top, 0px));
+        padding-bottom: 2.8vw;
+        padding-inline: max(6vw, env(safe-area-inset-right, 0px), env(safe-area-inset-left, 0px));
     }
 
     .mobile-menu {
@@ -190,7 +201,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        padding-bottom: 25vh;
+        padding-bottom: max(25vh, env(safe-area-inset-bottom, 0px));
+        padding-inline: max(6vw, env(safe-area-inset-right, 0px), env(safe-area-inset-left, 0px));
         background-color: white;
         z-index: 100;
         opacity: 0;

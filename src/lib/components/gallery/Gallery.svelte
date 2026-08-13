@@ -10,7 +10,6 @@
     import { ImageOperationsService } from '$lib/services/imageOperations';
     import AdminControls from './AdminControls.svelte';
     import CategoryNavigation from './CategoryNavigation.svelte';
-    import ImageCard from './ImageCard.svelte';
     import ImagePreview from './ImagePreview.svelte';
     import MasonryImageLayout from './MasonryImageLayout.svelte';
     import UploadPlaceholder from './UploadPlaceholder.svelte';

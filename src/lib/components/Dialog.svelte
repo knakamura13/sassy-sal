@@ -28,6 +28,7 @@
     <BitsDialog.Portal>
         <BitsDialog.Overlay
             class="fixed inset-0 z-50 bg-black/80"
+            style="overscroll-behavior: contain;"
             data-state={open ? 'open' : 'closed'}
             data-animate-in={open ? true : null}
             data-animate-out={!open ? true : null}
@@ -51,7 +52,7 @@
                     <slot name="title">Dialog Title</slot>
                 </BitsDialog.Title>
                 <BitsDialog.Close
-                    class="inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-500 hover:text-gray-800 focus:outline-none"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-full text-gray-500 hover:text-gray-800 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                 >
                     <span class="sr-only">Close</span>
                     <svg
