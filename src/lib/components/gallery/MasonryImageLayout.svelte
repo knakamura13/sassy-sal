@@ -136,11 +136,11 @@
         };
     }
 
-    // Action to fade in grid items as they enter the viewport
-    function revealOnScroll(node: HTMLElement) {
-        // Check reduced-motion preference
+    // Action to fade in grid items as they enter the viewport.
+    // Skip the first row so LCP images are visible on first paint.
+    function revealOnScroll(node: HTMLElement, index: number) {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (prefersReducedMotion) {
+        if (prefersReducedMotion || index < columns) {
             node.style.opacity = '1';
             return { destroy() {} };
         }
@@ -179,19 +179,21 @@
     {#each images as image, index (image.id)}
         <div
             class={`grid-item ${isWide(image) ? 'w2' : ''}`}
+            style={image.aspectRatio ? `aspect-ratio: ${image.aspectRatio}` : undefined}
             use:itemRef={index}
-            use:revealOnScroll
+            use:revealOnScroll={index}
             on:click|stopPropagation={() => handleImageClick(image)}
             on:keydown={(e) => handleKeydown(e, index, image)}
             role="button"
             tabindex="0"
             aria-label={image.title || 'View image'}
         >
-            <!-- Your card component; ensure it renders a single <img> inside -->
             <ImageCard
                 {image}
                 {isCategory}
                 {isAdmin}
+                priority={index === 0}
+                eager={index < columns}
                 on:loaded={scheduleRelayout}
                 on:update={handleImageUpdate}
                 on:remove={handleImageRemove}
@@ -245,10 +247,11 @@
         height: auto;
     }
 
-    /* Let the browser skip rendering off-screen items */
+    /* Reserve space before images load to reduce masonry relayout jump */
     .grid-item {
         content-visibility: auto;
         contain-intrinsic-size: auto 300px;
+        background-color: #f3f4f6;
     }
 
     /* Optional hover affordance */

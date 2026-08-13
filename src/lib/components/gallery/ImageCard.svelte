@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
 
     import type { Image } from '$lib/stores/imageStore';
     import EditImageDialog from './EditImageDialog.svelte';
@@ -7,6 +7,10 @@
     export let image: Image;
     export let isAdmin: boolean = false;
     export let isCategory: boolean = false;
+    /** LCP candidate: fetchpriority=high + loading=eager */
+    export let priority: boolean = false;
+    /** Load immediately without marking as the LCP candidate */
+    export let eager: boolean = false;
 
     const dispatch = createEventDispatcher<{
         remove: string;
@@ -14,22 +18,14 @@
         loaded: { id: string };
     }>();
 
-    // Image loading states
-    let isLoading = true;
     let placeholderUrl = image.placeholderUrl || '';
     let thumbnailUrl = image.url || '';
-    let fullSizeUrl = image.fullSizeUrl || image.url || '';
-    let currentDisplayedUrl = '';
-    let thumbnailLoaded = false;
-    let fullSizeLoaded = false;
-    let isFromCache = image.isFromCache || false; // Track if image is from local cache
+    let isFromCache = image.isFromCache || false;
 
-    // Responsive image URLs (fallback)
     let responsiveSmallUrl = '';
     let responsiveMediumUrl = '';
     let responsiveLargeUrl = '';
 
-    // Format-specific responsive URLs
     let responsiveSmallWebp = '';
     let responsiveMediumWebp = '';
     let responsiveLargeWebp = '';
@@ -38,17 +34,12 @@
     let responsiveMediumAvif = '';
     let responsiveLargeAvif = '';
 
-    // Edit dialog state
     let editDialogOpen = false;
 
-    // Set initial URL to placeholder if available
-    $: {
-        if (placeholderUrl && !currentDisplayedUrl) {
-            currentDisplayedUrl = placeholderUrl;
-        }
-    }
+    $: placeholderUrl = image.placeholderUrl || '';
+    $: thumbnailUrl = image.url || '';
+    $: isFromCache = image.isFromCache || false;
 
-    // When responsive URLs are available in the image, use them
     $: {
         if (image.responsiveUrls) {
             responsiveSmallUrl = image.responsiveUrls.small || '';
@@ -60,7 +51,6 @@
             responsiveMediumWebp = image.responsiveWebpUrls.medium || '';
             responsiveLargeWebp = image.responsiveWebpUrls.large || '';
         } else {
-            // Fall back to default responsive URLs; builder already auto(formats) but keep a copy
             responsiveSmallWebp = responsiveSmallUrl;
             responsiveMediumWebp = responsiveMediumUrl;
             responsiveLargeWebp = responsiveLargeUrl;
@@ -76,108 +66,20 @@
         }
     }
 
-    // Watch for changes to the image URL (e.g. when transitioning from blob to CDN URL)
-    $: if (image.url && image.url !== thumbnailUrl) {
-        // Update URLs
-        placeholderUrl = image.placeholderUrl || '';
-        thumbnailUrl = image.url;
-        fullSizeUrl = image.fullSizeUrl || image.url;
-
-        // Reset loading state and rerun progressive loading
-        isLoading = true;
-        thumbnailLoaded = false;
-        fullSizeLoaded = false;
-        loadImage();
-    }
-
-    onMount(async () => {
-        await loadImage();
-    });
+    $: imageAlt =
+        image.alt && image.alt !== 'Gallery image' && image.alt !== 'Loading' && image.alt !== 'Image'
+            ? image.alt
+            : image.title || '';
+    $: aspectStyle = image.aspectRatio ? `aspect-ratio: ${image.aspectRatio}` : '';
+    let loadingMode: 'eager' | 'lazy' = 'lazy';
+    let fetchPriority: 'high' | 'auto' = 'auto';
+    $: loadingMode = priority || eager ? 'eager' : 'lazy';
+    $: fetchPriority = priority ? 'high' : 'auto';
+    $: displaySrc = thumbnailUrl || placeholderUrl;
+    $: showLqip = !priority && !eager && !!placeholderUrl && !!thumbnailUrl && placeholderUrl !== thumbnailUrl;
 
     function notifyImageLoaded() {
         dispatch('loaded', { id: image.id });
-    }
-
-    $: isPlaceholderActive = !!placeholderUrl && currentDisplayedUrl === placeholderUrl;
-
-    // Function to load image in progressive stages
-    async function loadImage() {
-        isLoading = true;
-
-        try {
-            // Start with placeholder if available
-            if (placeholderUrl) {
-                currentDisplayedUrl = placeholderUrl;
-            }
-
-            // Function to preload an image and return a promise
-            const preloadImage = (url: string): Promise<void> => {
-                return new Promise((resolve, reject) => {
-                    if (!url) {
-                        reject(new Error('No URL provided'));
-                        return;
-                    }
-
-                    const img = new Image();
-                    const timeoutId = setTimeout(() => reject(new Error('Image load timeout')), 7000);
-
-                    img.onload = () => {
-                        clearTimeout(timeoutId);
-                        resolve();
-                    };
-
-                    img.onerror = () => {
-                        clearTimeout(timeoutId);
-                        reject(new Error('Failed to load image'));
-                    };
-
-                    img.src = url;
-                });
-            };
-
-            // Load thumbnail
-            if (thumbnailUrl) {
-                try {
-                    await preloadImage(thumbnailUrl);
-                    currentDisplayedUrl = thumbnailUrl;
-                    thumbnailLoaded = true;
-
-                    // Start loading full-size image after thumbnail is displayed
-                    if (fullSizeUrl && fullSizeUrl !== thumbnailUrl) {
-                        preloadImage(fullSizeUrl)
-                            .then(() => {
-                                currentDisplayedUrl = fullSizeUrl;
-                                fullSizeLoaded = true;
-                            })
-                            .catch((err) => {
-                                console.warn('Failed to load full-size image:', err);
-                                // Keep using thumbnail if full-size fails
-                            });
-                    } else {
-                        fullSizeLoaded = true; // Mark as loaded if no separate full-size URL
-                    }
-                } catch (error) {
-                    console.warn('Failed to load thumbnail:', error);
-                    // If thumbnail fails but we have a placeholder, keep using placeholder
-                    if (!placeholderUrl) {
-                        useEmptyPlaceholder();
-                    }
-                }
-            } else {
-                useEmptyPlaceholder();
-            }
-
-            isLoading = false;
-        } catch (error) {
-            console.error('Error in progressive image loading:', error);
-            useEmptyPlaceholder();
-        }
-    }
-
-    // Helper for when no image is available
-    function useEmptyPlaceholder() {
-        currentDisplayedUrl = '';
-        isLoading = false;
     }
 
     function handleRemove() {
@@ -198,10 +100,10 @@
 <div class="image-card group w-full">
     <div
         class="relative overflow-hidden bg-gray-100 transition-all duration-300 hover:shadow-lg hover:brightness-[1.03]"
-        data-has-url={!!currentDisplayedUrl}
+        data-has-url={!!displaySrc}
+        style={aspectStyle}
     >
-        <!-- Image with progressive loading -->
-        <div class="relative w-full overflow-hidden">
+        <div class="relative w-full overflow-hidden" style={aspectStyle}>
             {#if isFromCache}
                 <div
                     class="absolute right-2 top-2 z-10 rounded-md bg-amber-500 bg-opacity-90 px-2 py-1 text-xs font-medium text-white shadow-md"
@@ -210,78 +112,67 @@
                 </div>
             {/if}
 
-            {#if isLoading}
-                <!-- Loading state with placeholder -->
-                <div class="flex h-full w-full items-center justify-center bg-gray-100">
-                    {#if placeholderUrl}
-                        <img
-                            src={placeholderUrl}
-                            alt="Loading"
-                            class="h-full w-full object-cover {isFromCache ? 'border-2 border-amber-400' : ''} placeholder-blur"
-                        />
-                    {:else}
-                        <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-                    {/if}
-                </div>
-            {:else if currentDisplayedUrl}
-                <!-- Responsive image with picture element and srcset -->
-                <picture>
-                    <!-- AVIF sources -->
-                    <source
-                        media="(max-width: 639px)"
-                        srcset={responsiveSmallAvif || responsiveSmallUrl || currentDisplayedUrl}
-                        type="image/avif"
-                    />
-                    <source
-                        media="(min-width: 640px) and (max-width: 1023px)"
-                        srcset={responsiveMediumAvif || responsiveMediumUrl || currentDisplayedUrl}
-                        type="image/avif"
-                    />
-                    <source
-                        media="(min-width: 1024px)"
-                        srcset={responsiveLargeAvif || responsiveLargeUrl || currentDisplayedUrl}
-                        type="image/avif"
-                    />
-
-                    <!-- WebP sources -->
-                    <source
-                        media="(max-width: 639px)"
-                        srcset={responsiveSmallWebp || responsiveSmallUrl || currentDisplayedUrl}
-                        type="image/webp"
-                    />
-                    <source
-                        media="(min-width: 640px) and (max-width: 1023px)"
-                        srcset={responsiveMediumWebp || responsiveMediumUrl || currentDisplayedUrl}
-                        type="image/webp"
-                    />
-                    <source
-                        media="(min-width: 1024px)"
-                        srcset={responsiveLargeWebp || responsiveLargeUrl || currentDisplayedUrl}
-                        type="image/webp"
-                    />
-
-                    <!-- Fallback -->
+            {#if displaySrc}
+                {#if showLqip}
                     <img
-                        src={currentDisplayedUrl}
-                        alt={image.alt || 'Gallery image'}
-                        class={`h-full w-full object-cover transition-opacity duration-500 ${isFromCache ? 'border-2 border-amber-400' : ''} ${isPlaceholderActive ? 'placeholder-blur' : ''}`}
-                        style="opacity: 1;"
-                        loading="lazy"
-                        on:load={() => {
-                            thumbnailLoaded = true;
-                            isLoading = false;
-                            notifyImageLoaded();
-                        }}
+                        src={placeholderUrl}
+                        alt=""
+                        class="placeholder-blur absolute inset-0 h-full w-full object-cover"
+                        aria-hidden="true"
+                    />
+                {/if}
+
+                <picture>
+                    <source
+                        media="(max-width: 639px)"
+                        srcset={responsiveSmallAvif || responsiveSmallUrl || displaySrc}
+                        type="image/avif"
+                    />
+                    <source
+                        media="(min-width: 640px) and (max-width: 1023px)"
+                        srcset={responsiveMediumAvif || responsiveMediumUrl || displaySrc}
+                        type="image/avif"
+                    />
+                    <source
+                        media="(min-width: 1024px)"
+                        srcset={responsiveLargeAvif || responsiveLargeUrl || displaySrc}
+                        type="image/avif"
+                    />
+
+                    <source
+                        media="(max-width: 639px)"
+                        srcset={responsiveSmallWebp || responsiveSmallUrl || displaySrc}
+                        type="image/webp"
+                    />
+                    <source
+                        media="(min-width: 640px) and (max-width: 1023px)"
+                        srcset={responsiveMediumWebp || responsiveMediumUrl || displaySrc}
+                        type="image/webp"
+                    />
+                    <source
+                        media="(min-width: 1024px)"
+                        srcset={responsiveLargeWebp || responsiveLargeUrl || displaySrc}
+                        type="image/webp"
+                    />
+
+                    <img
+                        src={displaySrc}
+                        alt={imageAlt}
+                        class={`relative h-full w-full object-cover ${isFromCache ? 'border-2 border-amber-400' : ''}`}
+                        style={aspectStyle}
+                        loading={loadingMode}
+                        fetchpriority={fetchPriority}
+                        decoding="async"
+                        on:load={notifyImageLoaded}
                     />
                 </picture>
             {:else}
-                <!-- Fallback when no image is available -->
                 <div
                     class="flex min-h-[200px] w-full items-center justify-center bg-gray-100 {isFromCache
                         ? 'border-2 border-amber-400'
                         : ''}"
                 >
-                    <div class="text-gray-400">Image loading...</div>
+                    <div class="text-gray-400">Image unavailable</div>
                 </div>
             {/if}
 
@@ -307,7 +198,7 @@
             {/if}
         </div>
 
-        {#if image.title && !isCategory && currentDisplayedUrl}
+        {#if image.title && !isCategory && displaySrc}
             <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white">
                 <h3 class="text-sm font-medium md:text-base">{image.title}</h3>
             </div>
@@ -315,15 +206,12 @@
     </div>
 </div>
 
-<!-- Edit Image Dialog -->
-<EditImageDialog bind:open={editDialogOpen} {image} {currentDisplayedUrl} on:update={handleUpdate} />
+<EditImageDialog bind:open={editDialogOpen} {image} currentDisplayedUrl={displaySrc} on:update={handleUpdate} />
 
 <style>
-    /* Blur-up tiny placeholder so it fills space without showing pixelation */
     .placeholder-blur {
         filter: blur(16px);
         transform: scale(1.06);
         transform-origin: center;
-        transition: filter 200ms ease, transform 200ms ease;
     }
 </style>
