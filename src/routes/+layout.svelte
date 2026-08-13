@@ -1,9 +1,22 @@
 <script lang="ts">
     import '../app.postcss';
     import './styles.scss';
+    import { onNavigate } from '$app/navigation';
     import Header from '$lib/components/Header.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import AdminEasterEgg from '$lib/components/AdminEasterEgg.svelte';
+
+    onNavigate((navigation) => {
+        if (typeof document === 'undefined' || !document.startViewTransition) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        return new Promise((resolve) => {
+            document.startViewTransition(async () => {
+                resolve();
+                await navigation.complete;
+            });
+        });
+    });
 </script>
 
 <!-- No title set in the layout - this allows page components to set their own titles -->

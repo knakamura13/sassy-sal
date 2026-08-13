@@ -4,6 +4,8 @@
 
 @layer base {
     :root {
+        color-scheme: only light;
+
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
 
@@ -74,6 +76,24 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+
+    html {
+        scrollbar-color: #3f4a49 #f3f4f6;
+        scrollbar-width: thin;
+        scrollbar-gutter: stable;
+        -webkit-tap-highlight-color: rgba(63, 74, 73, 0.18);
+    }
+
+    ::selection {
+        background: #3f4a49;
+        color: #fff;
+    }
+
+    button:active,
+    a:active,
+    [role='button']:active {
+        opacity: 0.85;
     }
 
     /* Lock body scroll when image preview modal is open */
