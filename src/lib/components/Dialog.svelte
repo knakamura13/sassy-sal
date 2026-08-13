@@ -39,6 +39,7 @@
             class="fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] rounded-md border bg-white p-6 shadow-lg outline-none {getMaxWidth(
                 maxWidth
             )}"
+            style="overscroll-behavior: contain;"
             data-state={open ? 'open' : 'closed'}
             data-animate-in={open ? true : null}
             data-animate-out={!open ? true : null}

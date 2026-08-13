@@ -167,7 +167,7 @@
             {/if}
 
             <div
-                class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-4 text-white transition-opacity duration-300 group-hover:opacity-0"
+                class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-black/25 pt-16 p-4 text-white transition-opacity duration-300 group-hover:opacity-0"
             >
                 <h2 class="text-right text-2xl font-medium tracking-wide">
                     {categoryName}

@@ -32,7 +32,7 @@
     <title>Admin Login | Photography Portfolio</title>
 </svelte:head>
 
-<div class="admin-login flex h-full min-h-[80vh] items-center justify-center">
+<div class="admin-login flex h-full min-h-[80dvh] items-center justify-center">
     <div class="w-full max-w-md bg-white p-6 shadow-md">
         <h1 class="mb-6 text-center text-2xl font-bold">Admin Login</h1>
 

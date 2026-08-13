@@ -19,7 +19,7 @@
     <title>Error {status} | Photography Portfolio</title>
 </svelte:head>
 
-<div class="container mx-auto flex min-h-[60vh] max-w-screen-lg flex-col items-center justify-center px-4 py-16">
+<div class="container mx-auto flex min-h-[60dvh] max-w-screen-lg flex-col items-center justify-center px-4 py-16">
     <div class="text-center">
         <h1 class="font-didot mb-4 text-6xl text-gray-400">{status}</h1>
 
