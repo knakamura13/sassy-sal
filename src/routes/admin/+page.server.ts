@@ -31,10 +31,10 @@ export const actions: Actions = {
             console.warn('ADMIN_PASSWORD not set in environment variables!');
             // Fallback for development
             if (password !== 'password') {
-                return fail(401, { message: 'Invalid password' });
+                return fail(401, { message: "That password didn’t match. Try again." });
             }
         } else if (password !== ADMIN_PASSWORD) {
-            return fail(401, { message: 'Invalid password' });
+            return fail(401, { message: "That password didn’t match. Try again." });
         }
 
         // Set a cookie for session management

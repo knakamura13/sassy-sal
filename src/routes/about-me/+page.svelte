@@ -386,7 +386,7 @@
             <input
                 type="text"
                 bind:value={editedValues.title}
-                class="title-input font-didot border-b-2 border-gray-300 bg-transparent text-center text-4xl focus:border-blue-500 focus:outline-none"
+                class="title-input font-didot border-b-2 border-gray-300 bg-transparent text-center text-4xl focus:border-blue-500 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                 on:keydown={(e) => {
                     if (e.key === 'Enter') {
                         updateTitle();
@@ -468,7 +468,7 @@
                 <input
                     type="text"
                     bind:value={editedValues.formHeader}
-                    class="form-header-input border-b-2 border-gray-300 bg-transparent text-center text-xl font-light focus:border-blue-500 focus:outline-none"
+                    class="form-header-input border-b-2 border-gray-300 bg-transparent text-center text-xl font-light focus:border-blue-500 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                     on:keydown={(e) => {
                         if (e.key === 'Enter') {
                             updateFormHeader();
@@ -503,9 +503,9 @@
                 </button>
             {:else}
                 {#if aboutMe.contactForm.formHeader}
-                    <h3 class="text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h3>
+                    <h2 class="text-center text-xl font-light">{aboutMe.contactForm.formHeader}</h2>
                 {:else if $adminMode}
-                    <h3 class="text-center text-xl font-light italic text-gray-400">Add contact form header</h3>
+                    <h2 class="text-center text-xl font-light italic text-gray-400">Add contact form header</h2>
                 {/if}
                 {#if $adminMode}
                     <button
@@ -543,45 +543,52 @@
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="form-control">
-                    <label for="contact-name" class="sr-only">Name (required)</label>
+                    <label for="contact-name" class="field-label">Name <span aria-hidden="true">*</span></label>
                     <input
                         id="contact-name"
                         type="text"
-                        placeholder={(aboutMe.contactForm.formFields?.namePlaceholder || 'Your name') + ' *'}
+                        placeholder={aboutMe.contactForm.formFields?.namePlaceholder || 'Your name'}
                         class="input w-full bg-transparent"
                         bind:value={formData.name}
                         required
+                        maxlength="100"
                         autocomplete="name"
+                        aria-describedby="contact-name-error"
                     />
+                    <p id="contact-name-error" class="field-error">Enter your name.</p>
                 </div>
 
                 <div class="form-control">
-                    <label for="contact-email" class="sr-only">Email (required)</label>
+                    <label for="contact-email" class="field-label">Email <span aria-hidden="true">*</span></label>
                     <input
                         id="contact-email"
                         type="email"
-                        placeholder={(aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email') + ' *'}
+                        placeholder={aboutMe.contactForm.formFields?.emailPlaceholder || 'Your email'}
                         class="input w-full bg-transparent"
                         bind:value={formData.email}
                         required
+                        maxlength="254"
                         autocomplete="email"
+                        aria-describedby="contact-email-error"
                     />
+                    <p id="contact-email-error" class="field-error">Enter a valid email address.</p>
                 </div>
 
                 <div class="form-control">
-                    <label for="contact-phone" class="sr-only">Phone number</label>
+                    <label for="contact-phone" class="field-label">Phone number</label>
                     <input
                         id="contact-phone"
                         type="tel"
                         placeholder={aboutMe.contactForm.formFields?.phonePlaceholder || 'Your phone number'}
                         class="input w-full bg-transparent"
                         bind:value={formData.phone}
+                        maxlength="30"
                         autocomplete="tel"
                     />
                 </div>
 
                 <div class="form-control">
-                    <label for="contact-referral" class="sr-only">How did you hear about me?</label>
+                    <label for="contact-referral" class="field-label">How did you hear about me?</label>
                     <input
                         id="contact-referral"
                         type="text"
@@ -589,20 +596,24 @@
                             'How did you hear about me?'}
                         class="input w-full bg-transparent"
                         bind:value={formData.referral}
+                        maxlength="200"
                         autocomplete="off"
                     />
                 </div>
             </div>
 
             <div class="form-control col-span-2 mt-4">
-                <label for="contact-message" class="sr-only">Message (required)</label>
+                <label for="contact-message" class="field-label">Message <span aria-hidden="true">*</span></label>
                 <textarea
                     id="contact-message"
-                    placeholder={(aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?') + ' *'}
+                    placeholder={aboutMe.contactForm.formFields?.messagePlaceholder || 'How can I help you?'}
                     class="textarea min-h-[150px] w-full bg-transparent"
                     bind:value={formData.message}
                     required
+                    maxlength="5000"
+                    aria-describedby="contact-message-error"
                 ></textarea>
+                <p id="contact-message-error" class="field-error">Enter a message.</p>
             </div>
 
             <div class="form-control mt-1 flex flex-col gap-1">
@@ -622,7 +633,7 @@
                     <input
                         type="text"
                         bind:value={editedValues.footerTagline}
-                        class="footer-tagline-input border-b-2 border-gray-300 bg-transparent text-center text-lg font-light text-gray-600 focus:border-blue-500 focus:outline-none"
+                        class="footer-tagline-input border-b-2 border-gray-300 bg-transparent text-center text-lg font-light text-gray-600 focus:border-blue-500 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                         on:keydown={(e) => {
                             if (e.key === 'Enter') {
                                 updateFooterTagline();
@@ -662,9 +673,9 @@
                     </button>
                 {:else}
                     {#if aboutMe.footerTagline}
-                        <h4 class="text-lg font-light text-gray-600">{aboutMe.footerTagline}</h4>
+                        <p class="text-lg font-light text-gray-600">{aboutMe.footerTagline}</p>
                     {:else if $adminMode}
-                        <h4 class="text-lg font-light italic text-gray-400">Add footer tagline</h4>
+                        <p class="text-lg font-light italic text-gray-400">Add footer tagline</p>
                     {/if}
                     {#if $adminMode}
                         <button
@@ -693,7 +704,7 @@
                     <input
                         type="email"
                         bind:value={editedValues.email}
-                        class="email-input border-b-2 border-gray-300 bg-transparent text-center focus:border-blue-500 focus:outline-none"
+                        class="email-input border-b-2 border-gray-300 bg-transparent text-center focus:border-blue-500 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d19177]"
                         on:keydown={(e) => {
                             if (e.key === 'Enter') {
                                 updateEmail();
@@ -777,6 +788,25 @@
         clip: rect(0, 0, 0, 0);
         white-space: nowrap;
         border-width: 0;
+    }
+
+    .field-label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.95rem;
+        color: vars.$primary-color;
+    }
+
+    .field-error {
+        display: none;
+        margin-top: 0.35rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+
+    .input:user-invalid + .field-error,
+    .textarea:user-invalid + .field-error {
+        display: block;
     }
 
     a {

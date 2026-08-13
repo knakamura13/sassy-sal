@@ -1,7 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
-    import { fade } from 'svelte/transition';
-    import { Dialog as BitsDialog } from 'bits-ui';
+    import { createEventDispatcher, onMount, tick } from 'svelte';
     import type { Image } from '$lib/stores/imageStore';
 
     export let image: Image | null = null;
@@ -9,7 +7,9 @@
 
     const dispatch = createEventDispatcher();
 
-    $: dialogOpen = show && !!image;
+    let dialogEl: HTMLDialogElement | undefined;
+    let closeBtn: HTMLButtonElement | undefined;
+
     $: previewLabel = image
         ? `Full-size preview of ${image.alt || image.title || 'image'}`
         : 'Image preview';
@@ -17,6 +17,7 @@
         image?.alt && image.alt !== 'Gallery image' && image.alt !== 'Image preview'
             ? image.alt
             : image?.title || '';
+    $: dialogOpen = show && !!image;
 
     onMount(() => {
         return () => {
@@ -24,57 +25,159 @@
         };
     });
 
-    $: if (typeof document !== 'undefined') {
-        if (dialogOpen) {
+    $: if (typeof document !== 'undefined' && dialogEl) {
+        syncDialog(dialogOpen);
+    }
+
+    async function syncDialog(open: boolean) {
+        if (!dialogEl) return;
+
+        if (open) {
             document.body.classList.add('modal-open');
-        } else {
-            document.body.classList.remove('modal-open');
+            if (!dialogEl.open) {
+                dialogEl.showModal();
+                await tick();
+                closeBtn?.focus();
+            }
+        } else if (dialogEl.open) {
+            dialogEl.close();
         }
     }
 
-    function handleOpenChange(open: boolean) {
-        if (!open && show) {
+    function requestClose() {
+        dispatch('close');
+    }
+
+    function handleDialogClose() {
+        document.body.classList.remove('modal-open');
+        if (show) {
             dispatch('close');
+        }
+    }
+
+    function handleBackdropClick(event: MouseEvent) {
+        if (event.target === dialogEl) {
+            requestClose();
+        }
+    }
+
+    function trapFocus(event: KeyboardEvent) {
+        if (!dialogOpen || event.key !== 'Tab' || !dialogEl) return;
+
+        const focusable = Array.from(
+            dialogEl.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+        ).filter((el) => el.tabIndex !== -1);
+
+        if (focusable.length === 0) {
+            event.preventDefault();
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
         }
     }
 </script>
 
-<BitsDialog.Root open={dialogOpen} onOpenChange={handleOpenChange} closeOnEscape preventScroll>
+<dialog
+    bind:this={dialogEl}
+    class="lightbox-dialog"
+    aria-label={previewLabel}
+    on:close={handleDialogClose}
+    on:cancel|preventDefault={requestClose}
+    on:click={handleBackdropClick}
+    on:keydown={trapFocus}
+>
     {#if image}
-        <BitsDialog.Portal>
-            <BitsDialog.Overlay
-                class="lightbox-overlay fixed inset-0 z-50 bg-black/85 backdrop-blur-[4px]"
-                transition={fade}
-                transitionConfig={{ duration: 200 }}
-            />
-            <BitsDialog.Content
-                class="fixed inset-0 z-50 flex items-center justify-center border-0 bg-transparent p-4 shadow-none outline-none"
-            >
-                <BitsDialog.Title class="sr-only">{previewLabel}</BitsDialog.Title>
-                <BitsDialog.Close
-                    class="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white transition-all hover:scale-110 hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                    aria-label="Close preview"
-                >
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
-                </BitsDialog.Close>
+        <button
+            bind:this={closeBtn}
+            type="button"
+            class="lightbox-close"
+            aria-label="Close preview"
+            on:click={requestClose}
+        >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                />
+            </svg>
+        </button>
 
-                <span class="relative h-full max-h-[95vh] w-full max-w-[95vw] overflow-hidden shadow-md">
-                    <img src={image.fullSizeUrl} alt={imageAlt} class="h-full w-full object-contain" />
-                </span>
-            </BitsDialog.Content>
-        </BitsDialog.Portal>
+        <span class="lightbox-frame">
+            <img src={image.fullSizeUrl} alt={imageAlt} class="h-full w-full object-contain" />
+        </span>
     {/if}
-</BitsDialog.Root>
+</dialog>
 
 <style>
-    :global(.lightbox-overlay) {
-        overscroll-behavior: contain;
+    .lightbox-dialog {
+        max-width: 95vw;
+        max-height: 95vh;
+        width: 100%;
+        height: 100%;
+        margin: auto;
+        border: 0;
+        padding: 1rem;
+        background: transparent;
+        overflow: hidden;
+        color: #fff;
+    }
+
+    .lightbox-dialog::backdrop {
+        background: rgb(0 0 0 / 0.85);
+        backdrop-filter: blur(4px);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 0;
+        border-radius: 9999px;
+        background: rgb(0 0 0 / 0.4);
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .lightbox-close:hover {
+        background: rgb(0 0 0 / 0.6);
+        transform: scale(1.1);
+    }
+
+    .lightbox-close:focus {
+        outline: none;
+    }
+
+    .lightbox-close:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 3px;
+    }
+
+    .lightbox-frame {
+        display: block;
+        position: relative;
+        height: 100%;
+        max-height: 95vh;
+        width: 100%;
+        max-width: 95vw;
+        overflow: hidden;
     }
 </style>

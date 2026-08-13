@@ -44,7 +44,7 @@
         return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
             loading = false;
             if (result.type === 'failure') {
-                errorMessage = result.data?.message || 'Invalid password';
+                errorMessage = result.data?.message || "That password didn’t match. Try again.";
                 await update();
             } else if (result.type === 'redirect') {
                 adminMode.login();
@@ -66,7 +66,9 @@
         <div class="admin-easter-egg-modal">
             <h2 class="mb-4 text-xl font-bold">Admin Login</h2>
             <form method="POST" action="/admin?/login" use:enhance={handleFormSubmit}>
+                <label for="easter-egg-password" class="mb-2 block text-sm text-gray-700">Password</label>
                 <input
+                    id="easter-egg-password"
                     type="password"
                     name="password"
                     bind:value={password}

@@ -23,7 +23,8 @@ $bezier-out: cubic-bezier(0.4, 1, 0.8, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid;
+        outline: 2px solid #d19177;
+        outline-offset: 3px;
         border-radius: 0.1rem;
         background: transparent;
     }

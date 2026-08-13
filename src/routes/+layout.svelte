@@ -52,7 +52,8 @@
         transition: top 0.2s ease;
     }
 
-    :global(.skip-link:focus) {
+    :global(.skip-link:focus),
+    :global(.skip-link:focus-visible) {
         top: 0;
         outline: 3px solid #d19177;
         outline-offset: 2px;

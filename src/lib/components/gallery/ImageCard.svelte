@@ -19,6 +19,7 @@
         remove: string;
         update: { id: string; data: any };
         loaded: { id: string };
+        open: void;
     }>();
 
     let placeholderUrl = image.placeholderUrl || '';
@@ -119,68 +120,76 @@
             {/if}
 
             {#if displaySrc}
-                {#if showLqip}
-                    <img
-                        src={placeholderUrl}
-                        alt=""
-                        class="placeholder-blur absolute inset-0 h-full w-full object-cover"
-                        aria-hidden="true"
-                    />
-                {/if}
+                <button
+                    type="button"
+                    class="preview-trigger relative block h-full w-full"
+                    data-preview-trigger
+                    aria-label={imageAlt || image.title || 'View image'}
+                    on:click={() => dispatch('open')}
+                >
+                    {#if showLqip}
+                        <img
+                            src={placeholderUrl}
+                            alt=""
+                            class="placeholder-blur absolute inset-0 h-full w-full object-cover"
+                            aria-hidden="true"
+                        />
+                    {/if}
 
-                <picture>
-                    <source
-                        media="(max-width: 639px)"
-                        srcset={responsiveSmallAvif || responsiveSmallUrl || displaySrc}
-                        type="image/avif"
-                        {sizes}
-                    />
-                    <source
-                        media="(min-width: 640px) and (max-width: 1023px)"
-                        srcset={responsiveMediumAvif || responsiveMediumUrl || displaySrc}
-                        type="image/avif"
-                        {sizes}
-                    />
-                    <source
-                        media="(min-width: 1024px)"
-                        srcset={responsiveLargeAvif || responsiveLargeUrl || displaySrc}
-                        type="image/avif"
-                        {sizes}
-                    />
+                    <picture>
+                        <source
+                            media="(max-width: 639px)"
+                            srcset={responsiveSmallAvif || responsiveSmallUrl || displaySrc}
+                            type="image/avif"
+                            {sizes}
+                        />
+                        <source
+                            media="(min-width: 640px) and (max-width: 1023px)"
+                            srcset={responsiveMediumAvif || responsiveMediumUrl || displaySrc}
+                            type="image/avif"
+                            {sizes}
+                        />
+                        <source
+                            media="(min-width: 1024px)"
+                            srcset={responsiveLargeAvif || responsiveLargeUrl || displaySrc}
+                            type="image/avif"
+                            {sizes}
+                        />
 
-                    <source
-                        media="(max-width: 639px)"
-                        srcset={responsiveSmallWebp || responsiveSmallUrl || displaySrc}
-                        type="image/webp"
-                        {sizes}
-                    />
-                    <source
-                        media="(min-width: 640px) and (max-width: 1023px)"
-                        srcset={responsiveMediumWebp || responsiveMediumUrl || displaySrc}
-                        type="image/webp"
-                        {sizes}
-                    />
-                    <source
-                        media="(min-width: 1024px)"
-                        srcset={responsiveLargeWebp || responsiveLargeUrl || displaySrc}
-                        type="image/webp"
-                        {sizes}
-                    />
+                        <source
+                            media="(max-width: 639px)"
+                            srcset={responsiveSmallWebp || responsiveSmallUrl || displaySrc}
+                            type="image/webp"
+                            {sizes}
+                        />
+                        <source
+                            media="(min-width: 640px) and (max-width: 1023px)"
+                            srcset={responsiveMediumWebp || responsiveMediumUrl || displaySrc}
+                            type="image/webp"
+                            {sizes}
+                        />
+                        <source
+                            media="(min-width: 1024px)"
+                            srcset={responsiveLargeWebp || responsiveLargeUrl || displaySrc}
+                            type="image/webp"
+                            {sizes}
+                        />
 
-                    <img
-                        src={displaySrc}
-                        alt={imageAlt}
-                        class={`relative h-full w-full object-cover ${isFromCache ? 'border-2 border-amber-400' : ''}`}
-                        style={aspectStyle}
-                        width={intrinsicWidth}
-                        height={intrinsicHeight}
-                        {sizes}
-                        loading={loadingMode}
-                        fetchpriority={fetchPriority}
-                        decoding="async"
-                        on:load={notifyImageLoaded}
-                    />
-                </picture>
+                        <img
+                            src={displaySrc}
+                            alt=""
+                            class={`relative h-full w-full object-cover ${isFromCache ? 'border-2 border-amber-400' : ''}`}
+                            style={aspectStyle}
+                            width={intrinsicWidth}
+                            height={intrinsicHeight}
+                            {sizes}
+                            loading={loadingMode}
+                            fetchpriority={fetchPriority}
+                            decoding="async"
+                            on:load={notifyImageLoaded}
+                        />
+                    </picture>
+                </button>
             {:else}
                 <div
                     class="flex min-h-[200px] w-full items-center justify-center bg-gray-100 {isFromCache
@@ -192,7 +201,11 @@
             {/if}
 
             {#if isAdmin}
-                <div class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg">
+                <div
+                    class="absolute right-0 top-0 z-10 flex space-x-1 bg-gray-900 bg-opacity-60 p-1 shadow-lg"
+                    role="group"
+                    aria-label="Image admin controls"
+                >
                     <button
                         type="button"
                         class="aspect-square h-10 w-10 p-1 text-white hover:bg-gray-600"
@@ -224,6 +237,26 @@
 <EditImageDialog bind:open={editDialogOpen} {image} currentDisplayedUrl={displaySrc} on:update={handleUpdate} />
 
 <style>
+    .preview-trigger {
+        border: 0;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+        text-align: inherit;
+    }
+
+    .preview-trigger:focus {
+        outline: none;
+    }
+
+    .preview-trigger:focus-visible {
+        outline: 3px solid #d19177;
+        outline-offset: 4px;
+    }
+
     .placeholder-blur {
         filter: blur(16px);
         transform-origin: center;

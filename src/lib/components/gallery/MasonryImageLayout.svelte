@@ -95,16 +95,11 @@
         dispatch('imageClick', image);
     }
 
-    function handleKeydown(event: KeyboardEvent, index: number, image: Image) {
+    function handleKeydown(event: KeyboardEvent, index: number) {
         const key = event.key;
         const lastIndex = itemRefs.length - 1;
 
-        if (key === 'Enter' || key === ' ') {
-            event.preventDefault();
-            handleImageClick(image);
-            return;
-        }
-
+        // Enter/Space are handled by the preview <button> inside ImageCard
         if (key === 'ArrowRight' || key === 'ArrowDown') {
             event.preventDefault();
             const nextIndex = Math.min(index + 1, lastIndex);
@@ -126,9 +121,10 @@
         dispatch('removeImage', event.detail);
     }
 
-    // Action to keep track of item elements for keyboard nav
+    // Action to keep track of preview buttons for keyboard nav
     function itemRef(node: HTMLElement, index: number) {
-        itemRefs[index] = node;
+        const trigger = node.querySelector<HTMLElement>('[data-preview-trigger]');
+        itemRefs[index] = trigger || node;
         return {
             destroy() {
                 itemRefs.splice(index, 1);
@@ -182,11 +178,7 @@
             style={image.aspectRatio ? `aspect-ratio: ${image.aspectRatio}` : undefined}
             use:itemRef={index}
             use:revealOnScroll={index}
-            on:click|stopPropagation={() => handleImageClick(image)}
-            on:keydown={(e) => handleKeydown(e, index, image)}
-            role="button"
-            tabindex="0"
-            aria-label={image.title || 'View image'}
+            on:keydown={(e) => handleKeydown(e, index)}
         >
             <ImageCard
                 {image}
@@ -197,6 +189,7 @@
                 sizes={isWide(image)
                     ? '(min-width: 1024px) 66vw, 100vw'
                     : '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'}
+                on:open={() => handleImageClick(image)}
                 on:loaded={scheduleRelayout}
                 on:update={handleImageUpdate}
                 on:remove={handleImageRemove}
@@ -262,7 +255,7 @@
         cursor: pointer;
     }
 
-    .grid-item:focus-visible {
+    .grid-item :global([data-preview-trigger]:focus-visible) {
         outline: 3px solid #d19177;
         outline-offset: 4px;
     }
