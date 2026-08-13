@@ -21,7 +21,7 @@
     <div class="next-category-nav mt-12 flex w-full justify-end">
         <a
             href="/{nextCategory.name.toLowerCase().replace(/\s+/g, '-')}"
-            class="link link--zoomies flex flex-row items-center gap-1 !text-2xl !text-[#d19177]"
+            class="link link--zoomies flex flex-row items-center gap-1 !text-2xl !text-[#3f4a49] hover:!text-[#d19177]"
             data-sveltekit-preload-data
         >
             {nextCategory.name}

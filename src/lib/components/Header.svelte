@@ -160,7 +160,7 @@
 
             {#if $adminMode}
                 <form action="/admin?/logout" method="POST">
-                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]">
+                    <button type="submit" class="logout-btn link link--zoomies !text-[20px] !text-[#3f4a49]">
                         Logout
                     </button>
                 </form>
@@ -205,7 +205,7 @@
                 <form action="/admin?/logout" method="POST">
                     <button
                         type="submit"
-                        class="logout-btn link link--zoomies !text-[20px] !text-[#d19177]"
+                        class="logout-btn link link--zoomies !text-[20px] !text-[#3f4a49]"
                         tabindex={isMenuOpen ? 0 : -1}
                     >
                         Logout
@@ -237,7 +237,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        padding-bottom: max(25vh, env(safe-area-inset-bottom, 0px));
+        padding-bottom: max(25dvh, env(safe-area-inset-bottom, 0px));
         padding-inline: max(6vw, env(safe-area-inset-right, 0px), env(safe-area-inset-left, 0px));
         background-color: white;
         z-index: 100;
@@ -260,5 +260,9 @@
         cursor: pointer;
         font-family: inherit;
         padding: 0;
+
+        &:hover {
+            color: vars.$secondary-color !important;
+        }
     }
 </style>

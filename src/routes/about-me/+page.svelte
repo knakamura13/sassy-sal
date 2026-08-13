@@ -777,19 +777,6 @@
     @use '../../lib/styles/variables' as vars;
     @use 'sass:color';
 
-    /* Visually hidden but accessible to screen readers */
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
-    }
-
     .field-label {
         display: block;
         margin-bottom: 0.35rem;
@@ -810,10 +797,10 @@
     }
 
     a {
-        color: vars.$secondary-color;
+        color: vars.$primary-color;
 
         &:hover {
-            color: color.adjust(vars.$secondary-color, $lightness: -10%);
+            color: vars.$secondary-color;
         }
     }
 

@@ -88,6 +88,7 @@
     }
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <dialog
     bind:this={dialogEl}
     class="lightbox-dialog"
@@ -124,26 +125,29 @@
 <style>
     .lightbox-dialog {
         max-width: 95vw;
-        max-height: 95vh;
+        max-height: 95dvh;
         width: 100%;
         height: 100%;
         margin: auto;
         border: 0;
-        padding: 1rem;
+        padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+            max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
         background: transparent;
         overflow: hidden;
         color: #fff;
+        overscroll-behavior: contain;
     }
 
     .lightbox-dialog::backdrop {
         background: rgb(0 0 0 / 0.85);
         backdrop-filter: blur(4px);
+        overscroll-behavior: contain;
     }
 
     .lightbox-close {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
+        top: max(1rem, env(safe-area-inset-top, 0px));
+        right: max(1rem, env(safe-area-inset-right, 0px));
         z-index: 20;
         display: flex;
         align-items: center;
@@ -175,7 +179,7 @@
         display: block;
         position: relative;
         height: 100%;
-        max-height: 95vh;
+        max-height: 95dvh;
         width: 100%;
         max-width: 95vw;
         overflow: hidden;

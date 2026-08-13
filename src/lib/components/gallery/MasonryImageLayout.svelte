@@ -125,8 +125,15 @@
     function itemRef(node: HTMLElement, index: number) {
         const trigger = node.querySelector<HTMLElement>('[data-preview-trigger]');
         itemRefs[index] = trigger || node;
+
+        function onKey(event: KeyboardEvent) {
+            handleKeydown(event, index);
+        }
+
+        node.addEventListener('keydown', onKey);
         return {
             destroy() {
+                node.removeEventListener('keydown', onKey);
                 itemRefs.splice(index, 1);
             }
         };
@@ -178,7 +185,6 @@
             style={image.aspectRatio ? `aspect-ratio: ${image.aspectRatio}` : undefined}
             use:itemRef={index}
             use:revealOnScroll={index}
-            on:keydown={(e) => handleKeydown(e, index)}
         >
             <ImageCard
                 {image}
