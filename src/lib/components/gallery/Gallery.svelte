@@ -532,7 +532,7 @@
 
 <svelte:window
     on:keydown={(e) => {
-        if (showPreview && (e.key === 'Escape' || e.key === 'Enter')) {
+        if (showPreview && e.key === 'Escape') {
             e.preventDefault();
             e.stopPropagation();
             handlePreviewClose();

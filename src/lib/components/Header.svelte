@@ -55,9 +55,45 @@
         document.body.style.top = '';
     }
 
+    function getMenuCycle(): HTMLElement[] {
+        const hamburgerBtn = hamburgerWrap?.querySelector<HTMLElement>('button');
+        const inMenu = menuEl
+            ? Array.from(menuEl.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
+                  (el) => el.tabIndex !== -1
+              )
+            : [];
+        return hamburgerBtn ? [hamburgerBtn, ...inMenu] : inMenu;
+    }
+
     function handleKeydown(e: KeyboardEvent) {
-        if (isMenuOpen && e.key === 'Escape') {
+        if (!isMenuOpen) return;
+
+        if (e.key === 'Escape') {
             closeMenu(true, true);
+            return;
+        }
+
+        if (e.key !== 'Tab') return;
+
+        const cycle = getMenuCycle();
+        if (cycle.length === 0) return;
+
+        const first = cycle[0];
+        const last = cycle[cycle.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+
+        if (!active || !cycle.includes(active)) {
+            e.preventDefault();
+            (e.shiftKey ? last : first).focus();
+            return;
+        }
+
+        if (e.shiftKey && active === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && active === last) {
+            e.preventDefault();
+            first.focus();
         }
     }
 
@@ -99,7 +135,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <header class="header">
-    <div class="m-auto flex h-11 w-full max-w-[1400px] items-center justify-between">
+    <div class="m-auto flex h-11 w-full max-w-[1400px] items-center justify-between gap-2">
         <nav aria-label="Home" class="flex items-center gap-6">
             <a
                 href={homeUrl}
@@ -132,7 +168,7 @@
         </nav>
 
         <!-- Mobile Navigation Toggle -->
-        <div class="flex items-center md:hidden" bind:this={hamburgerWrap}>
+        <div class="ml-2 flex items-center md:hidden" bind:this={hamburgerWrap}>
             <Hamburger isActive={isMenuOpen} on:click={toggleMenu} ariaControls="mobile-menu" />
         </div>
     </div>

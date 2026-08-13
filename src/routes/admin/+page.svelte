@@ -17,7 +17,7 @@
             loading = false;
 
             if (result.type === 'failure') {
-                errorMessage = result.data?.message || 'Invalid password';
+                errorMessage = result.data?.message || "That password didn’t match. Try again.";
                 await update();
             } else if (result.type === 'redirect') {
                 // When we get redirected (which happens on successful login), set admin mode
@@ -44,7 +44,7 @@
                     id="password"
                     name="password"
                     bind:value={password}
-                    class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full rounded-md border border-gray-300 bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d19177] focus-visible:ring-offset-2"
                     placeholder="Enter password"
                     required
                     autocomplete="current-password"

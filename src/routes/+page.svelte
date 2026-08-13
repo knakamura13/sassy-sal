@@ -718,7 +718,7 @@
 </script>
 
 <svelte:head>
-    <title>SallyJK Photography</title>
+    <meta name="description" content="Photography portfolio by Sally JK — galleries, portraits, and inquiries." />
     <meta property="og:title" content="SallyJK Photography" />
     <meta property="og:description" content="Photography portfolio by Sally JK" />
     <meta property="og:url" content={origin} />
